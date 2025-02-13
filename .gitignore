@@ -40,6 +40,16 @@ public_html/wp-content/debug.log
 .ddev/commands/host/*
 !.ddev/commands/host/install
 
+# Next.js
+nextjs/.next/
+nextjs/out/
+nextjs/build
+nextjs/node_modules/
+nextjs/.env*.local
+nextjs/.vercel
+nextjs/*.tsbuildinfo
+nextjs/next-env.d.ts
+
 # Plugins and themes (if using composer to manage them)
 # Uncomment these if you're using composer to manage plugins/themes
 # public_html/wp-content/plugins/
