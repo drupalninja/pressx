@@ -1,0 +1,55 @@
+# WordPress core files
+public_html/wp-admin/
+public_html/wp-includes/
+public_html/wp-content/uploads/
+public_html/wp-content/upgrade/
+public_html/wp-content/backup-db/
+public_html/wp-content/cache/
+public_html/wp-content/backups/
+
+# Default themes and plugins
+public_html/wp-content/themes/twenty*/
+public_html/wp-content/plugins/akismet/
+public_html/wp-content/plugins/hello.php
+
+# WordPress core files
+public_html/index.php
+public_html/license.txt
+public_html/readme.html
+public_html/wp-*.php
+public_html/xmlrpc.php
+
+# Configuration files
+public_html/wp-config.php
+public_html/wp-config-sample.php
+public_html/wp-config-ddev.php
+
+# htaccess
+public_html/.htaccess
+
+# Log files
+*.log
+public_html/wp-content/debug.log
+
+# DDEV
+.ddev/*
+!.ddev/config.yaml
+!.ddev/commands/
+.ddev/commands/*
+!.ddev/commands/host/
+.ddev/commands/host/*
+!.ddev/commands/host/install
+
+# Plugins and themes (if using composer to manage them)
+# Uncomment these if you're using composer to manage plugins/themes
+# public_html/wp-content/plugins/
+# public_html/wp-content/themes/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

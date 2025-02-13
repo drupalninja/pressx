@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Ensure we're in the docroot
+cd "${DDEV_APPROOT}/public_html"
+
+# Download WordPress if it's not already present
+if [ ! -f wp-config.php ]; then
+    echo "Downloading WordPress..."
+    ddev exec -d /var/www/html/public_html wp core download
+fi
+
+# Generate wp-config.php if it doesn't exist
+if [ ! -f wp-config.php ]; then
+    echo "Creating wp-config.php..."
+    ddev exec -d /var/www/html/public_html wp config create \
+        --dbname=db \
+        --dbuser=db \
+        --dbpass=db \
+        --dbhost=db
+fi
+
+# Install WordPress if not already installed
+if ! $(ddev exec -d /var/www/html/public_html wp core is-installed); then
+    echo "Installing WordPress..."
+    ddev exec -d /var/www/html/public_html wp core install \
+        --url='${DDEV_PRIMARY_URL}' \
+        --title='PressX' \
+        --admin_user=admin \
+        --admin_password=admin \
+        --admin_email=admin@example.com
+
+    echo "WordPress installed successfully!"
+    echo "Admin URL: ${DDEV_PRIMARY_URL}/wp-admin"
+    echo "Username: admin"
+    echo "Password: admin"
+else
+    echo "WordPress is already installed."
+fi
+
