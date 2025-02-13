@@ -35,10 +35,6 @@ public_html/wp-content/debug.log
 .ddev/*
 !.ddev/config.yaml
 !.ddev/commands/
-.ddev/commands/*
-!.ddev/commands/host/
-.ddev/commands/host/*
-!.ddev/commands/host/install
 
 # Next.js
 nextjs/.next/
