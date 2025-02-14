@@ -46,7 +46,7 @@ add_action('init', function() {
     'show_in_graphql' => true,
     'graphql_single_name' => 'landing',
     'graphql_plural_name' => 'landings',
-    'supports' => ['title', 'editor'],
+    'supports' => ['title'],
     'has_archive' => true,
     'show_in_rest' => true,
   ]);
