@@ -41,11 +41,22 @@ fi
 echo "Installing and activating required plugins..."
 ddev exec -d /var/www/html/public_html wp plugin install wp-graphql --activate
 ddev exec -d /var/www/html/public_html wp plugin install classic-editor --activate
+ddev exec -d /var/www/html/public_html wp plugin install headless-mode --activate
 
 # Configure Classic Editor settings
 ddev exec -d /var/www/html/public_html wp option update classic-editor-replace replace
 ddev exec -d /var/www/html/public_html wp option update classic-editor-allow-sites disallow
 
-# Verify GraphQL endpoint is accessible
+# Configure Headless Mode settings
+ddev exec -d /var/www/html/public_html wp option update headless_mode_enabled 1
+ddev exec -d /var/www/html/public_html wp option update headless_mode_frontend_url "https://pressx-nextjs.ddev.site:3333"
+ddev exec -d /var/www/html/public_html wp option update headless_mode_enable_preview 1
+ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_frontend 1
+ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_admin_ajax 0
+ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_rest_api 0
+ddev exec -d /var/www/html/public_html wp option update headless_mode_disable_theme 1
+
+# Verify endpoints are accessible
 echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
+echo "Next.js frontend configured at: https://pressx-nextjs.ddev.site"
 
