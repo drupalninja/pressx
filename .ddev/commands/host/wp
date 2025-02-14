@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Pass all arguments to wp-cli in the correct directory
+ddev exec -d /var/www/html/public_html wp "$@"

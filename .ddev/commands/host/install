@@ -37,3 +37,10 @@ else
     echo "WordPress is already installed."
 fi
 
+# Install and activate WPGraphQL
+echo "Installing and activating WPGraphQL..."
+ddev exec -d /var/www/html/public_html wp plugin install wp-graphql --activate
+
+# Verify GraphQL endpoint is accessible
+echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
+
