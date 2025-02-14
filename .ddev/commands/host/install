@@ -16,7 +16,18 @@ if [ ! -f wp-config.php ]; then
         --dbname=db \
         --dbuser=db \
         --dbpass=db \
-        --dbhost=db
+        --dbhost=db \
+        --extra-php <<PHP
+define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
+define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
+PHP
+else
+    # Add PRESSX constants if they don't exist
+    if ! grep -q "PRESSX_FRONTEND_URL" wp-config.php; then
+        echo "Adding PRESSX configuration to wp-config.php..."
+        ddev exec "sed -i '1i\define( '\''PRESSX_FRONTEND_URL'\'', '\''http://localhost:3333'\'' );' /var/www/html/public_html/wp-config.php"
+        ddev exec "sed -i '1i\define( '\''WORDPRESS_PREVIEW_SECRET'\'', '\''pressx_preview_secret'\'' );' /var/www/html/public_html/wp-config.php"
+    fi
 fi
 
 # Install WordPress if not already installed
@@ -41,7 +52,6 @@ fi
 echo "Installing and activating required plugins..."
 ddev exec -d /var/www/html/public_html wp plugin install wp-graphql --activate
 ddev exec -d /var/www/html/public_html wp plugin install classic-editor --activate
-ddev exec -d /var/www/html/public_html wp plugin install headless-mode --activate
 
 # Install Carbon Fields and PressX Core plugin dependencies
 echo "Installing Carbon Fields via Composer..."
@@ -63,9 +73,13 @@ done
 ddev exec -d /var/www/html/public_html wp option update classic-editor-replace replace
 ddev exec -d /var/www/html/public_html wp option update classic-editor-allow-sites disallow
 
+# Add rewrite rules for landing pages
+echo "Adding rewrite rules for landing pages..."
+ddev exec -d /var/www/html/public_html wp rewrite flush
+
 # Verify endpoints and plugin status
 echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
-echo "Next.js frontend configured at: https://pressx-nextjs.ddev.site"
+echo "Next.js frontend configured at: http://localhost:3333"
 echo "Verifying PressX Core plugin status..."
 ddev exec -d /var/www/html/public_html wp plugin list
 
