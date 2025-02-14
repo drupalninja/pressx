@@ -1,34 +1,37 @@
-# WordPress core files
-public_html/wp-admin/
-public_html/wp-includes/
-public_html/wp-content/upgrade/
-public_html/wp-content/backup-db/
-public_html/wp-content/cache/
-public_html/wp-content/backups/
+# Dependencies
+/vendor/
+
+# WordPress core files (managed by Composer)
+/public_html/*
+!/public_html/wp-content/
 
 # WordPress content directories
-public_html/wp-content/uploads/
-public_html/wp-content/plugins/
-public_html/wp-content/themes/twenty*/
+/public_html/wp-content/*
+!/public_html/wp-content/plugins/
+!/public_html/wp-content/mu-plugins/
+!/public_html/wp-content/themes/
 
-# WordPress core files
-public_html/index.php
-public_html/license.txt
-public_html/readme.html
-public_html/wp-*.php
-public_html/xmlrpc.php
+# Plugin directories (managed by Composer)
+/public_html/wp-content/plugins/*
+!/public_html/wp-content/plugins/pressx-core/
+
+# Theme directories (all themes ignored)
+/public_html/wp-content/themes/*
+
+# Uploads directory
+/public_html/wp-content/uploads/
+
+# Cache directories
+/public_html/wp-content/cache/
+/public_html/wp-content/upgrade/
+/public_html/wp-content/backup-db/
+/public_html/wp-content/backups/
+/public_html/wp-content/debug.log
 
 # Configuration files
-public_html/wp-config.php
-public_html/wp-config-sample.php
-public_html/wp-config-ddev.php
-
-# htaccess
-public_html/.htaccess
-
-# Log files
-*.log
-public_html/wp-content/debug.log
+.env
+.env.*
+!.env.example
 
 # DDEV
 .ddev/*

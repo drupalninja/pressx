@@ -1,16 +1,15 @@
 #!/bin/bash
 
-# Ensure we're in the docroot
-cd "${DDEV_APPROOT}/public_html"
+# Create necessary directories
+echo "Creating necessary directories..."
+mkdir -p public_html/wp-content/{uploads,plugins/pressx-core}
+chmod -R 777 public_html/wp-content/uploads
 
-# Download WordPress if it's not already present
-if [ ! -f wp-config.php ]; then
+# Download WordPress core if not present
+if [ ! -f public_html/wp-config.php ]; then
     echo "Downloading WordPress..."
     ddev exec -d /var/www/html/public_html wp core download
-fi
 
-# Generate wp-config.php if it doesn't exist
-if [ ! -f wp-config.php ]; then
     echo "Creating wp-config.php..."
     ddev exec -d /var/www/html/public_html wp config create \
         --dbname=db \
@@ -21,14 +20,11 @@ if [ ! -f wp-config.php ]; then
 define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
 define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
 PHP
-else
-    # Add PRESSX constants if they don't exist
-    if ! grep -q "PRESSX_FRONTEND_URL" wp-config.php; then
-        echo "Adding PRESSX configuration to wp-config.php..."
-        ddev exec "sed -i '1i\define( '\''PRESSX_FRONTEND_URL'\'', '\''http://localhost:3333'\'' );' /var/www/html/public_html/wp-config.php"
-        ddev exec "sed -i '1i\define( '\''WORDPRESS_PREVIEW_SECRET'\'', '\''pressx_preview_secret'\'' );' /var/www/html/public_html/wp-config.php"
-    fi
 fi
+
+# Install dependencies with Composer
+echo "Installing dependencies with Composer..."
+ddev composer install
 
 # Install WordPress if not already installed
 if ! $(ddev exec -d /var/www/html/public_html wp core is-installed); then
@@ -48,38 +44,21 @@ else
     echo "WordPress is already installed."
 fi
 
-# Install and activate required plugins
-echo "Installing and activating required plugins..."
-ddev exec -d /var/www/html/public_html wp plugin install wp-graphql --activate
-ddev exec -d /var/www/html/public_html wp plugin install classic-editor --activate
-
-# Install Carbon Fields and PressX Core plugin dependencies
-echo "Installing Carbon Fields via Composer..."
-ddev exec "cd /var/www/html/public_html/wp-content/plugins/pressx-core && composer install --no-interaction"
-
-# Activate custom plugin (retry up to 3 times if it fails)
-echo "Activating PressX Core plugin..."
-for i in {1..3}; do
-    if ddev exec -d /var/www/html/public_html wp plugin activate pressx-core; then
-        echo "PressX Core plugin activated successfully"
-        break
-    else
-        echo "Attempt $i to activate PressX Core failed, retrying..."
-        sleep 2
-    fi
-done
+# Configure WordPress settings
+echo "Configuring WordPress settings..."
 
 # Configure Classic Editor settings
 ddev exec -d /var/www/html/public_html wp option update classic-editor-replace replace
 ddev exec -d /var/www/html/public_html wp option update classic-editor-allow-sites disallow
 
-# Add rewrite rules for landing pages
-echo "Adding rewrite rules for landing pages..."
+# Set up permalink structure
+echo "Setting up permalink structure..."
+ddev exec -d /var/www/html/public_html wp rewrite structure '/%postname%/'
 ddev exec -d /var/www/html/public_html wp rewrite flush
 
-# Verify endpoints and plugin status
+# Verify setup
 echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
 echo "Next.js frontend configured at: http://localhost:3333"
-echo "Verifying PressX Core plugin status..."
+echo "Verifying plugin status..."
 ddev exec -d /var/www/html/public_html wp plugin list
 

@@ -1,0 +1,40 @@
+{
+  "name": "pressx/pressx",
+  "description": "PressX - A headless WordPress setup",
+  "type": "project",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "require": {
+    "php": ">=8.0",
+    "composer/installers": "^2.0",
+    "vlucas/phpdotenv": "^5.5",
+    "wpackagist-plugin/wp-graphql": "^2.0",
+    "wpackagist-plugin/classic-editor": "^1.6",
+    "htmlburger/carbon-fields": "^3.6"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/installers": true
+    }
+  },
+  "extra": {
+    "installer-paths": {
+      "public_html/wp-content/mu-plugins/{$name}/": [
+        "type:wordpress-muplugin"
+      ],
+      "public_html/wp-content/plugins/{$name}/": [
+        "type:wordpress-plugin"
+      ],
+      "public_html/wp-content/themes/{$name}/": [
+        "type:wordpress-theme"
+      ]
+    }
+  }
+}
