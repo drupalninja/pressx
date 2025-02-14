@@ -43,20 +43,29 @@ ddev exec -d /var/www/html/public_html wp plugin install wp-graphql --activate
 ddev exec -d /var/www/html/public_html wp plugin install classic-editor --activate
 ddev exec -d /var/www/html/public_html wp plugin install headless-mode --activate
 
+# Install Carbon Fields and PressX Core plugin dependencies
+echo "Installing Carbon Fields via Composer..."
+ddev exec "cd /var/www/html/public_html/wp-content/plugins/pressx-core && composer install --no-interaction"
+
+# Activate custom plugin (retry up to 3 times if it fails)
+echo "Activating PressX Core plugin..."
+for i in {1..3}; do
+    if ddev exec -d /var/www/html/public_html wp plugin activate pressx-core; then
+        echo "PressX Core plugin activated successfully"
+        break
+    else
+        echo "Attempt $i to activate PressX Core failed, retrying..."
+        sleep 2
+    fi
+done
+
 # Configure Classic Editor settings
 ddev exec -d /var/www/html/public_html wp option update classic-editor-replace replace
 ddev exec -d /var/www/html/public_html wp option update classic-editor-allow-sites disallow
 
-# Configure Headless Mode settings
-ddev exec -d /var/www/html/public_html wp option update headless_mode_enabled 1
-ddev exec -d /var/www/html/public_html wp option update headless_mode_frontend_url "https://pressx-nextjs.ddev.site:3333"
-ddev exec -d /var/www/html/public_html wp option update headless_mode_enable_preview 1
-ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_frontend 1
-ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_admin_ajax 0
-ddev exec -d /var/www/html/public_html wp option update headless_mode_redirect_rest_api 0
-ddev exec -d /var/www/html/public_html wp option update headless_mode_disable_theme 1
-
-# Verify endpoints are accessible
+# Verify endpoints and plugin status
 echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
 echo "Next.js frontend configured at: https://pressx-nextjs.ddev.site"
+echo "Verifying PressX Core plugin status..."
+ddev exec -d /var/www/html/public_html wp plugin list
 
