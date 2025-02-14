@@ -9,6 +9,13 @@ const query = `
         title
         date
         excerpt
+        content
+        featuredImage {
+          node {
+            sourceUrl
+            altText
+          }
+        }
       }
     }
   }
@@ -25,13 +32,20 @@ export default async function Home() {
         <div className="grid gap-8">
           {posts.map((post: Post) => (
             <article key={post.id} className="p-6 bg-white rounded-lg shadow">
+              {post.featuredImage && (
+                <img
+                  src={post.featuredImage.node.sourceUrl}
+                  alt={post.featuredImage.node.altText}
+                  className="w-full h-auto mb-4 rounded"
+                />
+              )}
               <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
               <div className="text-gray-600 mb-4">
                 {new Date(post.date).toLocaleDateString()}
               </div>
               <div
-                className="prose"
-                dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </article>
           ))}
