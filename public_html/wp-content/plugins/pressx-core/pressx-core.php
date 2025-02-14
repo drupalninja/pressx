@@ -106,3 +106,46 @@ add_filter('preview_post_link', function($preview_link, $post) {
         $post->ID
     );
 }, 10, 2);
+
+// Modify permalink for landing pages
+add_filter('post_type_link', function($post_link, $post) {
+    if ($post->post_type !== 'landing') {
+        return $post_link;
+    }
+
+    $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
+    return sprintf(
+        '%s/landing/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+    );
+}, 10, 2);
+
+// Modify view post link for landing pages
+add_filter('post_link', function($url, $post) {
+    if ($post->post_type !== 'landing') {
+        return $url;
+    }
+
+    $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
+    return sprintf(
+        '%s/landing/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+    );
+}, 10, 2);
+
+// Override get_sample_permalink for landing pages in admin
+add_filter('get_sample_permalink', function($permalink, $post_id, $title, $name, $post) {
+    if (!$post || $post->post_type !== 'landing') {
+        return $permalink;
+    }
+
+    $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
+    $post_name = $name ? $name : $post->post_name;
+
+    return [
+        sprintf('%s/landing/%%pagename%%', untrailingslashit($frontend_url)),
+        $post_name
+    ];
+}, 10, 5);

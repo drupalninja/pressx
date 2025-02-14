@@ -2,23 +2,26 @@ import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import { Hero } from '@/components/hero/Hero';
 
-const query = `
-  query LandingPage($id: ID!) {
-    landing(id: $id, idType: SLUG) {
-      databaseId
-      title
-      slug
-      sections {
-        type
+const getQueryForId = (id: string) => {
+  const isNumeric = /^\d+$/.test(id);
+  return `
+    query LandingPage($id: ID!) {
+      landing(id: $id, idType: ${isNumeric ? 'DATABASE_ID' : 'SLUG'}) {
+        databaseId
         title
-        description
-        backgroundImage
-        ctaText
-        ctaLink
+        slug
+        sections {
+          type
+          title
+          description
+          backgroundImage
+          ctaText
+          ctaLink
+        }
       }
     }
-  }
-`;
+  `;
+};
 
 interface LandingPageData {
   landing: {
@@ -44,6 +47,7 @@ export default async function LandingPage({
   try {
     // Remove any leading/trailing slashes and decode the slug
     const cleanSlug = decodeURIComponent(slug.replace(/^\/+|\/+$/g, ''));
+    const query = getQueryForId(cleanSlug);
     const data = await graphQLClient.request<LandingPageData>(query, { id: cleanSlug });
     console.log('GraphQL Response:', data); // Add debugging
 
