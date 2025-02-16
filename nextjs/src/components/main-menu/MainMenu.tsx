@@ -215,7 +215,7 @@ const DesktopMenuItems: React.FC<{
     <div className="flex space-x-8">
       {items.map((item, index) => (
         <div key={index} className="relative group">
-          {item.below ? (
+          {item.below && item.below.length > 0 ? (
             <>
               <button className={cn(
                 "flex items-center text-lg text-foreground hover:text-primary",
