@@ -26,8 +26,7 @@ export interface HeroSection {
 export default function SectionHero({ section }: { section: HeroSection }) {
   const media = section.media ? getImage(
     section.media,
-    'max-w-full h-auto',
-    '(max-width: 640px) 640px, (max-width: 1280px) 1280px, 2560px'
+    'max-w-full h-auto'
   ) : null;
 
   return (
