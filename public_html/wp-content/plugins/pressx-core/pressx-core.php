@@ -99,7 +99,7 @@ add_action('carbon_fields_loaded', function () {
             ->set_required(TRUE)
             ->set_help_text('Select the layout for this hero section.'),
           Field::make('text', 'heading')
-            ->set_help_text('The main heading for the hero section.'),
+            ->set_help_text('The main heading for the hero section. Use **text** for bold text.'),
           Field::make('rich_text', 'summary')
             ->set_help_text('Provide the teaser summary for the hero.'),
           Field::make('image', 'media')
@@ -152,10 +152,14 @@ add_action('graphql_register_types', function () {
           }
         }
 
+        // Convert markdown bold to HTML
+        $heading = $section['heading'] ?? '';
+        $heading = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $heading);
+
         return [
           'type' => $section['_type'] ?? 'hero',
           'heroLayout' => $section['hero_layout'] ?? 'image_top',
-          'heading' => $section['heading'] ?? '',
+          'heading' => $heading,
           'summary' => $section['summary'] ?? '',
           'media' => [
             'sourceUrl' => $section['media'] ?? '',

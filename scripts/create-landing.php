@@ -73,7 +73,7 @@ $sections = [
   [
     '_type' => 'hero',
     'hero_layout' => 'image_top',
-    'heading' => 'Empower Your Web Development with PressX',
+    'heading' => '**Empower** Your Web Development with **PressX**',
     'summary' => "Experience the next-gen platform that seamlessly integrates WordPress's powerful CMS with innovative front-end technologies. Elevate your projects with unmatched flexibility and performance.",
     'media' => $image_url,
     'link_title' => 'Start',
