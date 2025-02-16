@@ -5,6 +5,13 @@ echo "Creating necessary directories..."
 mkdir -p public_html/wp-content/{uploads,plugins/pressx-core}
 chmod -R 777 public_html/wp-content/uploads
 
+# Reset database
+echo "Resetting database..."
+ddev exec 'mysql -udb -pdb -e "DROP DATABASE IF EXISTS db; CREATE DATABASE db;"'
+
+# Generate random admin password
+ADMIN_PASSWORD=$(openssl rand -base64 12)
+
 # Download WordPress core if not present
 if [ ! -f public_html/wp-config.php ]; then
     echo "Downloading WordPress..."
@@ -17,7 +24,7 @@ if [ ! -f public_html/wp-config.php ]; then
         --dbpass=db \
         --dbhost=db \
         --extra-php <<PHP
-define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
+define( 'PRESSX_FRONTEND_URL', 'http://localhost:3000' );
 define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
 PHP
 fi
@@ -26,26 +33,29 @@ fi
 echo "Installing dependencies with Composer..."
 ddev composer install
 
-# Install WordPress if not already installed
-if ! $(ddev exec -d /var/www/html/public_html wp core is-installed); then
-    echo "Installing WordPress..."
-    ddev exec -d /var/www/html/public_html wp core install \
-        --url='${DDEV_PRIMARY_URL}' \
-        --title='PressX' \
-        --admin_user=admin \
-        --admin_password=admin \
-        --admin_email=admin@example.com
+# Always install WordPress fresh
+echo "Installing WordPress..."
+ddev exec -d /var/www/html/public_html wp core install \
+    --url='${DDEV_PRIMARY_URL}' \
+    --title='PressX' \
+    --admin_user=admin \
+    --admin_password="${ADMIN_PASSWORD}" \
+    --admin_email=admin@example.com
 
-    echo "WordPress installed successfully!"
-    echo "Admin URL: ${DDEV_PRIMARY_URL}/wp-admin"
-    echo "Username: admin"
-    echo "Password: admin"
-else
-    echo "WordPress is already installed."
-fi
+echo "WordPress installed successfully!"
+echo -e "\n⚠️  SAVE THESE CREDENTIALS ⚠️"
+echo "----------------------------------------"
+echo "WordPress Admin: ${DDEV_PRIMARY_URL}/wp-admin"
+echo "Username: admin"
+echo "Password: ${ADMIN_PASSWORD}"
+echo "----------------------------------------"
 
 # Configure WordPress settings
 echo "Configuring WordPress settings..."
+
+# Activate required plugins
+echo "Activating plugins..."
+ddev exec -d /var/www/html/public_html wp plugin activate pressx-core classic-editor wp-graphql
 
 # Configure Classic Editor settings
 ddev exec -d /var/www/html/public_html wp option update classic-editor-replace replace
@@ -56,9 +66,21 @@ echo "Setting up permalink structure..."
 ddev exec -d /var/www/html/public_html wp rewrite structure '/%postname%/'
 ddev exec -d /var/www/html/public_html wp rewrite flush
 
+# Create test landing page
+echo "Creating test landing page..."
+ddev wp-script /var/www/html/scripts/create-landing.php
+
 # Verify setup
-echo "GraphQL endpoint available at: ${DDEV_PRIMARY_URL}/graphql"
-echo "Next.js frontend configured at: http://localhost:3333"
-echo "Verifying plugin status..."
+echo -e "\n----------------------------------------"
+echo "🎉 Installation Complete! 🎉"
+echo "----------------------------------------"
+echo "WordPress Admin: ${DDEV_PRIMARY_URL}/wp-admin"
+echo "Username: admin"
+echo "Password: ${ADMIN_PASSWORD}"
+echo "----------------------------------------"
+echo "GraphQL endpoint: ${DDEV_PRIMARY_URL}/graphql"
+echo "Next.js frontend: http://localhost:3000"
+echo "----------------------------------------"
+echo "Plugin Status:"
 ddev exec -d /var/www/html/public_html wp plugin list
 

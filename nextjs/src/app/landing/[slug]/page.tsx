@@ -1,6 +1,6 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
-import { Hero } from '@/components/hero/Hero';
+import Hero from '@/components/hero/Hero';
 
 const getQueryForId = (id: string) => {
   const isNumeric = /^\d+$/.test(id);
@@ -12,11 +12,19 @@ const getQueryForId = (id: string) => {
         slug
         sections {
           type
-          title
-          description
-          backgroundImage
-          ctaText
-          ctaLink
+          heroLayout
+          media
+          heading
+          summary
+          link {
+            url
+            title
+          }
+          link2 {
+            url
+            title
+          }
+          modifier
         }
       }
     }
@@ -30,11 +38,19 @@ interface LandingPageData {
     slug: string;
     sections: Array<{
       type: string;
-      title: string;
-      description: string;
-      backgroundImage: string;
-      ctaText: string;
-      ctaLink: string;
+      heroLayout: 'image_top' | 'image_bottom' | 'image_bottom_split';
+      media: React.ReactNode;
+      heading: string;
+      summary: string;
+      link: {
+        url: string;
+        title: string;
+      };
+      link2?: {
+        url: string;
+        title: string;
+      };
+      modifier?: string;
     }>;
   };
 }
@@ -60,7 +76,18 @@ export default async function LandingPage({
         {data.landing.sections?.map((section, index) => {
           switch (section.type) {
             case 'hero':
-              return <Hero key={index} {...section} />;
+              return (
+                <Hero
+                  key={index}
+                  heroLayout={section.heroLayout}
+                  media={section.media}
+                  heading={section.heading}
+                  summary={section.summary}
+                  link={section.link}
+                  link2={section.link2}
+                  modifier={section.modifier}
+                />
+              );
             default:
               return null;
           }

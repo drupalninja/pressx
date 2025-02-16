@@ -1,0 +1,14 @@
+#!/bin/bash
+
+## Description: Run a PHP script with WordPress loaded
+## Usage: wp-script [script-path]
+## Example: "ddev wp-script /var/www/html/scripts/my-script.php"
+
+if [ -z "$1" ]; then
+    echo "Please provide a script path"
+    exit 1
+fi
+
+# Load WordPress and execute the script
+cd /var/www/html/public_html
+wp eval-file "$1"
