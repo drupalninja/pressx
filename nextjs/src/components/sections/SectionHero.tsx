@@ -11,12 +11,6 @@ export interface HeroSection {
     mediaDetails?: {
       width: number;
       height: number;
-      sizes: Array<{
-        name: string;
-        sourceUrl: string;
-        width: number;
-        height: number;
-      }>;
     };
   };
   link: {
@@ -30,19 +24,11 @@ export interface HeroSection {
 }
 
 export default function SectionHero({ section }: { section: HeroSection }) {
-  console.log('Hero section:', section);
-  console.log('Media object:', section.media);
-  console.log('Media source URL:', section.media?.sourceUrl);
-  console.log('Media details:', section.media?.mediaDetails);
-  console.log('Available sizes:', section.media?.mediaDetails?.sizes);
-
   const media = section.media ? getImage(
     section.media,
     'max-w-full h-auto',
-    ['hero-s', 'hero-lx2']
+    '(max-width: 640px) 640px, (max-width: 1280px) 1280px, 2560px'
   ) : null;
-
-  console.log('Generated media element:', media);
 
   return (
     <Hero
@@ -68,12 +54,6 @@ export const heroSectionFragment = `
       mediaDetails {
         width
         height
-        sizes {
-          name
-          sourceUrl
-          width
-          height
-        }
       }
     }
     link {

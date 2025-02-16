@@ -1,8 +1,6 @@
 import Image from 'next/image';
 
-interface ImageSize {
-  name: string;
-  sourceUrl: string;
+interface MediaDetails {
   width: number;
   height: number;
 }
@@ -10,19 +8,14 @@ interface ImageSize {
 export interface WordPressImage {
   sourceUrl: string;
   altText?: string;
-  mediaDetails?: {
-    width: number;
-    height: number;
-    sizes: ImageSize[];
-  };
+  mediaDetails?: MediaDetails;
 }
 
-const defaultSizes = '(max-width: 767px) 100vw, 50vw';
+const defaultSizes = '(max-width: 640px) 640px, (max-width: 1280px) 1280px, 2560px';
 
 export const getImage = (
   media: WordPressImage | null | undefined,
   className?: string,
-  imageStyle?: string | string[],
   sizes?: string
 ) => {
   if (!media?.sourceUrl) return null;
@@ -42,67 +35,20 @@ export const getImage = (
     );
   }
 
-  // Get all available sizes
-  const availableSizes = media.mediaDetails?.sizes ?? [];
+  // Get dimensions from mediaDetails or use defaults
+  const width = media.mediaDetails?.width ?? 1920;
+  const height = media.mediaDetails?.height ?? 1080;
 
-  // If imageStyle is a string, use it for all screen sizes
-  if (typeof imageStyle === 'string') {
-    const variant = availableSizes.find(size => size.name === imageStyle);
-    if (variant?.sourceUrl) {
-      return (
-        <Image
-          src={variant.sourceUrl}
-          alt={media.altText ?? ''}
-          width={variant.width}
-          height={variant.height}
-          className={className ?? ''}
-          sizes={sizes ?? defaultSizes}
-          unoptimized
-        />
-      );
-    }
-  }
-
-  // If imageStyle is an array, use first for mobile and second for desktop
-  if (Array.isArray(imageStyle) && imageStyle.length >= 2) {
-    const mobileVariant = availableSizes.find(size => size.name === imageStyle[0]);
-    const desktopVariant = availableSizes.find(size => size.name === imageStyle[1]);
-
-    if (mobileVariant?.sourceUrl && desktopVariant?.sourceUrl) {
-      return (
-        <picture>
-          <source
-            media="(max-width: 767px)"
-            srcSet={`${mobileVariant.sourceUrl} ${mobileVariant.width}w`}
-          />
-          <source
-            media="(min-width: 768px)"
-            srcSet={`${desktopVariant.sourceUrl} ${desktopVariant.width}w`}
-          />
-          <Image
-            src={media.sourceUrl}
-            alt={media.altText ?? ''}
-            width={media.mediaDetails?.width ?? 1920}
-            height={media.mediaDetails?.height ?? 955}
-            className={className ?? ''}
-            sizes={sizes ?? defaultSizes}
-            unoptimized
-          />
-        </picture>
-      );
-    }
-  }
-
-  // Fallback to original image
   return (
     <Image
       src={media.sourceUrl}
       alt={media.altText ?? ''}
-      width={media.mediaDetails?.width ?? 1920}
-      height={media.mediaDetails?.height ?? 955}
+      width={width}
+      height={height}
       className={className ?? ''}
       sizes={sizes ?? defaultSizes}
-      unoptimized
+      quality={90}
+      priority={true}
     />
   );
 };
