@@ -36,8 +36,8 @@ export default function Header({ mainMenu }: HeaderProps) {
           siteName="PressX"
           ctaLinkCount={2}
           modifier="p-0"
-          siteLogoWidth={200}
-          siteLogoHeight={100}
+          siteLogoWidth={160}
+          siteLogoHeight={42}
         />
       </div>
     </header>
