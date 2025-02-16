@@ -26,17 +26,20 @@ export default function Header({ mainMenu }: HeaderProps) {
   console.log(transformedMenuItems);
 
   return (
-    <header>
-      <MainMenu
-        menuItems={transformedMenuItems}
-        showSiteName={true}
-        siteName="PressX"
-        ctaLinkCount={1} // The last menu item will be styled as a CTA
-        modifier="bg-background border-b"
-        linkModifier="hover:text-primary transition-colors"
-        siteLogoWidth={200}
-        siteLogoHeight={100}
-      />
+    <header role="banner" className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-8">
+      <div className="lg:container mx-auto py-6">
+        <MainMenu
+          siteLogo='/images/logo.svg'
+          menuItems={transformedMenuItems}
+          showSiteName={false}
+          showLogo={true}
+          siteName="PressX"
+          ctaLinkCount={2}
+          modifier="p-0"
+          siteLogoWidth={200}
+          siteLogoHeight={100}
+        />
+      </div>
     </header>
   );
 }
