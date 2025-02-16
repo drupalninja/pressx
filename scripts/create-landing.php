@@ -6,7 +6,7 @@
  */
 
 // First, ensure the image exists in WordPress media library.
-$image_path = __DIR__ . '/images/card.webp';
+$image_path = __DIR__ . '/images/card.png';
 $image_id = NULL;
 
 // Check if image exists locally.
