@@ -1,5 +1,7 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
+import Hero from '@/components/hero/Hero';
+import Image from 'next/image';
 
 interface LandingPageData {
   landing: {
@@ -7,11 +9,19 @@ interface LandingPageData {
     databaseId: number;
     sections: Array<{
       type: string;
-      title: string;
-      description: string;
-      backgroundImage: string;
-      ctaText: string;
-      ctaLink: string;
+      heroLayout: string;
+      heading: string;
+      summary: string;
+      media: string;
+      link: {
+        url: string;
+        title: string;
+      };
+      link2?: {
+        url: string;
+        title: string;
+      };
+      modifier?: string;
     }>;
   };
 }
@@ -23,11 +33,19 @@ const getLandingPageQuery = `
       databaseId
       sections {
         type
-        title
-        description
-        backgroundImage
-        ctaText
-        ctaLink
+        heroLayout
+        heading
+        summary
+        media
+        link {
+          url
+          title
+        }
+        link2 {
+          url
+          title
+        }
+        modifier
       }
     }
   }
@@ -55,31 +73,27 @@ export default async function LandingPage({
       <main className="min-h-screen">
         {data.landing.sections?.map((section, index) => {
           if (section.type === 'hero') {
+            const media = section.media ? (
+              <Image
+                src={section.media}
+                alt=""
+                width={1280}
+                height={720}
+                className="w-full h-auto"
+              />
+            ) : null;
+
             return (
-              <section
+              <Hero
                 key={index}
-                className="relative min-h-[60vh] flex items-center"
-                style={{
-                  backgroundImage: section.backgroundImage ? `url(${section.backgroundImage})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              >
-                <div className="container mx-auto px-4 py-12">
-                  <div className="max-w-2xl">
-                    <h1 className="text-4xl font-bold mb-4">{section.title}</h1>
-                    <p className="text-xl mb-8">{section.description}</p>
-                    {section.ctaText && section.ctaLink && (
-                      <a
-                        href={section.ctaLink}
-                        className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        {section.ctaText}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </section>
+                heroLayout={section.heroLayout as 'image_top' | 'image_bottom' | 'image_bottom_split'}
+                media={media}
+                heading={section.heading}
+                summary={section.summary}
+                link={section.link}
+                link2={section.link2}
+                modifier={section.modifier}
+              />
             );
           }
           return null;

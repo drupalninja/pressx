@@ -64,18 +64,32 @@ add_action('carbon_fields_loaded', function() {
           'singular_name' => 'Section'
         ])
         ->add_fields('hero', [
-          Field::make('text', 'title')
+          Field::make('select', 'hero_layout')
+            ->set_options([
+              'image_top' => 'Image Top',
+              'image_bottom' => 'Image Bottom',
+              'image_bottom_split' => 'Image Bottom Split'
+            ])
+            ->set_default_value('image_top')
             ->set_required(true)
-            ->set_help_text('The main title for the hero section.'),
-          Field::make('rich_text', 'description')
-            ->set_help_text('The description text for the hero section.'),
-          Field::make('image', 'background_image')
+            ->set_help_text('Select the layout for this hero section.'),
+          Field::make('text', 'heading')
+            ->set_help_text('The main heading for the hero section.'),
+          Field::make('rich_text', 'summary')
+            ->set_help_text('Provide the teaser summary for the hero.'),
+          Field::make('image', 'media')
             ->set_value_type('url')
-            ->set_help_text('The background image for the hero section.'),
-          Field::make('text', 'cta_text')
-            ->set_help_text('The text for the call-to-action button.'),
-          Field::make('text', 'cta_link')
-            ->set_help_text('The URL for the call-to-action button.')
+            ->set_help_text('Featured media item for the hero.'),
+          Field::make('text', 'link_title')
+            ->set_help_text('The text for the primary call-to-action link.'),
+          Field::make('text', 'link_url')
+            ->set_help_text('The URL for the primary call-to-action link.'),
+          Field::make('text', 'link2_title')
+            ->set_help_text('The text for the secondary optional link.'),
+          Field::make('text', 'link2_url')
+            ->set_help_text('The URL for the secondary optional link.'),
+          Field::make('text', 'modifier')
+            ->set_help_text('Additional CSS classes to modify the hero section (optional).')
         ])
     ]);
 });
@@ -88,26 +102,45 @@ add_action('graphql_register_types', function() {
     'resolve' => function($post) {
       $sections = carbon_get_post_meta($post->ID, 'sections');
       return array_map(function($section) {
+        $link = [
+          'url' => $section['link_url'] ?? '',
+          'title' => $section['link_title'] ?? ''
+        ];
+        $link2 = [
+          'url' => $section['link2_url'] ?? '',
+          'title' => $section['link2_title'] ?? ''
+        ];
         return [
           'type' => $section['_type'] ?? 'hero',
-          'title' => $section['title'] ?? '',
-          'description' => $section['description'] ?? '',
-          'backgroundImage' => $section['background_image'] ?? '',
-          'ctaText' => $section['cta_text'] ?? '',
-          'ctaLink' => $section['cta_link'] ?? '',
+          'heroLayout' => $section['hero_layout'] ?? 'image_top',
+          'heading' => $section['heading'] ?? '',
+          'summary' => $section['summary'] ?? '',
+          'media' => $section['media'] ?? '',
+          'link' => $link,
+          'link2' => $link2,
+          'modifier' => $section['modifier'] ?? ''
         ];
       }, $sections ?: []);
     }
   ]);
 
+  register_graphql_object_type('Link', [
+    'fields' => [
+      'url' => ['type' => 'String'],
+      'title' => ['type' => 'String']
+    ]
+  ]);
+
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
-      'title' => ['type' => 'String'],
-      'description' => ['type' => 'String'],
-      'backgroundImage' => ['type' => 'String'],
-      'ctaText' => ['type' => 'String'],
-      'ctaLink' => ['type' => 'String'],
+      'heroLayout' => ['type' => 'String'],
+      'heading' => ['type' => 'String'],
+      'summary' => ['type' => 'String'],
+      'media' => ['type' => 'String'],
+      'link' => ['type' => 'Link'],
+      'link2' => ['type' => 'Link'],
+      'modifier' => ['type' => 'String']
     ]
   ]);
 });

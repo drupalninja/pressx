@@ -65,21 +65,29 @@ $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
 $sections = [
   [
     '_type' => 'hero',
-    'title' => 'Welcome to Our Test Landing Page',
-    'description' => 'This is an automatically generated test page with a hero section',
-    'background_image' => $image_url,
-    'cta_text' => 'Get Started',
-    'cta_link' => '#primary-cta'
+    'hero_layout' => 'image_top',
+    'heading' => 'Welcome to Our Test Landing Page',
+    'summary' => 'This is an automatically generated test page with a hero section',
+    'media' => $image_url,
+    'link_title' => 'Get Started',
+    'link_url' => '#primary-cta',
+    'link2_title' => 'Learn More',
+    'link2_url' => '#secondary-cta',
+    'modifier' => 'max-w-4xl'
   ]
 ];
 
 // Update meta values in Carbon Fields format.
 update_post_meta($post_id, '_sections|||0|value', 'hero');
-update_post_meta($post_id, '_sections|title|0|0|value', 'Welcome to Our Test Landing Page');
-update_post_meta($post_id, '_sections|description|0|0|value', 'This is an automatically generated test page with a hero section');
-update_post_meta($post_id, '_sections|background_image|0|0|value', $image_url);
-update_post_meta($post_id, '_sections|cta_text|0|0|value', 'Get Started');
-update_post_meta($post_id, '_sections|cta_link|0|0|value', '#primary-cta');
+update_post_meta($post_id, '_sections|hero_layout|0|0|value', 'image_top');
+update_post_meta($post_id, '_sections|heading|0|0|value', 'Welcome to Our Test Landing Page');
+update_post_meta($post_id, '_sections|summary|0|0|value', 'This is an automatically generated test page with a hero section');
+update_post_meta($post_id, '_sections|media|0|0|value', $image_url);
+update_post_meta($post_id, '_sections|link_title|0|0|value', 'Get Started');
+update_post_meta($post_id, '_sections|link_url|0|0|value', '#primary-cta');
+update_post_meta($post_id, '_sections|link2_title|0|0|value', 'Learn More');
+update_post_meta($post_id, '_sections|link2_url|0|0|value', '#secondary-cta');
+update_post_meta($post_id, '_sections|modifier|0|0|value', 'max-w-4xl');
 
 // Get the post slug.
 $post = get_post($post_id);
@@ -91,4 +99,4 @@ echo "ID: {$post_id}\n";
 echo "Slug: {$slug}\n";
 echo "\nView your page at:\n";
 echo "http://pressx.ddev.site/landing/{$slug}\n";
-echo "http://pressx.ddev.site:3000/landing/{$slug} (Next.js)\n";
+echo "http://pressx.ddev.site:3333/landing/{$slug} (Next.js)\n";
