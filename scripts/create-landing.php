@@ -73,7 +73,7 @@ $sections = [
     'link_url' => '#primary-cta',
     'link2_title' => 'Learn More',
     'link2_url' => '#secondary-cta',
-    'modifier' => 'max-w-4xl'
+    'modifier' => 'max-w-4xl',
   ]
 ];
 

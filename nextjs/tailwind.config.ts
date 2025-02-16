@@ -1,12 +1,14 @@
-const defaultTheme = require('tailwindcss/defaultTheme')
+import defaultTheme from 'tailwindcss/defaultTheme';
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindcssTypography from "@tailwindcss/typography";
 
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -142,9 +144,7 @@ const config: Config = {
         'accordion-up': 'accordion-up 0.2s ease-out'
       },
       spacing: {
-        // Tailwind's default spacing scale
         ...defaultTheme.spacing,
-        // Extending with additional values
         '13': '3.25rem',
         '14': '3.5rem',
         '15': '3.75rem',
@@ -161,6 +161,6 @@ const config: Config = {
       },
     }
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [tailwindcssAnimate, tailwindcssTypography],
 };
 export default config;
