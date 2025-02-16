@@ -37,13 +37,28 @@ add_action('after_setup_theme', function () {
 
   Carbon_Fields::boot();
 
-  // Add custom image sizes based on Drupal configuration.
+  // Register custom image sizes.
   add_image_size('hero-s', 640, 360, TRUE);
+  add_image_size('hero-lx2', 2560, 1440, TRUE);
+
+  // Add custom sizes to allowed image sizes.
+  add_filter('image_size_names_choose', function ($sizes) {
+    return array_merge($sizes, [
+      'hero-s' => 'Hero Small',
+      'hero-lx2' => 'Hero Large 2x',
+    ]);
+  });
+
+  // Remove default image sizes we don't need.
+  add_filter('intermediate_image_size_names', function ($sizes) {
+    return ['hero-s', 'hero-lx2'];
+  });
+
+  // Legacy sizes - keeping for backward compatibility
   add_image_size('hero-sx2', 1280, 720, TRUE);
   add_image_size('hero-m', 960, 540, TRUE);
   add_image_size('hero-mx2', 1920, 1080, TRUE);
   add_image_size('hero-l', 1280, 720, TRUE);
-  add_image_size('hero-lx2', 2560, 1440, TRUE);
 
   // 16:9 aspect ratio sizes.
   add_image_size('16:9-xlarge', 1920, 1080, TRUE);
@@ -141,12 +156,64 @@ add_action('graphql_register_types', function () {
           'title' => $section['link2_title'] ?? '',
         ];
 
+        // Get media details if we have an attachment URL
+        $media_details = NULL;
+        if (!empty($section['media'])) {
+          $attachment_id = attachment_url_to_postid($section['media']);
+          error_log('Media URL: ' . $section['media']);
+          error_log('Attachment ID: ' . $attachment_id);
+
+          if ($attachment_id) {
+            $metadata = wp_get_attachment_metadata($attachment_id);
+            error_log('Original metadata: ' . print_r($metadata, TRUE));
+
+            $media_details = [
+              'width' => (int) ($metadata['width'] ?? 0),
+              'height' => (int) ($metadata['height'] ?? 0),
+              'sizes' => [],
+            ];
+
+            if (!empty($metadata['sizes'])) {
+              // Get our custom image sizes.
+              $custom_sizes = ['hero-s', 'hero-lx2'];
+
+              foreach ($custom_sizes as $size_name) {
+                $size_url = wp_get_attachment_image_url($attachment_id, $size_name);
+                $size_data = $metadata['sizes'][$size_name] ?? NULL;
+
+                error_log("Processing size {$size_name}:");
+                error_log("  - URL: {$size_url}");
+                error_log("  - Data: " . print_r($size_data, TRUE));
+
+                if ($size_url && $size_data) {
+                  $media_details['sizes'][] = [
+                    'name' => $size_name,
+                    'sourceUrl' => $size_url,
+                    'width' => (int) $size_data['width'],
+                    'height' => (int) $size_data['height'],
+                  ];
+                }
+              }
+
+              // Sort sizes by width for consistent order.
+              usort($media_details['sizes'], function ($a, $b) {
+                return $a['width'] - $b['width'];
+              });
+
+              error_log('Final media details: ' . print_r($media_details, TRUE));
+            }
+          }
+        }
+
         return [
           'type' => $section['_type'] ?? 'hero',
           'heroLayout' => $section['hero_layout'] ?? 'image_top',
           'heading' => $section['heading'] ?? '',
           'summary' => $section['summary'] ?? '',
-          'media' => $section['media'] ?? '',
+          'media' => [
+            'sourceUrl' => $section['media'] ?? '',
+            'mediaDetails' => $media_details,
+          ],
           'link' => $link,
           'link2' => $link2,
         ];
@@ -161,13 +228,37 @@ add_action('graphql_register_types', function () {
     ],
   ]);
 
+  register_graphql_object_type('ImageSize', [
+    'fields' => [
+      'name' => ['type' => 'String'],
+      'sourceUrl' => ['type' => 'String'],
+      'width' => ['type' => 'Int'],
+      'height' => ['type' => 'Int'],
+    ],
+  ]);
+
+  register_graphql_object_type('MediaDetails', [
+    'fields' => [
+      'width' => ['type' => 'Int'],
+      'height' => ['type' => 'Int'],
+      'sizes' => ['type' => ['list_of' => 'ImageSize']],
+    ],
+  ]);
+
+  register_graphql_object_type('Media', [
+    'fields' => [
+      'sourceUrl' => ['type' => 'String'],
+      'mediaDetails' => ['type' => 'MediaDetails'],
+    ],
+  ]);
+
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
       'heroLayout' => ['type' => 'String'],
       'heading' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
-      'media' => ['type' => 'String'],
+      'media' => ['type' => 'Media'],
       'link' => ['type' => 'Link'],
       'link2' => ['type' => 'Link'],
     ],

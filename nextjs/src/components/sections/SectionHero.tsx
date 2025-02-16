@@ -6,7 +6,19 @@ export interface HeroSection {
   heroLayout: 'image_top' | 'image_bottom' | 'image_bottom_split';
   heading: string;
   summary: string;
-  media: string;
+  media: {
+    sourceUrl: string;
+    mediaDetails?: {
+      width: number;
+      height: number;
+      sizes: Array<{
+        name: string;
+        sourceUrl: string;
+        width: number;
+        height: number;
+      }>;
+    };
+  };
   link: {
     url: string;
     title: string;
@@ -18,15 +30,19 @@ export interface HeroSection {
 }
 
 export default function SectionHero({ section }: { section: HeroSection }) {
+  console.log('Hero section:', section);
+  console.log('Media object:', section.media);
+  console.log('Media source URL:', section.media?.sourceUrl);
+  console.log('Media details:', section.media?.mediaDetails);
+  console.log('Available sizes:', section.media?.mediaDetails?.sizes);
+
   const media = section.media ? getImage(
-    { sourceUrl: section.media },
+    section.media,
     'max-w-full h-auto',
-    {
-      mobile: 'hero-s',
-      desktop: 'hero-l',
-      sizes: '(max-width: 640px) 640px, (max-width: 960px) 960px, 1280px'
-    }
+    ['hero-s', 'hero-lx2']
   ) : null;
+
+  console.log('Generated media element:', media);
 
   return (
     <Hero
@@ -47,7 +63,19 @@ export const heroSectionFragment = `
     heroLayout
     heading
     summary
-    media
+    media {
+      sourceUrl
+      mediaDetails {
+        width
+        height
+        sizes {
+          name
+          sourceUrl
+          width
+          height
+        }
+      }
+    }
     link {
       url
       title
