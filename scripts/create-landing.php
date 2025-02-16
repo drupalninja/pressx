@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Script to create a test landing page with a hero section.
@@ -72,14 +73,13 @@ $sections = [
   [
     '_type' => 'hero',
     'hero_layout' => 'image_top',
-    'heading' => 'Welcome to Our Test Landing Page',
-    'summary' => 'This is an automatically generated test page with a hero section',
+    'heading' => 'Empower Your Web Development with PressX',
+    'summary' => "Experience the next-gen platform that seamlessly integrates WordPress's powerful CMS with innovative front-end technologies. Elevate your projects with unmatched flexibility and performance.",
     'media' => $image_url,
-    'link_title' => 'Get Started',
+    'link_title' => 'Start',
     'link_url' => '#primary-cta',
-    'link2_title' => 'Learn More',
+    'link2_title' => 'Explore',
     'link2_url' => '#secondary-cta',
-    'modifier' => 'max-w-4xl',
   ]
 ];
 

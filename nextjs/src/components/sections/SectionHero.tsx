@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import Hero from '@/components/hero/Hero';
+import { getImage } from '@/components/helpers/Utilities';
 
 export interface HeroSection {
   type: 'hero';
@@ -15,20 +15,17 @@ export interface HeroSection {
     url: string;
     title: string;
   };
-  modifier?: string;
 }
 
-export default function SectionHero({ section, priority = false }: { section: HeroSection; priority?: boolean }) {
-  const media = section.media ? (
-    <Image
-      src={section.media}
-      alt=""
-      width={1280}
-      height={720}
-      className="w-full h-auto"
-      sizes="(max-width: 640px) 640px, (max-width: 960px) 960px, 1280px"
-      priority={priority}
-    />
+export default function SectionHero({ section }: { section: HeroSection }) {
+  const media = section.media ? getImage(
+    { sourceUrl: section.media },
+    'max-w-full h-auto',
+    {
+      mobile: 'hero-s',
+      desktop: 'hero-l',
+      sizes: '(max-width: 640px) 640px, (max-width: 960px) 960px, 1280px'
+    }
   ) : null;
 
   return (
@@ -39,7 +36,6 @@ export default function SectionHero({ section, priority = false }: { section: He
       summary={section.summary}
       link={section.link}
       link2={section.link2}
-      modifier={section.modifier}
     />
   );
 }
@@ -60,6 +56,5 @@ export const heroSectionFragment = `
       url
       title
     }
-    modifier
   }
 `;

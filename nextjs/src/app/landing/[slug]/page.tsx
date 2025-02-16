@@ -31,10 +31,14 @@ export default async function LandingPage({
 }) {
   try {
     console.log('Fetching landing page with slug:', slug);
+    console.log('GraphQL endpoint:', process.env.NEXT_PUBLIC_WORDPRESS_API_URL);
+
     const data = await graphQLClient.request<LandingPageData>(
       getLandingPageQuery,
       { slug }
     );
+
+    console.log('GraphQL response:', JSON.stringify(data, null, 2));
 
     if (!data?.landing) {
       console.log('No landing page found in response');
@@ -49,7 +53,6 @@ export default async function LandingPage({
               <SectionHero
                 key={index}
                 section={section}
-                priority={index === 0}
               />
             );
           }
@@ -59,6 +62,10 @@ export default async function LandingPage({
     );
   } catch (error) {
     console.error('Error fetching landing page:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     notFound();
   }
 }
