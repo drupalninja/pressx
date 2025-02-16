@@ -55,6 +55,7 @@ $post_data = [
   'post_title'    => 'Test Landing Page ' . time(),
   'post_status'   => 'publish',
   'post_type'     => 'landing',
+  'post_name'     => 'test-landing-page-' . time(),
 ];
 
 $post_id = wp_insert_post($post_data);
@@ -83,16 +84,7 @@ $sections = [
 ];
 
 // Update meta values in Carbon Fields format.
-update_post_meta($post_id, '_sections|||0|value', 'hero');
-update_post_meta($post_id, '_sections|hero_layout|0|0|value', 'image_top');
-update_post_meta($post_id, '_sections|heading|0|0|value', 'Welcome to Our Test Landing Page');
-update_post_meta($post_id, '_sections|summary|0|0|value', 'This is an automatically generated test page with a hero section');
-update_post_meta($post_id, '_sections|media|0|0|value', $image_url);
-update_post_meta($post_id, '_sections|link_title|0|0|value', 'Get Started');
-update_post_meta($post_id, '_sections|link_url|0|0|value', '#primary-cta');
-update_post_meta($post_id, '_sections|link2_title|0|0|value', 'Learn More');
-update_post_meta($post_id, '_sections|link2_url|0|0|value', '#secondary-cta');
-update_post_meta($post_id, '_sections|modifier|0|0|value', 'max-w-4xl');
+carbon_set_post_meta($post_id, 'sections', $sections);
 
 // Get the post slug.
 $post = get_post($post_id);

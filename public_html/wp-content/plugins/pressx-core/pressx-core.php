@@ -24,6 +24,22 @@ add_action('after_setup_theme', function() {
   }
 
   \Carbon_Fields\Carbon_Fields::boot();
+
+  // Add custom image sizes based on Drupal configuration
+  // Hero sizes
+  add_image_size('hero-s', 640, 360, true);      // Small hero 16:9
+  add_image_size('hero-sx2', 1280, 720, true);   // Small hero @2x
+  add_image_size('hero-m', 960, 540, true);      // Medium hero 16:9
+  add_image_size('hero-mx2', 1920, 1080, true);  // Medium hero @2x
+  add_image_size('hero-l', 1280, 720, true);     // Large hero 16:9
+  add_image_size('hero-lx2', 2560, 1440, true);  // Large hero @2x
+
+  // 16:9 aspect ratio sizes
+  add_image_size('16:9-xlarge', 1920, 1080, true);
+  add_image_size('16:9-large2x', 2560, 1440, true);
+  add_image_size('16:9-large', 1280, 720, true);
+  add_image_size('16:9-medium', 960, 540, true);
+  add_image_size('16:9-small', 640, 360, true);
 });
 
 // Register Carbon Fields assets
@@ -46,9 +62,14 @@ add_action('init', function() {
     'show_in_graphql' => true,
     'graphql_single_name' => 'landing',
     'graphql_plural_name' => 'landings',
-    'supports' => ['title'],
+    'supports' => ['title', 'custom-fields'],
     'has_archive' => true,
     'show_in_rest' => true,
+    'rewrite' => [
+      'slug' => 'landing'
+    ],
+    'show_in_nav_menus' => true,
+    'publicly_queryable' => true,
   ]);
 });
 
@@ -110,12 +131,23 @@ add_action('graphql_register_types', function() {
           'url' => $section['link2_url'] ?? '',
           'title' => $section['link2_title'] ?? ''
         ];
+
+        // Get media details if media is set
+        $media_details = null;
+        if (!empty($section['media'])) {
+          $attachment_id = attachment_url_to_postid($section['media']);
+          if ($attachment_id) {
+            $media_details = wp_get_attachment_metadata($attachment_id);
+          }
+        }
+
         return [
           'type' => $section['_type'] ?? 'hero',
           'heroLayout' => $section['hero_layout'] ?? 'image_top',
           'heading' => $section['heading'] ?? '',
           'summary' => $section['summary'] ?? '',
           'media' => $section['media'] ?? '',
+          'mediaDetails' => $media_details ? ['mediaDetails' => $media_details] : null,
           'link' => $link,
           'link2' => $link2,
           'modifier' => $section['modifier'] ?? ''
@@ -131,6 +163,14 @@ add_action('graphql_register_types', function() {
     ]
   ]);
 
+  register_graphql_object_type('MediaDetails', [
+    'fields' => [
+      'width' => ['type' => 'Int'],
+      'height' => ['type' => 'Int'],
+      'sizes' => ['type' => ['list_of' => 'ImageSize']]
+    ]
+  ]);
+
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
@@ -138,75 +178,20 @@ add_action('graphql_register_types', function() {
       'heading' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
       'media' => ['type' => 'String'],
+      'mediaDetails' => ['type' => 'MediaDetails'],
       'link' => ['type' => 'Link'],
       'link2' => ['type' => 'Link'],
       'modifier' => ['type' => 'String']
     ]
   ]);
 
-  register_graphql_object_type('MenuItem', [
+  register_graphql_object_type('ImageSize', [
     'fields' => [
-      'id' => ['type' => 'ID'],
-      'title' => ['type' => 'String'],
-      'url' => ['type' => 'String'],
-      'target' => ['type' => 'String'],
-      'classes' => ['type' => ['list_of' => 'String']],
-      'children' => ['type' => ['list_of' => 'MenuItem']]
+      'name' => ['type' => 'String'],
+      'sourceUrl' => ['type' => 'String'],
+      'width' => ['type' => 'Int'],
+      'height' => ['type' => 'Int']
     ]
-  ]);
-
-  register_graphql_field('RootQuery', 'menu', [
-    'type' => ['list_of' => 'MenuItem'],
-    'args' => [
-      'location' => [
-        'type' => 'String',
-        'description' => 'Menu location (primary or footer)',
-      ],
-    ],
-    'resolve' => function($source, $args) {
-      $locations = get_nav_menu_locations();
-      $location = $args['location'] ?? 'primary';
-
-      if (!isset($locations[$location])) {
-        return [];
-      }
-
-      $menu = wp_get_nav_menu_object($locations[$location]);
-      if (!$menu) {
-        return [];
-      }
-
-      $menu_items = wp_get_nav_menu_items($menu->term_id);
-      if (!$menu_items) {
-        return [];
-      }
-
-      // Build hierarchical menu structure
-      $menu_items_by_parent = [];
-      foreach ($menu_items as $item) {
-        $menu_items_by_parent[$item->menu_item_parent][] = $item;
-      }
-
-      // Function to build menu tree
-      $build_tree = function($parent_id = '0') use (&$build_tree, $menu_items_by_parent) {
-        if (!isset($menu_items_by_parent[$parent_id])) {
-          return [];
-        }
-
-        return array_map(function($item) use ($build_tree) {
-          return [
-            'id' => (string) $item->ID,
-            'title' => $item->title,
-            'url' => $item->url,
-            'target' => $item->target,
-            'classes' => $item->classes,
-            'children' => $build_tree($item->ID)
-          ];
-        }, $menu_items_by_parent[$parent_id]);
-      };
-
-      return $build_tree();
-    }
   ]);
 });
 

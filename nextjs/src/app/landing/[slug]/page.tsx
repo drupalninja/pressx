@@ -1,51 +1,24 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
-import Hero from '@/components/hero/Hero';
-import Image from 'next/image';
+import SectionHero, { HeroSection, heroSectionFragment } from '@/components/sections/SectionHero';
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<{
-      type: string;
-      heroLayout: string;
-      heading: string;
-      summary: string;
-      media: string;
-      link: {
-        url: string;
-        title: string;
-      };
-      link2?: {
-        url: string;
-        title: string;
-      };
-      modifier?: string;
-    }>;
+    sections: Array<HeroSection>; // For now we only have hero sections
   };
 }
 
 const getLandingPageQuery = `
+  ${heroSectionFragment}
+
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
       title
       databaseId
       sections {
-        type
-        heroLayout
-        heading
-        summary
-        media
-        link {
-          url
-          title
-        }
-        link2 {
-          url
-          title
-        }
-        modifier
+        ...HeroSection
       }
     }
   }
@@ -62,7 +35,6 @@ export default async function LandingPage({
       getLandingPageQuery,
       { slug }
     );
-    console.log('GraphQL Response:', JSON.stringify(data, null, 2));
 
     if (!data?.landing) {
       console.log('No landing page found in response');
@@ -73,26 +45,11 @@ export default async function LandingPage({
       <main className="min-h-screen">
         {data.landing.sections?.map((section, index) => {
           if (section.type === 'hero') {
-            const media = section.media ? (
-              <Image
-                src={section.media}
-                alt=""
-                width={1280}
-                height={720}
-                className="w-full h-auto"
-              />
-            ) : null;
-
             return (
-              <Hero
+              <SectionHero
                 key={index}
-                heroLayout={section.heroLayout as 'image_top' | 'image_bottom' | 'image_bottom_split'}
-                media={media}
-                heading={section.heading}
-                summary={section.summary}
-                link={section.link}
-                link2={section.link2}
-                modifier={section.modifier}
+                section={section}
+                priority={index === 0}
               />
             );
           }
