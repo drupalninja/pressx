@@ -66,7 +66,7 @@ add_action('init', function () {
     'show_in_graphql' => TRUE,
     'graphql_single_name' => 'landing',
     'graphql_plural_name' => 'landings',
-    'supports' => ['title', 'custom-fields'],
+    'supports' => ['title'],
     'has_archive' => TRUE,
     'show_in_rest' => TRUE,
     'rewrite' => [
