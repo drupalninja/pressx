@@ -116,7 +116,7 @@ add_action('graphql_register_types', function() {
 add_filter('preview_post_link', function($preview_link, $post) {
   if (!$post) return $preview_link;
 
-  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3000';
+  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
   $preview_secret = defined('WORDPRESS_PREVIEW_SECRET') ? WORDPRESS_PREVIEW_SECRET : 'pressx_preview_secret';
 
   return sprintf(
@@ -133,7 +133,7 @@ add_filter('post_type_link', function($post_link, $post) {
     return $post_link;
   }
 
-  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3000';
+  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
   return sprintf(
     '%s/landing/%s',
     untrailingslashit($frontend_url),
@@ -147,7 +147,7 @@ add_filter('post_link', function($url, $post) {
     return $url;
   }
 
-  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3000';
+  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
   return sprintf(
     '%s/landing/%s',
     untrailingslashit($frontend_url),
@@ -161,7 +161,7 @@ add_filter('get_sample_permalink', function($permalink, $post_id, $title, $name,
     return $permalink;
   }
 
-  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3000';
+  $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
   $post_name = $name ? $name : $post->post_name;
 
   return [

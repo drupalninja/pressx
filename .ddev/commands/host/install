@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change to project root directory (where .ddev is located)
+cd "$( dirname "${BASH_SOURCE[0]}" )/../../.."
+
 # Create necessary directories
 echo "Creating necessary directories..."
 mkdir -p public_html/wp-content/{uploads,plugins/pressx-core}
@@ -24,7 +27,7 @@ if [ ! -f public_html/wp-config.php ]; then
         --dbpass=db \
         --dbhost=db \
         --extra-php <<PHP
-define( 'PRESSX_FRONTEND_URL', 'http://localhost:3000' );
+define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
 define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
 PHP
 fi
@@ -79,7 +82,7 @@ echo "Username: admin"
 echo "Password: ${ADMIN_PASSWORD}"
 echo "----------------------------------------"
 echo "GraphQL endpoint: ${DDEV_PRIMARY_URL}/graphql"
-echo "Next.js frontend: http://localhost:3000"
+echo "Next.js frontend: http://localhost:3333"
 echo "----------------------------------------"
 echo "Plugin Status:"
 ddev exec -d /var/www/html/public_html wp plugin list
