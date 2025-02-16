@@ -73,6 +73,10 @@ ddev exec -d /var/www/html/public_html wp rewrite flush
 echo "Creating test landing page..."
 ddev wp-script /var/www/html/scripts/create-landing.php
 
+# Create default menu
+echo "Creating default menu..."
+ddev wp-script /var/www/html/scripts/create-menu.php
+
 # Verify setup
 echo -e "\n----------------------------------------"
 echo "🎉 Installation Complete! 🎉"

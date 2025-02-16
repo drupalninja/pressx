@@ -143,6 +143,79 @@ add_action('graphql_register_types', function() {
       'modifier' => ['type' => 'String']
     ]
   ]);
+
+  register_graphql_object_type('MenuItem', [
+    'fields' => [
+      'id' => ['type' => 'ID'],
+      'title' => ['type' => 'String'],
+      'url' => ['type' => 'String'],
+      'target' => ['type' => 'String'],
+      'classes' => ['type' => ['list_of' => 'String']],
+      'children' => ['type' => ['list_of' => 'MenuItem']]
+    ]
+  ]);
+
+  register_graphql_field('RootQuery', 'menu', [
+    'type' => ['list_of' => 'MenuItem'],
+    'args' => [
+      'location' => [
+        'type' => 'String',
+        'description' => 'Menu location (primary or footer)',
+      ],
+    ],
+    'resolve' => function($source, $args) {
+      $locations = get_nav_menu_locations();
+      $location = $args['location'] ?? 'primary';
+
+      if (!isset($locations[$location])) {
+        return [];
+      }
+
+      $menu = wp_get_nav_menu_object($locations[$location]);
+      if (!$menu) {
+        return [];
+      }
+
+      $menu_items = wp_get_nav_menu_items($menu->term_id);
+      if (!$menu_items) {
+        return [];
+      }
+
+      // Build hierarchical menu structure
+      $menu_items_by_parent = [];
+      foreach ($menu_items as $item) {
+        $menu_items_by_parent[$item->menu_item_parent][] = $item;
+      }
+
+      // Function to build menu tree
+      $build_tree = function($parent_id = '0') use (&$build_tree, $menu_items_by_parent) {
+        if (!isset($menu_items_by_parent[$parent_id])) {
+          return [];
+        }
+
+        return array_map(function($item) use ($build_tree) {
+          return [
+            'id' => (string) $item->ID,
+            'title' => $item->title,
+            'url' => $item->url,
+            'target' => $item->target,
+            'classes' => $item->classes,
+            'children' => $build_tree($item->ID)
+          ];
+        }, $menu_items_by_parent[$parent_id]);
+      };
+
+      return $build_tree();
+    }
+  ]);
+});
+
+// Register navigation menus
+add_action('init', function() {
+  register_nav_menus([
+    'primary' => 'Primary Navigation',
+    'footer' => 'Footer Navigation'
+  ]);
 });
 
 // Modify preview links for Next.js
