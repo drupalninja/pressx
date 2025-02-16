@@ -1,59 +1,37 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
-import Hero from '@/components/hero/Hero';
-
-const getQueryForId = (id: string) => {
-  const isNumeric = /^\d+$/.test(id);
-  return `
-    query LandingPage($id: ID!) {
-      landing(id: $id, idType: ${isNumeric ? 'DATABASE_ID' : 'SLUG'}) {
-        databaseId
-        title
-        slug
-        sections {
-          type
-          heroLayout
-          media
-          heading
-          summary
-          link {
-            url
-            title
-          }
-          link2 {
-            url
-            title
-          }
-          modifier
-        }
-      }
-    }
-  `;
-};
 
 interface LandingPageData {
   landing: {
-    databaseId: number;
     title: string;
-    slug: string;
+    databaseId: number;
     sections: Array<{
       type: string;
-      heroLayout: 'image_top' | 'image_bottom' | 'image_bottom_split';
-      media: React.ReactNode;
-      heading: string;
-      summary: string;
-      link: {
-        url: string;
-        title: string;
-      };
-      link2?: {
-        url: string;
-        title: string;
-      };
-      modifier?: string;
+      title: string;
+      description: string;
+      backgroundImage: string;
+      ctaText: string;
+      ctaLink: string;
     }>;
   };
 }
+
+const getLandingPageQuery = `
+  query GetLandingPage($slug: ID!) {
+    landing(id: $slug, idType: SLUG) {
+      title
+      databaseId
+      sections {
+        type
+        title
+        description
+        backgroundImage
+        ctaText
+        ctaLink
+      }
+    }
+  }
+`;
 
 export default async function LandingPage({
   params: { slug },
@@ -61,36 +39,50 @@ export default async function LandingPage({
   params: { slug: string };
 }) {
   try {
-    // Remove any leading/trailing slashes and decode the slug
-    const cleanSlug = decodeURIComponent(slug.replace(/^\/+|\/+$/g, ''));
-    const query = getQueryForId(cleanSlug);
-    const data = await graphQLClient.request<LandingPageData>(query, { id: cleanSlug });
-    console.log('GraphQL Response:', data); // Add debugging
+    console.log('Fetching landing page with slug:', slug);
+    const data = await graphQLClient.request<LandingPageData>(
+      getLandingPageQuery,
+      { slug }
+    );
+    console.log('GraphQL Response:', JSON.stringify(data, null, 2));
 
-    if (!data.landing) {
+    if (!data?.landing) {
+      console.log('No landing page found in response');
       notFound();
     }
 
     return (
       <main className="min-h-screen">
         {data.landing.sections?.map((section, index) => {
-          switch (section.type) {
-            case 'hero':
-              return (
-                <Hero
-                  key={index}
-                  heroLayout={section.heroLayout}
-                  media={section.media}
-                  heading={section.heading}
-                  summary={section.summary}
-                  link={section.link}
-                  link2={section.link2}
-                  modifier={section.modifier}
-                />
-              );
-            default:
-              return null;
+          if (section.type === 'hero') {
+            return (
+              <section
+                key={index}
+                className="relative min-h-[60vh] flex items-center"
+                style={{
+                  backgroundImage: section.backgroundImage ? `url(${section.backgroundImage})` : undefined,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+                <div className="container mx-auto px-4 py-12">
+                  <div className="max-w-2xl">
+                    <h1 className="text-4xl font-bold mb-4">{section.title}</h1>
+                    <p className="text-xl mb-8">{section.description}</p>
+                    {section.ctaText && section.ctaLink && (
+                      <a
+                        href={section.ctaLink}
+                        className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {section.ctaText}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </section>
+            );
           }
+          return null;
         })}
       </main>
     );
