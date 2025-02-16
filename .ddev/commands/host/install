@@ -29,6 +29,8 @@ if [ ! -f public_html/wp-config.php ]; then
         --extra-php <<PHP
 define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
 define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
+define( 'WP_ENVIRONMENT_TYPE', 'local' );
+define( 'GRAPHQL_DEBUG', true );
 PHP
 fi
 
@@ -76,6 +78,10 @@ ddev wp-script /var/www/html/scripts/create-landing.php
 # Create default menu
 echo "Creating default menu..."
 ddev wp-script /var/www/html/scripts/create-menu.php
+
+# Register menu location in WordPress
+echo "Registering menu location..."
+ddev exec -d /var/www/html/public_html "wp eval 'register_nav_menus([\"primary\" => \"Primary Navigation\"]);'"
 
 # Verify setup
 echo -e "\n----------------------------------------"

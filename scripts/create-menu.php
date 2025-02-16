@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Script to create default menu items.
@@ -59,17 +60,19 @@ if ($existing_items) {
 
 // Add the menu items.
 foreach ($menu_items as $item) {
-  wp_update_nav_menu_item($menu_id, 0, [
+  $menu_item_data = [
     'menu-item-title' => $item['title'],
     'menu-item-url' => $item['url'],
     'menu-item-status' => 'publish',
     'menu-item-type' => 'custom',
     'menu-item-position' => $item['order'],
-  ]);
+  ];
+
+  wp_update_nav_menu_item($menu_id, 0, $menu_item_data);
 }
 
 // Assign menu to the primary location.
-$locations = get_theme_mod('nav_menu_locations');
+$locations = get_theme_mod('nav_menu_locations') ?: [];
 $locations['primary'] = $menu_id;
 set_theme_mod('nav_menu_locations', $locations);
 

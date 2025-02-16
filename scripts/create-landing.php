@@ -30,9 +30,14 @@ if (file_exists($image_path)) {
   }
 
   // Check if image already exists in media library.
-  $existing_attachment = get_page_by_title($filename, OBJECT, 'attachment');
+  $existing_attachment = new WP_Query([
+    'post_type' => 'attachment',
+    'title' => sanitize_file_name($filename),
+    'post_status' => 'inherit',
+    'posts_per_page' => 1,
+  ]);
 
-  if (!$existing_attachment) {
+  if (!$existing_attachment->have_posts()) {
     // Insert the attachment.
     $image_id = wp_insert_attachment($attachment, $target_path);
 
@@ -41,7 +46,7 @@ if (file_exists($image_path)) {
     wp_update_attachment_metadata($image_id, $attachment_data);
   }
   else {
-    $image_id = $existing_attachment->ID;
+    $image_id = $existing_attachment->posts[0]->ID;
   }
 }
 
