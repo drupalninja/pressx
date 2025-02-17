@@ -23,8 +23,6 @@ export default function Header({ mainMenu }: HeaderProps) {
     })),
   }));
 
-  console.log(transformedMenuItems);
-
   return (
     <header role="banner" className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-8">
       <div className="lg:container mx-auto py-6">

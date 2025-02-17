@@ -3,12 +3,13 @@ import { notFound } from 'next/navigation';
 import SectionHero, { HeroSection, heroSectionFragment } from '@/components/sections/SectionHero';
 import SectionAccordion, { AccordionSection, accordionSectionFragment } from '@/components/sections/SectionAccordion';
 import SectionCardGroup, { CardGroupSection, cardGroupSectionFragment } from '@/components/sections/SectionCardGroup';
+import SectionCarousel, { CarouselSection, carouselSectionFragment } from '@/components/sections/SectionCarousel';
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection>;
   };
 }
 
@@ -16,6 +17,7 @@ const getLandingPageQuery = `
   ${heroSectionFragment}
   ${accordionSectionFragment}
   ${cardGroupSectionFragment}
+  ${carouselSectionFragment}
 
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
@@ -25,6 +27,7 @@ const getLandingPageQuery = `
         ...HeroSection
         ...AccordionSection
         ...CardGroupSection
+        ...CarouselSection
       }
     }
   }
@@ -75,6 +78,14 @@ export default async function LandingPage({
               <SectionCardGroup
                 key={index}
                 section={section as CardGroupSection}
+              />
+            );
+          }
+          if (section.type === 'carousel') {
+            return (
+              <SectionCarousel
+                key={index}
+                section={section as CarouselSection}
               />
             );
           }

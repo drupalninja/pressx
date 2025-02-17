@@ -182,12 +182,51 @@ add_action('carbon_fields_loaded', function () {
               Field::make('text', 'link_url')
                 ->set_help_text('Optional link URL for the card.'),
             ]),
+        ])
+        ->add_fields('carousel', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the carousel section.'),
+          Field::make('complex', 'items')
+            ->set_layout('tabbed-horizontal')
+            ->setup_labels([
+              'plural_name' => 'Items',
+              'singular_name' => 'Item',
+            ])
+            ->add_fields([
+              Field::make('image', 'media')
+                ->set_value_type('url')
+                ->set_required(TRUE)
+                ->set_help_text('The image for this item.'),
+              Field::make('text', 'title')
+                ->set_required(TRUE)
+                ->set_help_text('The title for this item.'),
+              Field::make('text', 'summary')
+                ->set_help_text('The summary text for this item.'),
+            ]),
         ]),
     ]);
 });
 
 // Register GraphQL fields.
 add_action('graphql_register_types', function () {
+  // Register CarouselItem type
+  register_graphql_object_type('CarouselItem', [
+    'fields' => [
+      'media' => [
+        'type' => 'MediaItem',
+        'description' => 'Media for the carousel item',
+      ],
+      'title' => [
+        'type' => 'String',
+        'description' => 'Title of the carousel item',
+      ],
+      'summary' => [
+        'type' => 'String',
+        'description' => 'Summary text for the carousel item',
+      ],
+    ],
+  ]);
+
   register_graphql_field('Landing', 'sections', [
     'type' => ['list_of' => 'LandingSection'],
     'description' => 'Sections of the landing page.',
@@ -226,9 +265,9 @@ add_action('graphql_register_types', function () {
         $heading = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $heading);
 
         // Process accordion items if this is an accordion section
-        $items = [];
+        $accordion_items = [];
         if ($section['_type'] === 'accordion' && !empty($section['items'])) {
-          $items = array_map(function ($item) {
+          $accordion_items = array_map(function ($item) {
             return [
               'title' => $item['title'] ?? '',
               'body' => [
@@ -238,6 +277,34 @@ add_action('graphql_register_types', function () {
                 'url' => $item['link_url'],
                 'title' => $item['link_title'] ?? '',
               ] : NULL,
+            ];
+          }, $section['items']);
+        }
+
+        // Process carousel items if this is a carousel section
+        $carousel_items = [];
+        if ($section['_type'] === 'carousel' && !empty($section['items'])) {
+          $carousel_items = array_map(function ($item) {
+            // Get media details for the carousel item
+            $item_media_details = NULL;
+            if (!empty($item['media'])) {
+              $item_attachment_id = attachment_url_to_postid($item['media']);
+              if ($item_attachment_id) {
+                $item_metadata = wp_get_attachment_metadata($item_attachment_id);
+                $item_media_details = [
+                  'width' => (int) ($item_metadata['width'] ?? 0),
+                  'height' => (int) ($item_metadata['height'] ?? 0),
+                ];
+              }
+            }
+
+            return [
+              'media' => !empty($item['media']) ? [
+                'sourceUrl' => $item['media'],
+                'mediaDetails' => $item_media_details,
+              ] : NULL,
+              'title' => $item['title'] ?? '',
+              'summary' => $item['summary'] ?? '',
             ];
           }, $section['items']);
         }
@@ -296,7 +363,8 @@ add_action('graphql_register_types', function () {
           'heading' => $heading,
           'title' => $section['title'] ?? '',
           'summary' => $section['summary'] ?? '',
-          'items' => $items,
+          'accordionItems' => $accordion_items,
+          'items' => $carousel_items,
           'cards' => $cards,
           'media' => [
             'sourceUrl' => $section['media'] ?? '',
@@ -362,8 +430,18 @@ add_action('graphql_register_types', function () {
       'heading' => ['type' => 'String'],
       'title' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
-      'items' => ['type' => ['list_of' => 'AccordionItem']],
-      'cards' => ['type' => ['list_of' => 'Card']],
+      'accordionItems' => [
+        'type' => ['list_of' => 'AccordionItem'],
+        'description' => 'Items for accordion section',
+      ],
+      'items' => [
+        'type' => ['list_of' => 'CarouselItem'],
+        'description' => 'Items for carousel section',
+      ],
+      'cards' => [
+        'type' => ['list_of' => 'Card'],
+        'description' => 'Cards for card group section',
+      ],
       'media' => ['type' => 'Media'],
       'link' => ['type' => 'Link'],
       'link2' => ['type' => 'Link'],

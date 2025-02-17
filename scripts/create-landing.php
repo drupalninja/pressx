@@ -82,6 +82,45 @@ $sections = [
     'link2_url' => '#secondary-cta',
   ],
   [
+    '_type' => 'accordion',
+    'title' => 'Frequently Asked Questions',
+    'items' => [
+      [
+        'title' => 'What is PressX?',
+        'body' => 'PressX is a modern headless WordPress starter kit that combines the power of WordPress with Next.js.',
+        'link_title' => 'Learn More',
+        'link_url' => '#about',
+      ],
+      [
+        'title' => 'How does it work?',
+        'body' => 'PressX uses WordPress as a headless CMS and Next.js for the frontend, providing a fast and flexible development experience.',
+        'link_title' => 'View Documentation',
+        'link_url' => '#docs',
+      ],
+    ],
+  ],
+  [
+    '_type' => 'carousel',
+    'title' => 'Featured Capabilities',
+    'items' => [
+      [
+        'media' => $image_url,
+        'title' => 'Modern Development',
+        'summary' => 'Build with Next.js and TypeScript for a modern development experience.',
+      ],
+      [
+        'media' => $image_url,
+        'title' => 'Headless WordPress',
+        'summary' => 'Leverage WordPress as a headless CMS with our optimized integration.',
+      ],
+      [
+        'media' => $image_url,
+        'title' => 'Component Library',
+        'summary' => 'Extensive library of pre-built components to accelerate development.',
+      ],
+    ],
+  ],
+  [
     '_type' => 'card_group',
     'title' => 'Why Choose PressX?',
     'cards' => [

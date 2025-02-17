@@ -3,7 +3,7 @@ import Accordion from '@/components/accordion/Accordion';
 export interface AccordionSection {
   type: 'accordion';
   title?: string;
-  items: Array<{
+  accordionItems: Array<{
     title: string;
     body: {
       value: string;
@@ -19,7 +19,7 @@ export default function SectionAccordion({ section }: { section: AccordionSectio
   return (
     <Accordion
       title={section.title}
-      items={section.items}
+      items={section.accordionItems}
     />
   );
 }
@@ -29,7 +29,7 @@ export const accordionSectionFragment = `
   fragment AccordionSection on LandingSection {
     type
     title
-    items {
+    accordionItems {
       title
       body {
         value
