@@ -213,7 +213,7 @@ add_action('graphql_register_types', function () {
   register_graphql_object_type('CarouselItem', [
     'fields' => [
       'media' => [
-        'type' => 'MediaItem',
+        'type' => 'Media',
         'description' => 'Media for the carousel item',
       ],
       'title' => [
@@ -232,7 +232,7 @@ add_action('graphql_register_types', function () {
     'description' => 'Sections of the landing page.',
     'resolve' => function ($post) {
       $sections = carbon_get_post_meta($post->ID, 'sections');
-      return array_map(function ($section) {
+      return array_map(function ($section) use ($sections, $post) {
         $link = [
           'url' => $section['link_url'] ?? '',
           'title' => $section['link_title'] ?? '',
@@ -284,34 +284,28 @@ add_action('graphql_register_types', function () {
         // Process carousel items if this is a carousel section
         $carousel_items = [];
         if ($section['_type'] === 'carousel' && !empty($section['items'])) {
-          $carousel_items = array_map(function ($item) {
-            // Get media details for the carousel item
-            $item_media_details = NULL;
-            if (!empty($item['media'])) {
-              $item_attachment_id = attachment_url_to_postid($item['media']);
-              if ($item_attachment_id) {
-                $item_metadata = wp_get_attachment_metadata($item_attachment_id);
-                $item_media_details = [
-                  'width' => (int) ($item_metadata['width'] ?? 0),
-                  'height' => (int) ($item_metadata['height'] ?? 0),
-                ];
-              }
-            }
-
-            return [
+          error_log('Carousel section items: ' . print_r($section['items'], TRUE));
+          $carousel_items = [];
+          foreach ($section['items'] as $item_index => $item) {
+            error_log('Processing carousel item ' . $item_index . ' in section ' . $section_index . ': ' . print_r($item, TRUE));
+            $media_url = get_post_meta($post->ID, "_sections|items:media|{$section_index}:{$item_index}|0|value", TRUE);
+            error_log('Media URL for item ' . $item_index . ': ' . print_r($media_url, TRUE));
+            $carousel_items[] = [
               'media' => !empty($item['media']) ? [
-                'sourceUrl' => $item['media'],
+                'sourceUrl' => $item['media']
               ] : NULL,
               'title' => $item['title'] ?? '',
               'summary' => $item['summary'] ?? '',
             ];
-          }, $section['items']);
+          }
         }
 
         // Process cards if this is a card group section
         $cards = [];
         if ($section['_type'] === 'card_group' && !empty($section['cards'])) {
+          error_log('Raw card group section data: ' . print_r($section, TRUE));
           $cards = array_map(function ($card) {
+            error_log('Card media value: ' . print_r($card['media'], TRUE));
             // Get media details for the card
             $card_media_details = NULL;
             if (!empty($card['media'])) {
@@ -355,21 +349,54 @@ add_action('graphql_register_types', function () {
           }, $section['cards']);
         }
 
-        return [
-          'type' => $section['_type'] ?? 'hero',
-          'heroLayout' => $section['hero_layout'] ?? 'image_top',
-          'heading' => $heading,
+        $type = $section['_type'] ?? 'hero';
+        $base = [
+          'type' => $type,
           'title' => $section['title'] ?? '',
-          'summary' => $section['summary'] ?? '',
-          'accordionItems' => $accordion_items,
-          'items' => $carousel_items,
-          'cards' => $cards,
-          'media' => [
-            'sourceUrl' => $section['media'] ?? '',
-          ],
-          'link' => $link,
-          'link2' => $link2,
         ];
+
+        switch ($type) {
+          case 'hero':
+            return array_merge($base, [
+              'heroLayout' => $section['hero_layout'] ?? 'image_top',
+              'heading' => $heading,
+              'summary' => $section['summary'] ?? '',
+              'media' => [
+                'sourceUrl' => $section['media'] ?? '',
+              ],
+              'link' => $link,
+              'link2' => $link2,
+            ]);
+
+          case 'accordion':
+            return array_merge($base, [
+              'accordionItems' => $accordion_items,
+            ]);
+
+          case 'carousel':
+            error_log('Carousel section items: ' . print_r($section['items'], TRUE));
+            return array_merge($base, [
+              'carouselItems' => !empty($section['items']) ? array_map(function ($item) {
+                error_log('Processing carousel item: ' . print_r($item, TRUE));
+                error_log('Media field: ' . print_r($item['media'], TRUE));
+                return [
+                  'media' => !empty($item['media']) ? [
+                    'sourceUrl' => $item['media']
+                  ] : NULL,
+                  'title' => $item['title'] ?? '',
+                  'summary' => $item['summary'] ?? '',
+                ];
+              }, $section['items']) : [],
+            ]);
+
+          case 'card_group':
+            return array_merge($base, [
+              'cards' => $cards,
+            ]);
+
+          default:
+            return $base;
+        }
       }, $sections ?: []);
     },
   ]);
@@ -413,25 +440,29 @@ add_action('graphql_register_types', function () {
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
+      'title' => ['type' => 'String'],
+      // Hero fields
       'heroLayout' => ['type' => 'String'],
       'heading' => ['type' => 'String'],
-      'title' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
+      'media' => ['type' => 'Media'],
+      'link' => ['type' => 'Link'],
+      'link2' => ['type' => 'Link'],
+      // Accordion fields
       'accordionItems' => [
         'type' => ['list_of' => 'AccordionItem'],
         'description' => 'Items for accordion section',
       ],
-      'items' => [
+      // Carousel fields
+      'carouselItems' => [
         'type' => ['list_of' => 'CarouselItem'],
         'description' => 'Items for carousel section',
       ],
+      // Card group fields
       'cards' => [
         'type' => ['list_of' => 'Card'],
         'description' => 'Cards for card group section',
       ],
-      'media' => ['type' => 'Media'],
-      'link' => ['type' => 'Link'],
-      'link2' => ['type' => 'Link'],
     ],
   ]);
 

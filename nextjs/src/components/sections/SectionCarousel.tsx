@@ -4,7 +4,7 @@ import { getImage } from '@/components/helpers/Utilities';
 export interface CarouselSection {
   type: 'carousel';
   title?: string;
-  items: Array<{
+  carouselItems: Array<{
     media: {
       sourceUrl: string;
     };
@@ -14,15 +14,21 @@ export interface CarouselSection {
 }
 
 export default function SectionCarousel({ section }: { section: CarouselSection }) {
-  const items = section.items.map(item => ({
-    media: item.media ? getImage(
+  const items = section.carouselItems.map(item => {
+    const itemMedia = item.media ? getImage(
       item.media,
-      'max-w-full h-auto',
+      'w-full h-full object-cover',
       ['i169medium', 'i169large']
-    ) : null,
-    title: item.title,
-    summary: item.summary,
-  }));
+    ) : undefined;
+
+    return {
+      media: itemMedia,
+      title: item.title,
+      summary: item.summary,
+    };
+  });
+
+  console.dir(items);
 
   return (
     <div className="container mx-auto px-4 my-25">
@@ -36,7 +42,7 @@ export const carouselSectionFragment = `
   fragment CarouselSection on LandingSection {
     type
     title
-    items {
+    carouselItems {
       media {
         sourceUrl
       }
