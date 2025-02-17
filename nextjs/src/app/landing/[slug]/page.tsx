@@ -2,18 +2,20 @@ import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import SectionHero, { HeroSection, heroSectionFragment } from '@/components/sections/SectionHero';
 import SectionAccordion, { AccordionSection, accordionSectionFragment } from '@/components/sections/SectionAccordion';
+import SectionCardGroup, { CardGroupSection, cardGroupSectionFragment } from '@/components/sections/SectionCardGroup';
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection>;
   };
 }
 
 const getLandingPageQuery = `
   ${heroSectionFragment}
   ${accordionSectionFragment}
+  ${cardGroupSectionFragment}
 
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
@@ -22,6 +24,7 @@ const getLandingPageQuery = `
       sections {
         ...HeroSection
         ...AccordionSection
+        ...CardGroupSection
       }
     }
   }
@@ -64,6 +67,14 @@ export default async function LandingPage({
               <SectionAccordion
                 key={index}
                 section={section as AccordionSection}
+              />
+            );
+          }
+          if (section.type === 'card_group') {
+            return (
+              <SectionCardGroup
+                key={index}
+                section={section as CardGroupSection}
               />
             );
           }

@@ -82,6 +82,66 @@ $sections = [
     'link2_url' => '#secondary-cta',
   ],
   [
+    '_type' => 'card_group',
+    'title' => 'Why Choose PressX?',
+    'cards' => [
+      [
+        'type' => 'stat',
+        'heading' => 'Lightning Fast',
+        'body' => 'Optimized performance with server-side rendering and static generation',
+        'icon' => 'zap',
+      ],
+      [
+        'type' => 'stat',
+        'heading' => 'Fully Customizable',
+        'body' => 'Modular components and flexible layouts for any design need',
+        'icon' => 'settings',
+      ],
+      [
+        'type' => 'stat',
+        'heading' => 'Modern Stack',
+        'body' => 'Built with Next.js, TypeScript, and Tailwind CSS',
+        'icon' => 'rocket',
+      ],
+    ],
+  ],
+  [
+    '_type' => 'card_group',
+    'title' => 'Latest Features',
+    'cards' => [
+      [
+        'type' => 'custom',
+        'media' => $image_url,
+        'mediaLink' => '/features/headless',
+        'heading' => 'Headless WordPress',
+        'heading_url' => '/features/headless',
+        'summaryText' => 'Leverage WordPress as a headless CMS with our modern Next.js frontend',
+        'tags' => [
+          ['tag' => 'GraphQL'],
+          ['tag' => 'WordPress'],
+          ['tag' => 'Next.js'],
+        ],
+        'link_title' => 'Learn More',
+        'link_url' => '/features/headless',
+      ],
+      [
+        'type' => 'custom',
+        'media' => $image_url,
+        'mediaLink' => '/features/components',
+        'heading' => 'Component Library',
+        'heading_url' => '/features/components',
+        'summaryText' => 'Extensive collection of pre-built components for rapid development',
+        'tags' => [
+          ['tag' => 'UI'],
+          ['tag' => 'Components'],
+          ['tag' => 'Tailwind'],
+        ],
+        'link_title' => 'View Components',
+        'link_url' => '/features/components',
+      ],
+    ],
+  ],
+  [
     '_type' => 'accordion',
     'title' => 'Frequently Asked Questions',
     'items' => [

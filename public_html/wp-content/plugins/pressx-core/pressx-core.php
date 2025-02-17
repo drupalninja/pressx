@@ -135,6 +135,53 @@ add_action('carbon_fields_loaded', function () {
               Field::make('text', 'link_url')
                 ->set_help_text('Optional link URL for this item.'),
             ]),
+        ])
+        ->add_fields('card_group', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the card group section.'),
+          Field::make('complex', 'cards')
+            ->set_layout('tabbed-horizontal')
+            ->setup_labels([
+              'plural_name' => 'Cards',
+              'singular_name' => 'Card',
+            ])
+            ->add_fields([
+              Field::make('select', 'type')
+                ->set_options([
+                  'stat' => 'Stat Card',
+                  'custom' => 'Custom Card',
+                ])
+                ->set_required(TRUE)
+                ->set_help_text('Select the type of card.'),
+              Field::make('image', 'media')
+                ->set_value_type('url')
+                ->set_help_text('Optional media for the card.'),
+              Field::make('text', 'media_link')
+                ->set_help_text('Optional link for the media (custom cards only).'),
+              Field::make('text', 'heading')
+                ->set_required(TRUE)
+                ->set_help_text('The heading for the card.'),
+              Field::make('text', 'heading_url')
+                ->set_help_text('Optional URL for the heading (custom cards only).'),
+              Field::make('text', 'body')
+                ->set_help_text('The body text for stat cards.'),
+              Field::make('text', 'summary_text')
+                ->set_help_text('The summary text for custom cards.'),
+              Field::make('complex', 'tags')
+                ->set_layout('tabbed-vertical')
+                ->add_fields([
+                  Field::make('text', 'tag')
+                    ->set_required(TRUE)
+                    ->set_help_text('A tag for the card.'),
+                ])
+                ->set_help_text('Tags for custom cards.'),
+              Field::make('text', 'icon')
+                ->set_help_text('Optional icon name for stat cards (e.g., "rocket", "zap", "star").'),
+              Field::make('text', 'link_title')
+                ->set_help_text('Optional link text for the card.'),
+              Field::make('text', 'link_url')
+                ->set_help_text('Optional link URL for the card.'),
+            ]),
         ]),
     ]);
 });
@@ -195,6 +242,54 @@ add_action('graphql_register_types', function () {
           }, $section['items']);
         }
 
+        // Process cards if this is a card group section
+        $cards = [];
+        if ($section['_type'] === 'card_group' && !empty($section['cards'])) {
+          $cards = array_map(function ($card) {
+            // Get media details for the card
+            $card_media_details = NULL;
+            if (!empty($card['media'])) {
+              $card_attachment_id = attachment_url_to_postid($card['media']);
+              if ($card_attachment_id) {
+                $card_metadata = wp_get_attachment_metadata($card_attachment_id);
+                $card_media_details = [
+                  'width' => (int) ($card_metadata['width'] ?? 0),
+                  'height' => (int) ($card_metadata['height'] ?? 0),
+                ];
+              }
+            }
+
+            // Process tags
+            $tags = [];
+            if (!empty($card['tags'])) {
+              $tags = array_map(function ($tag_item) {
+                return $tag_item['tag'] ?? '';
+              }, $card['tags']);
+            }
+
+            return [
+              'type' => $card['type'] ?? 'custom',
+              'media' => !empty($card['media']) ? [
+                'sourceUrl' => $card['media'],
+                'mediaDetails' => $card_media_details,
+              ] : NULL,
+              'mediaLink' => $card['media_link'] ?? '',
+              'heading' => [
+                'title' => $card['heading'] ?? '',
+                'url' => $card['type'] === 'custom' ? ($card['heading_url'] ?? '') : NULL,
+              ],
+              'body' => $card['body'] ?? '',
+              'summaryText' => $card['summary_text'] ?? '',
+              'tags' => $tags,
+              'icon' => $card['icon'] ?? '',
+              'link' => !empty($card['link_url']) ? [
+                'url' => $card['link_url'],
+                'title' => $card['link_title'] ?? '',
+              ] : NULL,
+            ];
+          }, $section['cards']);
+        }
+
         return [
           'type' => $section['_type'] ?? 'hero',
           'heroLayout' => $section['hero_layout'] ?? 'image_top',
@@ -202,6 +297,7 @@ add_action('graphql_register_types', function () {
           'title' => $section['title'] ?? '',
           'summary' => $section['summary'] ?? '',
           'items' => $items,
+          'cards' => $cards,
           'media' => [
             'sourceUrl' => $section['media'] ?? '',
             'mediaDetails' => $media_details,
@@ -267,9 +363,31 @@ add_action('graphql_register_types', function () {
       'title' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
       'items' => ['type' => ['list_of' => 'AccordionItem']],
+      'cards' => ['type' => ['list_of' => 'Card']],
       'media' => ['type' => 'Media'],
       'link' => ['type' => 'Link'],
       'link2' => ['type' => 'Link'],
+    ],
+  ]);
+
+  register_graphql_object_type('Card', [
+    'fields' => [
+      'type' => ['type' => 'String'],
+      'media' => ['type' => 'Media'],
+      'mediaLink' => ['type' => 'String'],
+      'heading' => ['type' => ['non_null' => 'CardHeading']],
+      'body' => ['type' => 'String'],
+      'summaryText' => ['type' => 'String'],
+      'tags' => ['type' => ['list_of' => 'String']],
+      'icon' => ['type' => 'String'],
+      'link' => ['type' => 'Link'],
+    ],
+  ]);
+
+  register_graphql_object_type('CardHeading', [
+    'fields' => [
+      'title' => ['type' => ['non_null' => 'String']],
+      'url' => ['type' => 'String'],
     ],
   ]);
 });
