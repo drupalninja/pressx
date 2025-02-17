@@ -1,22 +1,15 @@
 import Image from 'next/image';
-
-interface MediaDetails {
-  width: number;
-  height: number;
-}
+import { imageStyles, ImageStyleName } from '@/lib/image-styles';
 
 export interface WordPressImage {
   sourceUrl: string;
   altText?: string;
-  mediaDetails?: MediaDetails;
 }
-
-const defaultSizes = '(max-width: 640px) 640px, (max-width: 1280px) 1280px, 2560px';
 
 export const getImage = (
   media: WordPressImage | null | undefined,
   className?: string,
-  sizes?: string
+  style?: ImageStyleName | [ImageStyleName, ImageStyleName]
 ) => {
   if (!media?.sourceUrl) return null;
 
@@ -35,20 +28,70 @@ export const getImage = (
     );
   }
 
-  // Get dimensions from mediaDetails or use defaults
-  const width = media.mediaDetails?.width ?? 1920;
-  const height = media.mediaDetails?.height ?? 1080;
+  // Determine desktop and mobile styles
+  let desktopStyle: ImageStyleName | undefined;
+  let mobileStyle: ImageStyleName | undefined;
 
-  return (
-    <Image
-      src={media.sourceUrl}
-      alt={media.altText ?? ''}
-      width={width}
-      height={height}
-      className={className ?? ''}
-      sizes={sizes ?? defaultSizes}
-      quality={90}
-      priority={true}
-    />
-  );
+  if (Array.isArray(style)) {
+    [mobileStyle, desktopStyle] = style;
+  } else {
+    desktopStyle = style;
+  }
+
+  const desktopImageStyle = desktopStyle ? imageStyles[desktopStyle] : null;
+  const mobileImageStyle = mobileStyle ? imageStyles[mobileStyle] : null;
+
+  if (!desktopImageStyle) return null;
+
+  const quality = desktopImageStyle.quality ?? 90;
+  const priority = desktopStyle?.startsWith('hero') ?? false;
+
+  // If an array of styles is provided, render responsive images
+  if (Array.isArray(style)) {
+    return (
+      <>
+        {mobileStyle && mobileImageStyle && (
+          <div className="block md:hidden">
+            <Image
+              src={`/api/image?url=${encodeURIComponent(media.sourceUrl)}&width=${mobileImageStyle.width}&height=${mobileImageStyle.height}&quality=${mobileImageStyle.quality ?? 90}&style=${mobileStyle}`}
+              alt={media.altText ?? ''}
+              width={mobileImageStyle.width}
+              height={mobileImageStyle.height}
+              className={`${className} max-w-full h-auto`}
+              quality={mobileImageStyle.quality ?? 90}
+              priority={priority}
+              sizes="100vw"
+            />
+          </div>
+        )}
+        <div className="hidden md:block">
+          <Image
+            src={`/api/image?url=${encodeURIComponent(media.sourceUrl)}&width=${desktopImageStyle.width}&height=${desktopImageStyle.height}&quality=${quality}&style=${desktopStyle}`}
+            alt={media.altText ?? ''}
+            width={desktopImageStyle.width}
+            height={desktopImageStyle.height}
+            className={`${className} max-w-full h-auto`}
+            quality={quality}
+            priority={priority}
+            sizes="100vw"
+          />
+        </div>
+      </>
+    );
+  } else {
+    // Fallback for single style usage
+    const src = `/api/image?url=${encodeURIComponent(media.sourceUrl)}&width=${desktopImageStyle.width}&height=${desktopImageStyle.height}&quality=${quality}&style=${desktopStyle}`;
+    return (
+      <Image
+        src={src}
+        alt={media.altText ?? ''}
+        width={desktopImageStyle.width}
+        height={desktopImageStyle.height}
+        className={`${className} max-w-full h-auto`}
+        sizes={`${desktopImageStyle.width}px`}
+        quality={quality}
+        priority={priority}
+      />
+    );
+  }
 };

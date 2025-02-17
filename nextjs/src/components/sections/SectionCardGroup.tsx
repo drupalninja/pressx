@@ -32,7 +32,11 @@ export interface CardGroupSection {
 
 export default function SectionCardGroup({ section }: { section: CardGroupSection }) {
   const cards = section.cards.map(card => {
-    const cardMedia = card.media ? getImage(card.media, 'w-full h-full object-cover') : undefined;
+    const cardMedia = card.media ? getImage(
+      card.media,
+      'w-full h-full object-cover',
+      ['i169medium', 'i169large']
+    ) : undefined;
 
     if (card.type === 'stat') {
       return {
