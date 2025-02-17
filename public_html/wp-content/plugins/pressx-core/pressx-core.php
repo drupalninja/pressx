@@ -113,6 +113,28 @@ add_action('carbon_fields_loaded', function () {
             ->set_help_text('The text for the secondary optional link.'),
           Field::make('text', 'link2_url')
             ->set_help_text('The URL for the secondary optional link.'),
+        ])
+        ->add_fields('accordion', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the accordion section.'),
+          Field::make('complex', 'items')
+            ->set_layout('tabbed-horizontal')
+            ->setup_labels([
+              'plural_name' => 'Items',
+              'singular_name' => 'Item',
+            ])
+            ->add_fields([
+              Field::make('text', 'title')
+                ->set_required(TRUE)
+                ->set_help_text('The title for this accordion item.'),
+              Field::make('rich_text', 'body')
+                ->set_required(TRUE)
+                ->set_help_text('The content for this accordion item.'),
+              Field::make('text', 'link_title')
+                ->set_help_text('Optional link text for this item.'),
+              Field::make('text', 'link_url')
+                ->set_help_text('Optional link URL for this item.'),
+            ]),
         ]),
     ]);
 });
@@ -156,11 +178,30 @@ add_action('graphql_register_types', function () {
         $heading = $section['heading'] ?? '';
         $heading = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $heading);
 
+        // Process accordion items if this is an accordion section
+        $items = [];
+        if ($section['_type'] === 'accordion' && !empty($section['items'])) {
+          $items = array_map(function ($item) {
+            return [
+              'title' => $item['title'] ?? '',
+              'body' => [
+                'value' => $item['body'] ?? '',
+              ],
+              'link' => !empty($item['link_url']) ? [
+                'url' => $item['link_url'],
+                'title' => $item['link_title'] ?? '',
+              ] : NULL,
+            ];
+          }, $section['items']);
+        }
+
         return [
           'type' => $section['_type'] ?? 'hero',
           'heroLayout' => $section['hero_layout'] ?? 'image_top',
           'heading' => $heading,
+          'title' => $section['title'] ?? '',
           'summary' => $section['summary'] ?? '',
+          'items' => $items,
           'media' => [
             'sourceUrl' => $section['media'] ?? '',
             'mediaDetails' => $media_details,
@@ -170,6 +211,20 @@ add_action('graphql_register_types', function () {
         ];
       }, $sections ?: []);
     },
+  ]);
+
+  register_graphql_object_type('AccordionItem', [
+    'fields' => [
+      'title' => ['type' => 'String'],
+      'body' => ['type' => 'AccordionBody'],
+      'link' => ['type' => 'Link'],
+    ],
+  ]);
+
+  register_graphql_object_type('AccordionBody', [
+    'fields' => [
+      'value' => ['type' => 'String'],
+    ],
   ]);
 
   register_graphql_object_type('Link', [
@@ -209,7 +264,9 @@ add_action('graphql_register_types', function () {
       'type' => ['type' => 'String'],
       'heroLayout' => ['type' => 'String'],
       'heading' => ['type' => 'String'],
+      'title' => ['type' => 'String'],
       'summary' => ['type' => 'String'],
+      'items' => ['type' => ['list_of' => 'AccordionItem']],
       'media' => ['type' => 'Media'],
       'link' => ['type' => 'Link'],
       'link2' => ['type' => 'Link'],

@@ -80,7 +80,29 @@ $sections = [
     'link_url' => '#primary-cta',
     'link2_title' => 'Explore',
     'link2_url' => '#secondary-cta',
-  ]
+  ],
+  [
+    '_type' => 'accordion',
+    'title' => 'Frequently Asked Questions',
+    'items' => [
+      [
+        'title' => 'What makes PressX different?',
+        'body' => 'PressX combines the power of WordPress with modern frontend technologies, offering a seamless headless CMS experience. You get the best of both worlds: WordPress\'s robust content management and Next.js\'s superior performance.',
+        'link_title' => 'Learn More',
+        'link_url' => '/features',
+      ],
+      [
+        'title' => 'How does the headless setup work?',
+        'body' => 'PressX uses WordPress as a headless CMS, exposing content through a GraphQL API. The frontend is built with Next.js, allowing for server-side rendering, static site generation, and optimal performance.',
+        'link_title' => 'View Documentation',
+        'link_url' => '/docs',
+      ],
+      [
+        'title' => 'Can I customize the components?',
+        'body' => 'Absolutely! PressX is built with customization in mind. All components are modular and can be styled using Tailwind CSS. You can easily modify existing components or create new ones to match your needs.',
+      ],
+    ],
+  ],
 ];
 
 // Update meta values in Carbon Fields format.

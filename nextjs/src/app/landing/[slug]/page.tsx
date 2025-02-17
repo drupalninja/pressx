@@ -1,17 +1,19 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import SectionHero, { HeroSection, heroSectionFragment } from '@/components/sections/SectionHero';
+import SectionAccordion, { AccordionSection, accordionSectionFragment } from '@/components/sections/SectionAccordion';
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection>; // For now we only have hero sections
+    sections: Array<HeroSection | AccordionSection>;
   };
 }
 
 const getLandingPageQuery = `
   ${heroSectionFragment}
+  ${accordionSectionFragment}
 
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
@@ -19,6 +21,7 @@ const getLandingPageQuery = `
       databaseId
       sections {
         ...HeroSection
+        ...AccordionSection
       }
     }
   }
@@ -52,7 +55,15 @@ export default async function LandingPage({
             return (
               <SectionHero
                 key={index}
-                section={section}
+                section={section as HeroSection}
+              />
+            );
+          }
+          if (section.type === 'accordion') {
+            return (
+              <SectionAccordion
+                key={index}
+                section={section as AccordionSection}
               />
             );
           }
