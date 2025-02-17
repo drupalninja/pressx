@@ -9,10 +9,7 @@ export interface CardGroupSection {
     type: 'stat' | 'custom';
     media?: {
       sourceUrl: string;
-      mediaDetails?: {
-        width: number;
-        height: number;
-      };
+
     };
     mediaLink?: string;
     heading: {
@@ -76,10 +73,7 @@ export const cardGroupSectionFragment = `
       type
       media {
         sourceUrl
-        mediaDetails {
-          width
-          height
-        }
+
       }
       mediaLink
       heading {

@@ -8,10 +8,7 @@ export interface HeroSection {
   summary: string;
   media: {
     sourceUrl: string;
-    mediaDetails?: {
-      width: number;
-      height: number;
-    };
+
   };
   link: {
     url: string;
@@ -51,10 +48,7 @@ export const heroSectionFragment = `
     summary
     media {
       sourceUrl
-      mediaDetails {
-        width
-        height
-      }
+
     }
     link {
       url

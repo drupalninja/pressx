@@ -301,7 +301,6 @@ add_action('graphql_register_types', function () {
             return [
               'media' => !empty($item['media']) ? [
                 'sourceUrl' => $item['media'],
-                'mediaDetails' => $item_media_details,
               ] : NULL,
               'title' => $item['title'] ?? '',
               'summary' => $item['summary'] ?? '',
@@ -338,7 +337,6 @@ add_action('graphql_register_types', function () {
               'type' => $card['type'] ?? 'custom',
               'media' => !empty($card['media']) ? [
                 'sourceUrl' => $card['media'],
-                'mediaDetails' => $card_media_details,
               ] : NULL,
               'mediaLink' => $card['media_link'] ?? '',
               'heading' => [
@@ -368,7 +366,6 @@ add_action('graphql_register_types', function () {
           'cards' => $cards,
           'media' => [
             'sourceUrl' => $section['media'] ?? '',
-            'mediaDetails' => $media_details,
           ],
           'link' => $link,
           'link2' => $link2,
@@ -407,19 +404,9 @@ add_action('graphql_register_types', function () {
     ],
   ]);
 
-  register_graphql_object_type('MediaDetails', [
-    'fields' => [
-      'width' => ['type' => 'Int'],
-      'height' => ['type' => 'Int'],
-      'sourceUrl' => ['type' => 'String'],
-      'mimeType' => ['type' => 'String'],
-    ],
-  ]);
-
   register_graphql_object_type('Media', [
     'fields' => [
       'sourceUrl' => ['type' => 'String'],
-      'mediaDetails' => ['type' => 'MediaDetails'],
     ],
   ]);
 

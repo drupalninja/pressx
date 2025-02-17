@@ -7,10 +7,6 @@ export interface CarouselSection {
   items: Array<{
     media: {
       sourceUrl: string;
-      mediaDetails?: {
-        width: number;
-        height: number;
-      };
     };
     title: string;
     summary: string;
@@ -43,10 +39,6 @@ export const carouselSectionFragment = `
     items {
       media {
         sourceUrl
-        mediaDetails {
-          width
-          height
-        }
       }
       title
       summary
