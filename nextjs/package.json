@@ -6,7 +6,9 @@
     "dev": "NODE_NO_WARNINGS=1 next dev --port 3333",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@0no-co/graphqlsp": "^1.11.0",
@@ -53,6 +55,7 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.4",
     "@storybook/addon-essentials": "^8.3.3",
     "@storybook/addon-interactions": "^8.3.3",
     "@storybook/addon-links": "^8.3.3",
