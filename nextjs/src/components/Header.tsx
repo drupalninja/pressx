@@ -1,5 +1,8 @@
+'use client'
+
 import MainMenu from './main-menu/MainMenu';
 import { MainMenuItem } from './main-menu/Types';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 
 interface MenuItem {
   id: string;
@@ -13,6 +16,8 @@ interface HeaderProps {
 }
 
 export default function Header({ mainMenu }: HeaderProps) {
+  const scrolled = useScrollPosition();
+  
   // Transform WordPress menu items to MainMenu format
   const transformedMenuItems: MainMenuItem[] = mainMenu.map(item => ({
     title: item.title,
@@ -25,7 +30,7 @@ export default function Header({ mainMenu }: HeaderProps) {
 
   return (
     <header role="banner" className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-8">
-      <div className="lg:container mx-auto py-6">
+      <div className={`lg:container mx-auto transition-all duration-300 ease-in-out ${scrolled ? 'py-2' : 'py-6'}`}>
         <MainMenu
           siteLogo='/images/logo.svg'
           menuItems={transformedMenuItems}
@@ -34,8 +39,8 @@ export default function Header({ mainMenu }: HeaderProps) {
           siteName="PressX"
           ctaLinkCount={2}
           modifier="p-0"
-          siteLogoWidth={160}
-          siteLogoHeight={42}
+          siteLogoWidth={scrolled ? 120 : 160}
+          siteLogoHeight={scrolled ? 32 : 42}
         />
       </div>
     </header>
