@@ -76,7 +76,6 @@ async function getMainMenu(): Promise<MenuItem[]> {
     }
 
     const menuItems = menu.menuItems.nodes;
-    console.log('Menu items:', menuItems);
 
     return menuItems.map(item => ({
       id: item.id,

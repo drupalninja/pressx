@@ -222,6 +222,14 @@ add_action('carbon_fields_loaded', function () {
           Field::make('text', 'max_width')
             ->set_help_text('Optional maximum width for the embed (e.g., 800px, 100%).'),
         ])
+        ->add_fields('media', [
+          Field::make('text', 'title')
+            ->set_help_text('Optional title for the media section.'),
+          Field::make('image', 'media')
+            ->set_value_type('url')
+            ->set_required(TRUE)
+            ->set_help_text('The media to display in this section.'),
+        ])
         ->add_fields('gallery', [
           Field::make('text', 'title')
             ->set_help_text('The title for the gallery section.'),
@@ -387,7 +395,7 @@ add_action('graphql_register_types', function () {
         }
 
         $type = $section['_type'] ?? 'hero';
-        
+
         $base = [
           'type' => $type,
           'title' => $section['title'] ?? '',
@@ -435,6 +443,11 @@ add_action('graphql_register_types', function () {
               'embedUrl' => $section['embed_url'] ?? '',
               'caption' => $section['caption'] ?? '',
               'maxWidth' => $section['max_width'] ?? '',
+            ]);
+
+          case 'media':
+            return array_merge($base, [
+              'media' => resolve_media_field($section['media'])
             ]);
 
           case 'gallery':

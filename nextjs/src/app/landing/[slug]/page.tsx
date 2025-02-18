@@ -7,6 +7,7 @@ import SectionCarousel, { CarouselSection, carouselSectionFragment } from '@/com
 import SectionEmbed, { EmbedSection, embedSectionFragment } from '@/components/sections/SectionEmbed';
 import SectionGallery, { GallerySection, gallerySectionFragment } from '@/components/sections/SectionGallery';
 import SectionLogoCollection, { SectionLogoCollectionProps } from '@/components/sections/SectionLogoCollection';
+import SectionMedia, { MediaSection, mediaSectionFragment } from '@/components/sections/SectionMedia';
 
 interface LogoCollectionSection {
   type: 'logo_collection';
@@ -23,7 +24,7 @@ interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection | MediaSection>;
   };
 }
 
@@ -34,6 +35,7 @@ const getLandingPageQuery = `
   ${carouselSectionFragment}
   ${embedSectionFragment}
   ${gallerySectionFragment}
+  ${mediaSectionFragment}
   fragment LogoCollectionSection on LandingSection {
     type
     title
@@ -55,6 +57,7 @@ const getLandingPageQuery = `
         ...CarouselSection
         ...EmbedSection
         ...GallerySection
+        ...MediaSection
         ...LogoCollectionSection
       }
     }
@@ -130,6 +133,14 @@ export default async function LandingPage({
               <SectionGallery
                 key={index}
                 section={section as GallerySection}
+              />
+            );
+          }
+          if (section.type === 'media') {
+            return (
+              <SectionMedia
+                key={index}
+                section={section as MediaSection}
               />
             );
           }

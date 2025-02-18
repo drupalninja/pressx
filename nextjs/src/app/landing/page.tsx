@@ -26,7 +26,6 @@ interface LandingPagesData {
 export default async function LandingPages() {
   try {
     const data = await graphQLClient.request<LandingPagesData>(query);
-    console.log('Available Landing Pages:', data);
 
     return (
       <main className="min-h-screen p-8">

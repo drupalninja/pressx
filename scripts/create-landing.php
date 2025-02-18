@@ -186,6 +186,12 @@ $sections = [
     ],
   ],
   [
+    '_type' => 'media',
+    'title' => 'Featured Media',
+    'media' => $image_url,
+    'modifier' => 'container mx-auto max-w-4xl',
+  ],
+  [
     '_type' => 'gallery',
     'title' => 'Image Gallery',
     'summary' => 'A collection of images showcasing our platform features.',

@@ -28,8 +28,6 @@ export default function SectionCarousel({ section }: { section: CarouselSection 
     };
   });
 
-  console.dir(items);
-
   return (
     <div className="container mx-auto px-4 my-25">
       <Carousel items={items} />
