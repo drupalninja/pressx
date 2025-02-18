@@ -203,6 +203,17 @@ add_action('carbon_fields_loaded', function () {
               Field::make('text', 'summary')
                 ->set_help_text('The summary text for this item.'),
             ]),
+        ])
+        ->add_fields('embed', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the embed section.'),
+          Field::make('text', 'embed_url')
+            ->set_required(TRUE)
+            ->set_help_text('The URL to embed (e.g., YouTube, Twitter, etc.).'),
+          Field::make('text', 'caption')
+            ->set_help_text('Optional caption text for the embedded content.'),
+          Field::make('text', 'max_width')
+            ->set_help_text('Optional maximum width for the embed (e.g., 800px, 100%).'),
         ]),
     ]);
 });
@@ -362,6 +373,13 @@ add_action('graphql_register_types', function () {
               'cards' => $cards,
             ]);
 
+          case 'embed':
+            return array_merge($base, [
+              'embedUrl' => $section['embed_url'] ?? '',
+              'caption' => $section['caption'] ?? '',
+              'maxWidth' => $section['max_width'] ?? '',
+            ]);
+
           default:
             return $base;
         }
@@ -405,6 +423,27 @@ add_action('graphql_register_types', function () {
     ],
   ]);
 
+  register_graphql_object_type('Card', [
+    'fields' => [
+      'type' => ['type' => 'String'],
+      'media' => ['type' => 'Media'],
+      'mediaLink' => ['type' => 'String'],
+      'heading' => ['type' => 'CardHeading'],
+      'body' => ['type' => 'String'],
+      'summaryText' => ['type' => 'String'],
+      'tags' => ['type' => ['list_of' => 'String']],
+      'icon' => ['type' => 'String'],
+      'link' => ['type' => 'Link'],
+    ],
+  ]);
+
+  register_graphql_object_type('CardHeading', [
+    'fields' => [
+      'title' => ['type' => ['non_null' => 'String']],
+      'url' => ['type' => 'String'],
+    ],
+  ]);
+
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
@@ -431,27 +470,10 @@ add_action('graphql_register_types', function () {
         'type' => ['list_of' => 'Card'],
         'description' => 'Cards for card group section',
       ],
-    ],
-  ]);
-
-  register_graphql_object_type('Card', [
-    'fields' => [
-      'type' => ['type' => 'String'],
-      'media' => ['type' => 'Media'],
-      'mediaLink' => ['type' => 'String'],
-      'heading' => ['type' => ['non_null' => 'CardHeading']],
-      'body' => ['type' => 'String'],
-      'summaryText' => ['type' => 'String'],
-      'tags' => ['type' => ['list_of' => 'String']],
-      'icon' => ['type' => 'String'],
-      'link' => ['type' => 'Link'],
-    ],
-  ]);
-
-  register_graphql_object_type('CardHeading', [
-    'fields' => [
-      'title' => ['type' => ['non_null' => 'String']],
-      'url' => ['type' => 'String'],
+      // Embed fields
+      'embedUrl' => ['type' => 'String'],
+      'caption' => ['type' => 'String'],
+      'maxWidth' => ['type' => 'String'],
     ],
   ]);
 });

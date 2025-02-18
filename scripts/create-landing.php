@@ -181,6 +181,13 @@ $sections = [
     ],
   ],
   [
+    '_type' => 'embed',
+    'title' => 'Watch Our Tutorial',
+    'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    'caption' => 'Learn how to get started with PressX in this quick tutorial video.',
+    'max_width' => '800px',
+  ],
+  [
     '_type' => 'accordion',
     'title' => 'Frequently Asked Questions',
     'items' => [

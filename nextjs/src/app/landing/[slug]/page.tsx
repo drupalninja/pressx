@@ -4,12 +4,13 @@ import SectionHero, { HeroSection, heroSectionFragment } from '@/components/sect
 import SectionAccordion, { AccordionSection, accordionSectionFragment } from '@/components/sections/SectionAccordion';
 import SectionCardGroup, { CardGroupSection, cardGroupSectionFragment } from '@/components/sections/SectionCardGroup';
 import SectionCarousel, { CarouselSection, carouselSectionFragment } from '@/components/sections/SectionCarousel';
+import SectionEmbed, { EmbedSection, embedSectionFragment } from '@/components/sections/SectionEmbed';
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection>;
   };
 }
 
@@ -18,7 +19,7 @@ const getLandingPageQuery = `
   ${accordionSectionFragment}
   ${cardGroupSectionFragment}
   ${carouselSectionFragment}
-
+  ${embedSectionFragment}
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
       title
@@ -28,6 +29,7 @@ const getLandingPageQuery = `
         ...AccordionSection
         ...CardGroupSection
         ...CarouselSection
+        ...EmbedSection
       }
     }
   }
@@ -86,6 +88,14 @@ export default async function LandingPage({
               <SectionCarousel
                 key={index}
                 section={section as CarouselSection}
+              />
+            );
+          }
+          if (section.type === 'embed') {
+            return (
+              <SectionEmbed
+                key={index}
+                section={section as EmbedSection}
               />
             );
           }
