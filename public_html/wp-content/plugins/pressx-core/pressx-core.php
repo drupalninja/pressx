@@ -183,6 +183,13 @@ add_action('carbon_fields_loaded', function () {
                 ->set_help_text('Optional link URL for the card.'),
             ]),
         ])
+        ->add_fields('logo_collection', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the logo collection section.'),
+          Field::make('media_gallery', 'logos')
+            ->set_type(['image'])
+            ->set_help_text('Add collection of logos.')
+        ])
         ->add_fields('carousel', [
           Field::make('text', 'title')
             ->set_help_text('The title for the carousel section.'),
@@ -232,8 +239,8 @@ add_action('carbon_fields_loaded', function () {
                 ->set_required(TRUE)
                 ->set_help_text('Image for the gallery.'),
               Field::make('text', 'alt')
-                ->set_help_text('Alt text for the image.'),
-            ]),
+                ->set_help_text('Alt text for the image.')
+            ])
         ]),
     ]);
 });
@@ -380,12 +387,24 @@ add_action('graphql_register_types', function () {
         }
 
         $type = $section['_type'] ?? 'hero';
+        
         $base = [
           'type' => $type,
           'title' => $section['title'] ?? '',
         ];
 
         switch ($type) {
+          case 'logo_collection':
+            return array_merge($base, [
+              'type' => 'logo_collection', // Explicitly set the type
+              'logos' => array_map(function ($logo_id) {
+                $attachment = get_post($logo_id);
+                $media = resolve_media_field(wp_get_attachment_url($logo_id));
+                $media['alt'] = get_post_meta($logo_id, '_wp_attachment_image_alt', true) ?: $attachment->post_title;
+                return $media;
+              }, $section['logos'] ?: []),
+            ]);
+
           case 'hero':
             return array_merge($base, [
               'heroLayout' => $section['hero_layout'] ?? 'image_top',
@@ -469,6 +488,9 @@ add_action('graphql_register_types', function () {
   register_graphql_object_type('Media', [
     'fields' => [
       'sourceUrl' => ['type' => 'String'],
+      'width' => ['type' => 'Int'],
+      'height' => ['type' => 'Int'],
+      'alt' => ['type' => 'String'],
     ],
   ]);
 
@@ -527,6 +549,11 @@ add_action('graphql_register_types', function () {
       'mediaItems' => [
         'type' => ['list_of' => 'GalleryMediaItem'],
         'description' => 'Media items for gallery section',
+      ],
+      // Logo collection fields
+      'logos' => [
+        'type' => ['list_of' => 'Media'],
+        'description' => 'Logos for logo collection section',
       ],
     ],
   ]);

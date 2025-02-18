@@ -82,6 +82,11 @@ $sections = [
     'link2_url' => '#secondary-cta',
   ],
   [
+    '_type' => 'logo_collection',
+    'title' => 'Trusted by Leading Companies',
+    'logos' => [$image_id, $image_id, $image_id, $image_id, $image_id, $image_id], // Using the same image multiple times for demo
+  ],
+  [
     '_type' => 'accordion',
     'title' => 'Frequently Asked Questions',
     'items' => [
@@ -206,7 +211,7 @@ $sections = [
   [
     '_type' => 'embed',
     'title' => 'Watch Our Tutorial',
-    'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    'embed_url' => 'https://www.youtube.com/embed/71EZb94AS1k',
     'caption' => 'Learn how to get started with PressX in this quick tutorial video.',
     'max_width' => '800px',
   ],

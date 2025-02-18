@@ -6,12 +6,24 @@ import SectionCardGroup, { CardGroupSection, cardGroupSectionFragment } from '@/
 import SectionCarousel, { CarouselSection, carouselSectionFragment } from '@/components/sections/SectionCarousel';
 import SectionEmbed, { EmbedSection, embedSectionFragment } from '@/components/sections/SectionEmbed';
 import SectionGallery, { GallerySection, gallerySectionFragment } from '@/components/sections/SectionGallery';
+import SectionLogoCollection, { SectionLogoCollectionProps } from '@/components/sections/SectionLogoCollection';
+
+interface LogoCollectionSection {
+  type: 'logo_collection';
+  title: string;
+  logos: Array<{
+    sourceUrl: string;
+    width?: number;
+    height?: number;
+    alt?: string;
+  }>;
+}
 
 interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection>;
   };
 }
 
@@ -22,6 +34,16 @@ const getLandingPageQuery = `
   ${carouselSectionFragment}
   ${embedSectionFragment}
   ${gallerySectionFragment}
+  fragment LogoCollectionSection on LandingSection {
+    type
+    title
+    logos {
+      sourceUrl
+      width
+      height
+      alt
+    }
+  }
   query GetLandingPage($slug: ID!) {
     landing(id: $slug, idType: SLUG) {
       title
@@ -33,6 +55,7 @@ const getLandingPageQuery = `
         ...CarouselSection
         ...EmbedSection
         ...GallerySection
+        ...LogoCollectionSection
       }
     }
   }
@@ -107,6 +130,15 @@ export default async function LandingPage({
               <SectionGallery
                 key={index}
                 section={section as GallerySection}
+              />
+            );
+          }
+          if (section.type === 'logo_collection') {
+            return (
+              <SectionLogoCollection
+                key={index}
+                title={section.title}
+                logos={section.logos}
               />
             );
           }
