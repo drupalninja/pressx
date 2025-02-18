@@ -207,6 +207,29 @@ add_action('carbon_fields_loaded', function () {
     ]);
 });
 
+// Helper function to consistently resolve media fields
+function resolve_media_field($media_url) {
+  if (empty($media_url)) {
+    return NULL;
+  }
+
+  $attachment_id = attachment_url_to_postid($media_url);
+  if (!$attachment_id) {
+    // If we can't get an attachment ID but have a URL, return just the URL
+    return [
+      'sourceUrl' => $media_url
+    ];
+  }
+
+  $metadata = wp_get_attachment_metadata($attachment_id);
+  return [
+    'sourceUrl' => wp_get_attachment_url($attachment_id),
+    'width' => (int) ($metadata['width'] ?? 0),
+    'height' => (int) ($metadata['height'] ?? 0),
+    'mimeType' => get_post_mime_type($attachment_id)
+  ];
+}
+
 // Register GraphQL fields.
 add_action('graphql_register_types', function () {
   // Register CarouselItem type
@@ -232,7 +255,7 @@ add_action('graphql_register_types', function () {
     'description' => 'Sections of the landing page.',
     'resolve' => function ($post) {
       $sections = carbon_get_post_meta($post->ID, 'sections');
-      return array_map(function ($section) use ($sections, $post) {
+      return array_map(function ($section) {
         $link = [
           'url' => $section['link_url'] ?? '',
           'title' => $section['link_title'] ?? '',
@@ -241,24 +264,6 @@ add_action('graphql_register_types', function () {
           'url' => $section['link2_url'] ?? '',
           'title' => $section['link2_title'] ?? '',
         ];
-
-        // Get media details if we have an attachment URL.
-        $media_details = NULL;
-        if (!empty($section['media'])) {
-          $attachment_id = attachment_url_to_postid($section['media']);
-
-          if ($attachment_id) {
-            $metadata = wp_get_attachment_metadata($attachment_id);
-
-            // Initialize media details with original dimensions only
-            $media_details = [
-              'width' => (int) ($metadata['width'] ?? 0),
-              'height' => (int) ($metadata['height'] ?? 0),
-              'sourceUrl' => wp_get_attachment_url($attachment_id),
-              'mimeType' => get_post_mime_type($attachment_id),
-            ];
-          }
-        }
 
         // Convert markdown bold to HTML
         $heading = $section['heading'] ?? '';
@@ -284,41 +289,19 @@ add_action('graphql_register_types', function () {
         // Process carousel items if this is a carousel section
         $carousel_items = [];
         if ($section['_type'] === 'carousel' && !empty($section['items'])) {
-          error_log('Carousel section items: ' . print_r($section['items'], TRUE));
-          $carousel_items = [];
-          foreach ($section['items'] as $item_index => $item) {
-            error_log('Processing carousel item ' . $item_index . ' in section ' . $section_index . ': ' . print_r($item, TRUE));
-            $media_url = get_post_meta($post->ID, "_sections|items:media|{$section_index}:{$item_index}|0|value", TRUE);
-            error_log('Media URL for item ' . $item_index . ': ' . print_r($media_url, TRUE));
-            $carousel_items[] = [
-              'media' => !empty($item['media']) ? [
-                'sourceUrl' => $item['media']
-              ] : NULL,
+          $carousel_items = array_map(function ($item) {
+            return [
+              'media' => resolve_media_field($item['media']),
               'title' => $item['title'] ?? '',
               'summary' => $item['summary'] ?? '',
             ];
-          }
+          }, $section['items']);
         }
 
         // Process cards if this is a card group section
         $cards = [];
         if ($section['_type'] === 'card_group' && !empty($section['cards'])) {
-          error_log('Raw card group section data: ' . print_r($section, TRUE));
           $cards = array_map(function ($card) {
-            error_log('Card media value: ' . print_r($card['media'], TRUE));
-            // Get media details for the card
-            $card_media_details = NULL;
-            if (!empty($card['media'])) {
-              $card_attachment_id = attachment_url_to_postid($card['media']);
-              if ($card_attachment_id) {
-                $card_metadata = wp_get_attachment_metadata($card_attachment_id);
-                $card_media_details = [
-                  'width' => (int) ($card_metadata['width'] ?? 0),
-                  'height' => (int) ($card_metadata['height'] ?? 0),
-                ];
-              }
-            }
-
             // Process tags
             $tags = [];
             if (!empty($card['tags'])) {
@@ -329,9 +312,7 @@ add_action('graphql_register_types', function () {
 
             return [
               'type' => $card['type'] ?? 'custom',
-              'media' => !empty($card['media']) ? [
-                'sourceUrl' => $card['media'],
-              ] : NULL,
+              'media' => resolve_media_field($card['media']),
               'mediaLink' => $card['media_link'] ?? '',
               'heading' => [
                 'title' => $card['heading'] ?? '',
@@ -361,9 +342,7 @@ add_action('graphql_register_types', function () {
               'heroLayout' => $section['hero_layout'] ?? 'image_top',
               'heading' => $heading,
               'summary' => $section['summary'] ?? '',
-              'media' => [
-                'sourceUrl' => $section['media'] ?? '',
-              ],
+              'media' => resolve_media_field($section['media']),
               'link' => $link,
               'link2' => $link2,
             ]);
@@ -374,19 +353,8 @@ add_action('graphql_register_types', function () {
             ]);
 
           case 'carousel':
-            error_log('Carousel section items: ' . print_r($section['items'], TRUE));
             return array_merge($base, [
-              'carouselItems' => !empty($section['items']) ? array_map(function ($item) {
-                error_log('Processing carousel item: ' . print_r($item, TRUE));
-                error_log('Media field: ' . print_r($item['media'], TRUE));
-                return [
-                  'media' => !empty($item['media']) ? [
-                    'sourceUrl' => $item['media']
-                  ] : NULL,
-                  'title' => $item['title'] ?? '',
-                  'summary' => $item['summary'] ?? '',
-                ];
-              }, $section['items']) : [],
+              'carouselItems' => $carousel_items,
             ]);
 
           case 'card_group':
