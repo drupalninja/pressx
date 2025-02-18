@@ -214,6 +214,26 @@ add_action('carbon_fields_loaded', function () {
             ->set_help_text('Optional caption text for the embedded content.'),
           Field::make('text', 'max_width')
             ->set_help_text('Optional maximum width for the embed (e.g., 800px, 100%).'),
+        ])
+        ->add_fields('gallery', [
+          Field::make('text', 'title')
+            ->set_help_text('The title for the gallery section.'),
+          Field::make('rich_text', 'summary')
+            ->set_help_text('Optional summary text for the gallery.'),
+          Field::make('complex', 'media_items')
+            ->set_layout('tabbed-horizontal')
+            ->setup_labels([
+              'plural_name' => 'Media Items',
+              'singular_name' => 'Media Item',
+            ])
+            ->add_fields([
+              Field::make('image', 'media')
+                ->set_value_type('url')
+                ->set_required(TRUE)
+                ->set_help_text('Image for the gallery.'),
+              Field::make('text', 'alt')
+                ->set_help_text('Alt text for the image.'),
+            ]),
         ]),
     ]);
 });
@@ -258,6 +278,13 @@ add_action('graphql_register_types', function () {
         'type' => 'String',
         'description' => 'Summary text for the carousel item',
       ],
+    ],
+  ]);
+
+  register_graphql_object_type('GalleryMediaItem', [
+    'fields' => [
+      'media' => ['type' => 'Media'],
+      'alt' => ['type' => 'String'],
     ],
   ]);
 
@@ -341,6 +368,17 @@ add_action('graphql_register_types', function () {
           }, $section['cards']);
         }
 
+        // Process gallery media items if this is a gallery section
+        $gallery_media_items = [];
+        if ($section['_type'] === 'gallery' && !empty($section['media_items'])) {
+          $gallery_media_items = array_map(function ($item) {
+            return [
+              'media' => resolve_media_field($item['media']),
+              'alt' => $item['alt'] ?? '',
+            ];
+          }, $section['media_items']);
+        }
+
         $type = $section['_type'] ?? 'hero';
         $base = [
           'type' => $type,
@@ -378,6 +416,17 @@ add_action('graphql_register_types', function () {
               'embedUrl' => $section['embed_url'] ?? '',
               'caption' => $section['caption'] ?? '',
               'maxWidth' => $section['max_width'] ?? '',
+            ]);
+
+          case 'gallery':
+            return array_merge($base, [
+              'summary' => $section['summary'] ?? '',
+              'mediaItems' => !empty($section['media_items']) ? array_map(function ($item) {
+                return [
+                  'media' => resolve_media_field($item['media']),
+                  'alt' => $item['alt'] ?? '',
+                ];
+              }, $section['media_items']) : [],
             ]);
 
           default:
@@ -474,6 +523,11 @@ add_action('graphql_register_types', function () {
       'embedUrl' => ['type' => 'String'],
       'caption' => ['type' => 'String'],
       'maxWidth' => ['type' => 'String'],
+      // Gallery fields
+      'mediaItems' => [
+        'type' => ['list_of' => 'GalleryMediaItem'],
+        'description' => 'Media items for gallery section',
+      ],
     ],
   ]);
 });

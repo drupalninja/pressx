@@ -181,6 +181,29 @@ $sections = [
     ],
   ],
   [
+    '_type' => 'gallery',
+    'title' => 'Image Gallery',
+    'summary' => 'A collection of images showcasing our platform features.',
+    'media_items' => [
+      [
+        'media' => $image_url,
+        'alt' => 'Platform screenshot 1',
+      ],
+      [
+        'media' => $image_url,
+        'alt' => 'Platform screenshot 2',
+      ],
+      [
+        'media' => $image_url,
+        'alt' => 'Platform screenshot 3',
+      ],
+      [
+        'media' => $image_url,
+        'alt' => 'Platform screenshot 4',
+      ],
+    ],
+  ],
+  [
     '_type' => 'embed',
     'title' => 'Watch Our Tutorial',
     'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
