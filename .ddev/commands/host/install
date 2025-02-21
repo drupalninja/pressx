@@ -26,11 +26,17 @@ if [ ! -f public_html/wp-config.php ]; then
         --dbuser=db \
         --dbpass=db \
         --dbhost=db \
-        --extra-php <<PHP
+        --extra-php <<'PHP'
 define( 'PRESSX_FRONTEND_URL', 'http://localhost:3333' );
 define( 'WORDPRESS_PREVIEW_SECRET', 'pressx_preview_secret' );
 define( 'WP_ENVIRONMENT_TYPE', 'local' );
 define( 'GRAPHQL_DEBUG', true );
+
+// Include for ddev-managed settings in wp-config-ddev.php
+$ddev_settings = dirname(__FILE__) . '/wp-config-ddev.php';
+if (is_readable($ddev_settings) && !defined("DB_USER")) {
+    require_once($ddev_settings);
+}
 PHP
 fi
 

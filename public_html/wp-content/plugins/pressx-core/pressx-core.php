@@ -32,13 +32,14 @@ use Carbon_Fields\Carbon_Fields;
 
 // Initialize Carbon Fields.
 add_action('after_setup_theme', function () {
-  require_once '/var/www/html/vendor/autoload.php';
+  require_once dirname(dirname(dirname(dirname(__DIR__)))) . '/vendor/autoload.php';
 
   // Define Carbon Fields URL.
-  if (!defined('Carbon_Fields\URL')) {
-    define('Carbon_Fields\URL', site_url('vendor/htmlburger/carbon-fields'));
+  if (!defined('Carbon_Fields\\URL')) {
+    define('Carbon_Fields\\URL', plugins_url('vendor/carbon-fields', __FILE__));
   }
 
+  // Boot Carbon Fields
   Carbon_Fields::boot();
 
   // Disable default WordPress image sizes.
@@ -48,11 +49,12 @@ add_action('after_setup_theme', function () {
 
 // Register Carbon Fields assets.
 add_action('admin_enqueue_scripts', function () {
-  wp_enqueue_style('carbon-fields-core', site_url('vendor/htmlburger/carbon-fields/build/classic/core.css'));
-  wp_enqueue_style('carbon-fields-metaboxes', site_url('vendor/htmlburger/carbon-fields/build/classic/metaboxes.css'));
-  wp_enqueue_script('carbon-fields-vendor', site_url('vendor/htmlburger/carbon-fields/build/classic/vendor.js'), ['jquery'], NULL, TRUE);
-  wp_enqueue_script('carbon-fields-core', site_url('vendor/htmlburger/carbon-fields/build/classic/core.js'), ['carbon-fields-vendor'], NULL, TRUE);
-  wp_enqueue_script('carbon-fields-metaboxes', site_url('vendor/htmlburger/carbon-fields/build/classic/metaboxes.js'), ['carbon-fields-core'], NULL, TRUE);
+  $vendor_url = plugins_url('vendor/carbon-fields', __FILE__);
+  wp_enqueue_style('carbon-fields-core', $vendor_url . '/build/classic/core.min.css');
+  wp_enqueue_style('carbon-fields-metaboxes', $vendor_url . '/build/classic/metaboxes.min.css');
+  wp_enqueue_script('carbon-fields-vendor', $vendor_url . '/build/classic/vendor.min.js', ['jquery'], null, true);
+  wp_enqueue_script('carbon-fields-core', $vendor_url . '/build/classic/core.min.js', ['carbon-fields-vendor'], null, true);
+  wp_enqueue_script('carbon-fields-metaboxes', $vendor_url . '/build/classic/metaboxes.min.js', ['carbon-fields-core'], null, true);
 });
 
 // Register Landing Page post type.

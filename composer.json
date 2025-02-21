@@ -11,10 +11,10 @@
   "require": {
     "php": ">=8.0",
     "composer/installers": "^2.0",
+    "htmlburger/carbon-fields": "^3.6",
     "vlucas/phpdotenv": "^5.5",
-    "wpackagist-plugin/wp-graphql": "^2.0",
     "wpackagist-plugin/classic-editor": "^1.6",
-    "htmlburger/carbon-fields": "^3.6"
+    "wpackagist-plugin/wp-graphql": "^2.0"
   },
   "config": {
     "optimize-autoloader": true,
@@ -24,13 +24,24 @@
       "composer/installers": true
     }
   },
+  "scripts": {
+    "post-install-cmd": [
+      "mkdir -p public_html/wp-content/plugins/pressx-core/vendor/carbon-fields/build",
+      "cp -r vendor/htmlburger/carbon-fields/build/classic public_html/wp-content/plugins/pressx-core/vendor/carbon-fields/build/"
+    ],
+    "post-update-cmd": [
+      "mkdir -p public_html/wp-content/plugins/pressx-core/vendor/carbon-fields/build",
+      "cp -r vendor/htmlburger/carbon-fields/build/classic public_html/wp-content/plugins/pressx-core/vendor/carbon-fields/build/"
+    ]
+  },
   "extra": {
     "installer-paths": {
       "public_html/wp-content/mu-plugins/{$name}/": [
         "type:wordpress-muplugin"
       ],
       "public_html/wp-content/plugins/{$name}/": [
-        "type:wordpress-plugin"
+        "type:wordpress-plugin",
+        "htmlburger/carbon-fields"
       ],
       "public_html/wp-content/themes/{$name}/": [
         "type:wordpress-theme"
