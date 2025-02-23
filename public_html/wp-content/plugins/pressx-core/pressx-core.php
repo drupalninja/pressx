@@ -251,6 +251,16 @@ add_action('carbon_fields_loaded', function () {
               Field::make('text', 'alt')
                 ->set_help_text('Alt text for the image.')
             ])
+        ])
+        ->add_fields('newsletter', [
+          Field::make('text', 'title')
+            ->set_required(TRUE)
+            ->set_help_text('The title for the newsletter section.')
+            ->set_default_value('Sign up for our newsletter.'),
+          Field::make('rich_text', 'summary')
+            ->set_required(TRUE)
+            ->set_help_text('The summary text for the newsletter section.')
+            ->set_default_value('Stay up to date with our latest news and updates.'),
         ]),
     ]);
 });
@@ -454,13 +464,18 @@ add_action('graphql_register_types', function () {
 
           case 'gallery':
             return array_merge($base, [
-              'summary' => $section['summary'] ?? '',
+              'summary' => $section['summary'] ?? NULL,
               'mediaItems' => !empty($section['media_items']) ? array_map(function ($item) {
                 return [
                   'media' => resolve_media_field($item['media']),
-                  'alt' => $item['alt'] ?? '',
+                  'alt' => $item['alt'] ?? NULL,
                 ];
               }, $section['media_items']) : [],
+            ]);
+
+          case 'newsletter':
+            return array_merge($base, [
+              'summary' => $section['summary'] ?? NULL,
             ]);
 
           default:
@@ -570,6 +585,8 @@ add_action('graphql_register_types', function () {
         'type' => ['list_of' => 'Media'],
         'description' => 'Logos for logo collection section',
       ],
+      // Newsletter fields
+      'summary' => ['type' => 'String'],
     ],
   ]);
 });

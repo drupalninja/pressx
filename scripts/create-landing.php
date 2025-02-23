@@ -222,12 +222,19 @@ $sections = [
     'max_width' => '800px',
   ],
   [
+    '_type' => 'newsletter',
+    'title' => 'Stay Updated with PressX',
+    'summary' => 'Subscribe to our newsletter to receive the latest updates, tips, ' .
+      'and best practices for building modern WordPress sites with PressX.',
+  ],
+  [
     '_type' => 'accordion',
     'title' => 'Frequently Asked Questions',
     'items' => [
       [
         'title' => 'What makes PressX different?',
-        'body' => 'PressX combines the power of WordPress with modern frontend technologies, offering a seamless headless CMS experience. You get the best of both worlds: WordPress\'s robust content management and Next.js\'s superior performance.',
+        'body' => 'PressX combines the power of WordPress with modern frontend technologies, ' .
+          'offering a seamless headless CMS experience.',
         'link_title' => 'Learn More',
         'link_url' => '/features',
       ],
