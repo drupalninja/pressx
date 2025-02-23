@@ -59,6 +59,60 @@ add_action('admin_enqueue_scripts', function () {
 
 // Register Landing Page post type.
 add_action('init', function () {
+  // Register default post type with GraphQL support.
+  register_post_type('post', [
+    'labels' => [
+      'name' => 'Posts',
+      'singular_name' => 'Post',
+      'add_new' => 'Add New',
+      'add_new_item' => 'Add New Post',
+      'edit_item' => 'Edit Post',
+      'new_item' => 'New Post',
+      'view_item' => 'View Post',
+      'view_items' => 'View Posts',
+      'search_items' => 'Search Posts',
+      'not_found' => 'No posts found',
+      'not_found_in_trash' => 'No posts found in Trash',
+      'all_items' => 'All Posts',
+      'archives' => 'Post Archives',
+      'attributes' => 'Post Attributes',
+      'insert_into_item' => 'Insert into post',
+      'uploaded_to_this_item' => 'Uploaded to this post',
+      'featured_image' => 'Featured Image',
+      'set_featured_image' => 'Set featured image',
+      'remove_featured_image' => 'Remove featured image',
+      'use_featured_image' => 'Use as featured image',
+    ],
+    'public' => TRUE,
+    'show_in_graphql' => TRUE,
+    'graphql_single_name' => 'post',
+    'graphql_plural_name' => 'posts',
+    'menu_position' => 5,
+    'menu_icon' => 'dashicons-admin-post',
+    'supports' => [
+      'title',
+      'editor',
+      'author',
+      'thumbnail',
+      'excerpt',
+      'trackbacks',
+      'custom-fields',
+      'comments',
+      'revisions',
+      'post-formats',
+    ],
+    'taxonomies' => ['category', 'post_tag'],
+    'has_archive' => TRUE,
+    'rewrite' => [
+      'slug' => 'post',
+      'with_front' => TRUE,
+    ],
+    'show_in_rest' => TRUE,
+    'show_in_nav_menus' => TRUE,
+    'show_in_admin_bar' => TRUE,
+    'publicly_queryable' => TRUE,
+  ]);
+
   register_post_type('landing', [
     'labels' => [
       'name' => 'Landing Pages',
@@ -850,45 +904,79 @@ add_filter('preview_post_link', function ($preview_link, $post) {
   );
 }, 10, 2);
 
-// Modify permalink for landing pages.
+// Modify permalink for posts and landing pages.
 add_filter('post_type_link', function ($post_link, $post) {
-  if ($post->post_type !== 'landing') {
+  if (!$post) {
     return $post_link;
   }
 
   $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
-  return sprintf(
-    '%s/landing/%s',
-    untrailingslashit($frontend_url),
-    $post->post_name
-  );
+
+  switch ($post->post_type) {
+    case 'landing':
+      return sprintf(
+        '%s/landing/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+      );
+    case 'post':
+      return sprintf(
+        '%s/post/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+      );
+    default:
+      return $post_link;
+  }
 }, 10, 2);
 
-// Modify view post link for landing pages.
+// Modify view post link for posts and landing pages.
 add_filter('post_link', function ($url, $post) {
-  if ($post->post_type !== 'landing') {
+  if (!$post) {
     return $url;
   }
 
   $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
-  return sprintf(
-    '%s/landing/%s',
-    untrailingslashit($frontend_url),
-    $post->post_name
-  );
+
+  switch ($post->post_type) {
+    case 'landing':
+      return sprintf(
+        '%s/landing/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+      );
+    case 'post':
+      return sprintf(
+        '%s/post/%s',
+        untrailingslashit($frontend_url),
+        $post->post_name
+      );
+    default:
+      return $url;
+  }
 }, 10, 2);
 
-// Override get_sample_permalink for landing pages in admin.
+// Override get_sample_permalink for posts and landing pages in admin.
 add_filter('get_sample_permalink', function ($permalink, $post_id, $title, $name, $post) {
-  if (!$post || $post->post_type !== 'landing') {
+  if (!$post) {
     return $permalink;
   }
 
   $frontend_url = defined('PRESSX_FRONTEND_URL') ? PRESSX_FRONTEND_URL : 'http://localhost:3333';
   $post_name = $name ? $name : $post->post_name;
 
-  return [
-    sprintf('%s/landing/%%pagename%%', untrailingslashit($frontend_url)),
-    $post_name,
-  ];
+  switch ($post->post_type) {
+    case 'landing':
+      return [
+        sprintf('%s/landing/%%pagename%%', untrailingslashit($frontend_url)),
+        $post_name,
+      ];
+    case 'post':
+      return [
+        sprintf('%s/post/%%pagename%%', untrailingslashit($frontend_url)),
+        $post_name,
+      ];
+    default:
+      return $permalink;
+  }
 }, 10, 5);
