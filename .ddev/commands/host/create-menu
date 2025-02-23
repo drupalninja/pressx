@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## Description: Create navigation menu for PressX
+## Usage: create-menu
+## Example: "ddev create-menu"
+
+# Execute the PHP script
+ddev wp-script /var/www/html/scripts/create-menu.php
