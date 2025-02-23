@@ -45,6 +45,16 @@ add_action('after_setup_theme', function () {
   // Disable default WordPress image sizes.
   add_filter('intermediate_image_sizes', '__return_empty_array');
   add_filter('big_image_size_threshold', '__return_false');
+
+  // Set excerpt length to 25 words.
+  add_filter('excerpt_length', function () {
+    return 25;
+  });
+
+  // Customize the excerpt "more" text.
+  add_filter('excerpt_more', function () {
+    return '...';
+  });
 });
 
 // Register Carbon Fields assets.
