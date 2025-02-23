@@ -64,6 +64,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
                 width={siteLogoWidth ?? 200}
                 height={siteLogoHeight ?? 100}
                 className="mr-2 transition-all duration-300 ease-in-out transform"
+                unoptimized
               />
             )}
             {showSiteName && siteName && <span className="text-2xl">{siteName.split('\n').map((line, index) => (
