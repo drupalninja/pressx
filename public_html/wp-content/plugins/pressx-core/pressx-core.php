@@ -261,6 +261,61 @@ add_action('carbon_fields_loaded', function () {
             ->set_required(TRUE)
             ->set_help_text('The summary text for the newsletter section.')
             ->set_default_value('Stay up to date with our latest news and updates.'),
+        ])
+        ->add_fields('pricing', [
+          Field::make('text', 'eyebrow')
+            ->set_required(TRUE)
+            ->set_help_text('The eyebrow text above the title.')
+            ->set_default_value('Choose Your Plan'),
+          Field::make('text', 'title')
+            ->set_required(TRUE)
+            ->set_help_text('The main title for the pricing section.')
+            ->set_default_value('Compare Our Options'),
+          Field::make('text', 'summary')
+            ->set_required(TRUE)
+            ->set_help_text('The summary text below the title.')
+            ->set_default_value('Select the best option for your needs'),
+          Field::make('text', 'includes_label')
+            ->set_required(TRUE)
+            ->set_help_text('The label for the features list.')
+            ->set_default_value('Includes'),
+          Field::make('complex', 'cards')
+            ->set_required(TRUE)
+            ->set_min(1)
+            ->set_layout('tabbed-horizontal')
+            ->setup_labels([
+              'plural_name' => 'Pricing Cards',
+              'singular_name' => 'Pricing Card',
+            ])
+            ->add_fields([
+              Field::make('text', 'eyebrow')
+                ->set_required(TRUE)
+                ->set_help_text('The eyebrow text for this pricing card.'),
+              Field::make('text', 'title')
+                ->set_required(TRUE)
+                ->set_help_text('The title/price for this pricing card.'),
+              Field::make('text', 'monthly_label')
+                ->set_help_text('Optional monthly label (e.g., "/month").'),
+              Field::make('complex', 'features')
+                ->set_required(TRUE)
+                ->set_min(1)
+                ->set_layout('tabbed-vertical')
+                ->setup_labels([
+                  'plural_name' => 'Features',
+                  'singular_name' => 'Feature',
+                ])
+                ->add_fields([
+                  Field::make('text', 'text')
+                    ->set_required(TRUE)
+                    ->set_help_text('The feature text.'),
+                ]),
+              Field::make('text', 'cta_text')
+                ->set_required(TRUE)
+                ->set_help_text('The call-to-action button text.'),
+              Field::make('text', 'cta_link')
+                ->set_required(TRUE)
+                ->set_help_text('The call-to-action button link.'),
+            ]),
         ]),
     ]);
 });
@@ -478,6 +533,25 @@ add_action('graphql_register_types', function () {
               'summary' => $section['summary'] ?? NULL,
             ]);
 
+          case 'pricing':
+            return array_merge($base, [
+              'eyebrow' => $section['eyebrow'] ?? '',
+              'summary' => $section['summary'] ?? '',
+              'includesLabel' => $section['includes_label'] ?? '',
+              'pricingCards' => !empty($section['cards']) ? array_map(function ($card) {
+                return [
+                  'eyebrow' => $card['eyebrow'] ?? '',
+                  'title' => $card['title'] ?? '',
+                  'monthlyLabel' => $card['monthly_label'] ?? '',
+                  'features' => !empty($card['features']) ? array_map(function ($feature) {
+                    return $feature['text'] ?? '';
+                  }, $card['features']) : [],
+                  'ctaText' => $card['cta_text'] ?? '',
+                  'ctaLink' => $card['cta_link'] ?? '',
+                ];
+              }, $section['cards']) : [],
+            ]);
+
           default:
             return $base;
         }
@@ -545,6 +619,17 @@ add_action('graphql_register_types', function () {
     ],
   ]);
 
+  register_graphql_object_type('PricingCard', [
+    'fields' => [
+      'eyebrow' => ['type' => 'String'],
+      'title' => ['type' => 'String'],
+      'monthlyLabel' => ['type' => 'String'],
+      'features' => ['type' => ['list_of' => 'String']],
+      'ctaText' => ['type' => 'String'],
+      'ctaLink' => ['type' => 'String'],
+    ],
+  ]);
+
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
@@ -587,6 +672,13 @@ add_action('graphql_register_types', function () {
       ],
       // Newsletter fields
       'summary' => ['type' => 'String'],
+      // Pricing fields
+      'eyebrow' => ['type' => 'String'],
+      'includesLabel' => ['type' => 'String'],
+      'pricingCards' => [
+        'type' => ['list_of' => 'PricingCard'],
+        'description' => 'Cards for pricing section',
+      ],
     ],
   ]);
 });

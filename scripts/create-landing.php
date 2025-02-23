@@ -227,6 +227,51 @@ $sections = [
     'max_width' => '800px',
   ],
   [
+    '_type' => 'pricing',
+    'eyebrow' => 'Choose Your Plan',
+    'title' => 'Compare Our Options',
+    'summary' => 'Select the best option for your needs',
+    'includes_label' => 'Includes',
+    'cards' => [
+      [
+        'eyebrow' => 'PressX CMS',
+        'title' => 'Free',
+        'monthly_label' => '',
+        'features' => [
+          ['text' => 'Full access to open source features'],
+          ['text' => 'Community support'],
+          ['text' => 'Documentation'],
+        ],
+        'cta_text' => 'Get Started',
+        'cta_link' => '#',
+      ],
+      [
+        'eyebrow' => 'Technical Discovery',
+        'title' => '$5,000',
+        'monthly_label' => '',
+        'features' => [
+          ['text' => 'Comprehensive needs assessment'],
+          ['text' => 'Custom solution design'],
+          ['text' => 'Implementation roadmap'],
+        ],
+        'cta_text' => 'Book Discovery',
+        'cta_link' => '#',
+      ],
+      [
+        'eyebrow' => 'Full Project Build',
+        'title' => 'Contact',
+        'monthly_label' => '',
+        'features' => [
+          ['text' => 'End-to-end project management'],
+          ['text' => 'Custom development'],
+          ['text' => 'Ongoing support'],
+        ],
+        'cta_text' => 'Contact Sales',
+        'cta_link' => '#',
+      ],
+    ],
+  ],
+  [
     '_type' => 'newsletter',
     'title' => 'Stay Updated with PressX',
     'summary' => 'Subscribe to our newsletter to receive the latest updates, tips, ' .
