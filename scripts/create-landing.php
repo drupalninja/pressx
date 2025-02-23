@@ -91,16 +91,21 @@ $sections = [
     'title' => 'Frequently Asked Questions',
     'items' => [
       [
-        'title' => 'What is PressX?',
-        'body' => 'PressX is a modern headless WordPress starter kit that combines the power of WordPress with Next.js.',
+        'title' => 'What makes PressX different?',
+        'body' => 'PressX combines the power of WordPress with modern frontend technologies, ' .
+          'offering a seamless headless CMS experience.',
         'link_title' => 'Learn More',
-        'link_url' => '#about',
+        'link_url' => '/features',
       ],
       [
-        'title' => 'How does it work?',
-        'body' => 'PressX uses WordPress as a headless CMS and Next.js for the frontend, providing a fast and flexible development experience.',
+        'title' => 'How does the headless setup work?',
+        'body' => 'PressX uses WordPress as a headless CMS, exposing content through a GraphQL API. The frontend is built with Next.js, allowing for server-side rendering, static site generation, and optimal performance.',
         'link_title' => 'View Documentation',
-        'link_url' => '#docs',
+        'link_url' => '/docs',
+      ],
+      [
+        'title' => 'Can I customize the components?',
+        'body' => 'Absolutely! PressX is built with customization in mind. All components are modular and can be styled using Tailwind CSS. You can easily modify existing components or create new ones to match your needs.',
       ],
     ],
   ],
@@ -226,29 +231,6 @@ $sections = [
     'title' => 'Stay Updated with PressX',
     'summary' => 'Subscribe to our newsletter to receive the latest updates, tips, ' .
       'and best practices for building modern WordPress sites with PressX.',
-  ],
-  [
-    '_type' => 'accordion',
-    'title' => 'Frequently Asked Questions',
-    'items' => [
-      [
-        'title' => 'What makes PressX different?',
-        'body' => 'PressX combines the power of WordPress with modern frontend technologies, ' .
-          'offering a seamless headless CMS experience.',
-        'link_title' => 'Learn More',
-        'link_url' => '/features',
-      ],
-      [
-        'title' => 'How does the headless setup work?',
-        'body' => 'PressX uses WordPress as a headless CMS, exposing content through a GraphQL API. The frontend is built with Next.js, allowing for server-side rendering, static site generation, and optimal performance.',
-        'link_title' => 'View Documentation',
-        'link_url' => '/docs',
-      ],
-      [
-        'title' => 'Can I customize the components?',
-        'body' => 'Absolutely! PressX is built with customization in mind. All components are modular and can be styled using Tailwind CSS. You can easily modify existing components or create new ones to match your needs.',
-      ],
-    ],
   ],
 ];
 
