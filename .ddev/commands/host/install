@@ -79,11 +79,15 @@ ddev exec -d /var/www/html/public_html wp rewrite flush
 
 # Create test landing page
 echo "Creating test landing page..."
-ddev wp-script /var/www/html/scripts/create-landing.php
+ddev create-landing
+
+# Create test posts
+echo "Creating test posts..."
+ddev create-articles
 
 # Create default menu
 echo "Creating default menu..."
-ddev wp-script /var/www/html/scripts/create-menu.php
+ddev create-menu
 
 # Register menu location in WordPress
 echo "Registering menu location..."

@@ -59,59 +59,11 @@ add_action('admin_enqueue_scripts', function () {
 
 // Register Landing Page post type.
 add_action('init', function () {
-  // Register default post type with GraphQL support.
-  register_post_type('post', [
-    'labels' => [
-      'name' => 'Posts',
-      'singular_name' => 'Post',
-      'add_new' => 'Add New',
-      'add_new_item' => 'Add New Post',
-      'edit_item' => 'Edit Post',
-      'new_item' => 'New Post',
-      'view_item' => 'View Post',
-      'view_items' => 'View Posts',
-      'search_items' => 'Search Posts',
-      'not_found' => 'No posts found',
-      'not_found_in_trash' => 'No posts found in Trash',
-      'all_items' => 'All Posts',
-      'archives' => 'Post Archives',
-      'attributes' => 'Post Attributes',
-      'insert_into_item' => 'Insert into post',
-      'uploaded_to_this_item' => 'Uploaded to this post',
-      'featured_image' => 'Featured Image',
-      'set_featured_image' => 'Set featured image',
-      'remove_featured_image' => 'Remove featured image',
-      'use_featured_image' => 'Use as featured image',
-    ],
-    'public' => TRUE,
-    'show_in_graphql' => TRUE,
-    'graphql_single_name' => 'post',
-    'graphql_plural_name' => 'posts',
-    'menu_position' => 5,
-    'menu_icon' => 'dashicons-admin-post',
-    'supports' => [
-      'title',
-      'editor',
-      'author',
-      'thumbnail',
-      'excerpt',
-      'trackbacks',
-      'custom-fields',
-      'comments',
-      'revisions',
-      'post-formats',
-    ],
-    'taxonomies' => ['category', 'post_tag'],
-    'has_archive' => TRUE,
-    'rewrite' => [
-      'slug' => 'post',
-      'with_front' => TRUE,
-    ],
-    'show_in_rest' => TRUE,
-    'show_in_nav_menus' => TRUE,
-    'show_in_admin_bar' => TRUE,
-    'publicly_queryable' => TRUE,
-  ]);
+  // Add GraphQL support for default post type
+  add_post_type_support('post', 'graphql-show-in-graphql');
+  register_graphql_field('Post', 'show_in_graphql', ['type' => 'Boolean']);
+  register_graphql_field('Post', 'graphql_single_name', ['type' => 'String']);
+  register_graphql_field('Post', 'graphql_plural_name', ['type' => 'String']);
 
   register_post_type('landing', [
     'labels' => [
