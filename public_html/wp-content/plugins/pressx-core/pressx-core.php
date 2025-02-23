@@ -316,6 +316,19 @@ add_action('carbon_fields_loaded', function () {
                 ->set_required(TRUE)
                 ->set_help_text('The call-to-action button link.'),
             ]),
+        ])
+        ->add_fields('quote', [
+          Field::make('text', 'quote')
+            ->set_required(TRUE)
+            ->set_help_text('The quote text.'),
+          Field::make('text', 'author')
+            ->set_required(TRUE)
+            ->set_help_text('The name of the person being quoted.'),
+          Field::make('text', 'job_title')
+            ->set_help_text('Optional job title of the person.'),
+          Field::make('image', 'media')
+            ->set_value_type('url')
+            ->set_help_text('Optional photo of the person being quoted.'),
         ]),
     ]);
 });
@@ -552,6 +565,14 @@ add_action('graphql_register_types', function () {
               }, $section['cards']) : [],
             ]);
 
+          case 'quote':
+            return array_merge($base, [
+              'quote' => $section['quote'] ?? '',
+              'author' => $section['author'] ?? '',
+              'jobTitle' => $section['job_title'] ?? NULL,
+              'media' => resolve_media_field($section['media'] ?? NULL),
+            ]);
+
           default:
             return $base;
         }
@@ -679,6 +700,10 @@ add_action('graphql_register_types', function () {
         'type' => ['list_of' => 'PricingCard'],
         'description' => 'Cards for pricing section',
       ],
+      // Quote fields
+      'quote' => ['type' => 'String'],
+      'author' => ['type' => 'String'],
+      'jobTitle' => ['type' => 'String'],
     ],
   ]);
 });

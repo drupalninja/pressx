@@ -277,6 +277,15 @@ $sections = [
     'summary' => 'Subscribe to our newsletter to receive the latest updates, tips, ' .
       'and best practices for building modern WordPress sites with PressX.',
   ],
+  [
+    '_type' => 'quote',
+    'quote' => 'PressX has transformed how we build and manage our WordPress sites. ' .
+      'The modern development experience and component-driven approach have ' .
+      'significantly improved our workflow.',
+    'author' => 'Sarah Johnson',
+    'job_title' => 'Lead Developer at TechCorp',
+    'media' => $image_url,
+  ],
 ];
 
 // Update meta values in Carbon Fields format.
