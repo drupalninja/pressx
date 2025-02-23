@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Change to project root directory (where .ddev is located)
+cd "$( dirname "${BASH_SOURCE[0]}" )/../../.."
+
+echo "🔄 Starting PressX Update Process..."
+
+# Update Composer dependencies first
+echo "📦 Updating Composer dependencies..."
+ddev composer update
+
+# Check WordPress core updates (only if not managed by Composer)
+if ! grep -q "\"wordpress/wordpress\":" composer.json 2>/dev/null; then
+    echo "📦 Checking WordPress core updates..."
+    ddev exec -d /var/www/html/public_html wp core check-update
+    if [ $? -eq 0 ]; then
+        echo "⬆️  Updating WordPress core..."
+        ddev exec -d /var/www/html/public_html wp core update
+        ddev exec -d /var/www/html/public_html wp core update-db
+    fi
+fi
+
+# Update only non-Composer managed plugins, excluding Hello Dolly
+echo "🔌 Updating non-Composer managed plugins..."
+ddev exec -d /var/www/html/public_html 'wp plugin list --field=name --status=active | while read plugin; do
+    # Skip Hello Dolly and Composer-managed plugins
+    if [[ "$plugin" != "hello" ]] && ! grep -q "\"$plugin\":" ../composer.json 2>/dev/null; then
+        wp plugin update "$plugin"
+    fi
+done'
+
+# Update database if needed
+echo "🗄️  Checking database updates..."
+ddev exec -d /var/www/html/public_html wp core update-db
+
+# Clear all caches
+echo "🧹 Clearing caches..."
+ddev exec -d /var/www/html/public_html wp cache flush
+
+# Display current versions
+echo -e "\n📊 Current System Status:"
+echo "----------------------------------------"
+echo "WordPress Core:"
+ddev exec -d /var/www/html/public_html wp core version
+echo -e "\nComposer Status:"
+ddev composer show
+echo -e "\nActive Plugins:"
+ddev exec -d /var/www/html/public_html wp plugin list --status=active
+
+echo -e "\n✅ Update process complete!"
