@@ -152,13 +152,22 @@ $articles = [
   ],
 ];
 
+// Get the admin user.
+$admin = get_user_by('login', 'admin');
+if (!$admin) {
+  echo "Error: Admin user not found.\n";
+  exit(1);
+}
+
 // Create the articles.
 foreach ($articles as $article) {
+  // Prepare post data with admin author.
   $post_data = [
     'post_title' => $article['title'],
     'post_content' => $article['content'],
     'post_status' => 'publish',
     'post_type' => 'post',
+    'post_author' => $admin->ID,
   ];
 
   // Insert the post.
