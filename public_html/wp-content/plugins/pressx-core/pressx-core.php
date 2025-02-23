@@ -116,6 +116,30 @@ add_action('carbon_fields_loaded', function () {
           Field::make('text', 'link2_url')
             ->set_help_text('The URL for the secondary optional link.'),
         ])
+        ->add_fields('text', [
+          Field::make('text', 'eyebrow')
+            ->set_help_text('Optional eyebrow text above the title.'),
+          Field::make('text', 'title')
+            ->set_help_text('The main title for the text section.'),
+          Field::make('rich_text', 'body')
+            ->set_help_text('The main content for the text section.'),
+          Field::make('text', 'link_title')
+            ->set_help_text('The text for the primary call-to-action link.'),
+          Field::make('text', 'link_url')
+            ->set_help_text('The URL for the primary call-to-action link.'),
+          Field::make('text', 'link2_title')
+            ->set_help_text('The text for the secondary optional link.'),
+          Field::make('text', 'link2_url')
+            ->set_help_text('The URL for the secondary optional link.'),
+          Field::make('select', 'text_layout')
+            ->set_options([
+              'default' => 'Default',
+              'centered' => 'Centered',
+              'buttons-right' => 'Buttons Right',
+            ])
+            ->set_default_value('default')
+            ->set_help_text('Select the layout for this text section.'),
+        ])
         ->add_fields('accordion', [
           Field::make('text', 'title')
             ->set_help_text('The title for the accordion section.'),
@@ -629,6 +653,22 @@ add_action('graphql_register_types', function () {
               }, $section['features']) : [],
             ]);
 
+          case 'text':
+            return array_merge($base, [
+              'eyebrow' => $section['eyebrow'] ?? '',
+              'title' => $section['title'] ?? '',
+              'body' => $section['body'] ?? '',
+              'textLayout' => $section['text_layout'] ?? 'default',
+              'link' => !empty($section['link_url']) ? [
+                'url' => $section['link_url'],
+                'title' => $section['link_title'] ?? '',
+              ] : NULL,
+              'link2' => !empty($section['link2_url']) ? [
+                'url' => $section['link2_url'],
+                'title' => $section['link2_title'] ?? '',
+              ] : NULL,
+            ]);
+
           default:
             return $base;
         }
@@ -772,6 +812,9 @@ add_action('graphql_register_types', function () {
         'type' => ['list_of' => 'FeatureItem'],
         'description' => 'Features for sidebyside section',
       ],
+      // Text fields
+      'body' => ['type' => 'String'],
+      'textLayout' => ['type' => 'String'],
     ],
   ]);
 

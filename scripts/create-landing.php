@@ -119,6 +119,19 @@ $sections = [
         ],
     ],
     [
+        '_type' => 'text',
+        'eyebrow' => 'About PressX',
+        'title' => 'Modern WordPress Development',
+        'body' => '<p>PressX combines the power of WordPress with modern frontend technologies, ' .
+            'offering a seamless headless CMS experience. Build faster, more performant websites ' .
+            'with our innovative platform.</p>',
+        'text_layout' => 'centered',
+        'link_title' => 'Get Started',
+        'link_url' => '/get-started',
+        'link2_title' => 'Learn More',
+        'link2_url' => '/about',
+    ],
+    [
         '_type' => 'carousel',
         'title' => 'Featured Capabilities',
         'items' => [

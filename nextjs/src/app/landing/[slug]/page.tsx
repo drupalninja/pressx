@@ -12,6 +12,7 @@ import SectionNewsletter, { NewsletterSection, newsletterSectionFragment } from 
 import SectionPricing, { PricingSection, pricingSectionFragment } from '@/components/sections/SectionPricing';
 import SectionQuote, { QuoteSection, quoteSectionFragment } from '@/components/sections/SectionQuote';
 import SectionSidebyside, { SidebysideSection, sidebysideSectionFragment } from '@/components/sections/SectionSidebyside';
+import SectionText, { TextSection, textSectionFragment } from '@/components/sections/SectionText';
 
 interface LogoCollectionSection {
   type: 'logo_collection';
@@ -28,7 +29,7 @@ interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection | MediaSection | NewsletterSection | PricingSection | QuoteSection | SidebysideSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection | MediaSection | NewsletterSection | PricingSection | QuoteSection | SidebysideSection | TextSection>;
   };
 }
 
@@ -44,6 +45,7 @@ const getLandingPageQuery = `
   ${pricingSectionFragment}
   ${quoteSectionFragment}
   ${sidebysideSectionFragment}
+  ${textSectionFragment}
   fragment LogoCollectionSection on LandingSection {
     type
     title
@@ -71,6 +73,7 @@ const getLandingPageQuery = `
         ...PricingSection
         ...QuoteSection
         ...SidebysideSection
+        ...TextSection
       }
     }
   }
@@ -194,6 +197,14 @@ export default async function LandingPage({
               <SectionSidebyside
                 key={index}
                 section={section as SidebysideSection}
+              />
+            );
+          }
+          if (section.type === 'text') {
+            return (
+              <SectionText
+                key={index}
+                section={section as TextSection}
               />
             );
           }
