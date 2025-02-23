@@ -57,10 +57,14 @@ add_action('admin_enqueue_scripts', function () {
   wp_enqueue_script('carbon-fields-metaboxes', $vendor_url . '/build/classic/metaboxes.min.js', ['carbon-fields-core'], null, true);
 });
 
-// Register Landing Page post type.
+// Register GraphQL support for default post type.
 add_action('init', function () {
-  // Add GraphQL support for default post type
+  // Add GraphQL support for default post type.
   add_post_type_support('post', 'graphql-show-in-graphql');
+
+  // Remove post formats support.
+  remove_post_type_support('post', 'post-formats');
+
   register_graphql_field('Post', 'show_in_graphql', ['type' => 'Boolean']);
   register_graphql_field('Post', 'graphql_single_name', ['type' => 'String']);
   register_graphql_field('Post', 'graphql_plural_name', ['type' => 'String']);
@@ -83,6 +87,11 @@ add_action('init', function () {
     'show_in_nav_menus' => TRUE,
     'publicly_queryable' => TRUE,
   ]);
+});
+
+// Remove format meta box from post editor.
+add_action('admin_init', function() {
+  remove_meta_box('formatdiv', 'post', 'side');
 });
 
 // Initialize Carbon Fields.
