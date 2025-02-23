@@ -12,6 +12,7 @@ interface PagerProps {
     };
     pages: {
       href: string;
+      isActive?: boolean;
     }[];
     next?: {
       href: string;
@@ -43,12 +44,12 @@ const Pager: React.FC<PagerProps> = ({ headingId, pagerItems }) => {
         {pagerItems.pages.map((page, index) => (
           <Button
             key={index}
-            variant={index === 0 ? "default" : "outline"}
+            variant={page.isActive ? "default" : "outline"}
             asChild
             className="mx-1"
           >
             <Link href={page.href} title={`Go to page ${index + 1}`}>
-              <span className="sr-only">{index === 0 ? 'Current page' : 'Page'}</span>
+              <span className="sr-only">{page.isActive ? 'Current page' : 'Page'}</span>
               {index + 1}
             </Link>
           </Button>

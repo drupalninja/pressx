@@ -153,7 +153,7 @@ export default async function PostsPage({
       : undefined,
     pages: Array.from({ length: totalPages }, (_, i) => ({
       href: `/post?page=${i + 1}`,
-      current: i + 1 === currentPage,
+      isActive: i + 1 === currentPage,
     })),
     next: hasNextPage
       ? { href: `/post?page=${currentPage + 1}`, text: 'Next' }
@@ -164,7 +164,7 @@ export default async function PostsPage({
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8">Posts</h1>
       <RecentCards results={recentCardResults} />
-      <div className="container mt-12">
+      <div className="mt-8">
         <Pager headingId="posts-pagination" pagerItems={pagerItems} />
       </div>
     </main>
