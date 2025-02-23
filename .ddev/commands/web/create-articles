@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## Description: Create sample articles in WordPress
+## Usage: create-articles
+## Example: "ddev create-articles"
+
+cd /var/www/html/public_html
+wp eval-file ../scripts/create-articles.php
