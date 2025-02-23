@@ -329,6 +329,43 @@ add_action('carbon_fields_loaded', function () {
           Field::make('image', 'media')
             ->set_value_type('url')
             ->set_help_text('Optional photo of the person being quoted.'),
+        ])
+        ->add_fields('sidebyside', [
+          Field::make('text', 'eyebrow')
+            ->set_help_text('Optional eyebrow text above the title.'),
+          Field::make('select', 'layout')
+            ->set_options([
+              'image_left' => 'Image Left',
+              'image_right' => 'Image Right',
+            ])
+            ->set_default_value('image_left')
+            ->set_help_text('Choose the layout for this section.'),
+          Field::make('text', 'title')
+            ->set_required(TRUE)
+            ->set_help_text('The main title for this section.'),
+          Field::make('rich_text', 'summary')
+            ->set_help_text('Optional summary text for this section.'),
+          Field::make('text', 'link_title')
+            ->set_help_text('Optional link text.'),
+          Field::make('text', 'link_url')
+            ->set_help_text('Optional link URL.'),
+          Field::make('image', 'media')
+            ->set_value_type('url')
+            ->set_required(TRUE)
+            ->set_help_text('The image to display in this section.'),
+          Field::make('text', 'modifier')
+            ->set_help_text('Optional CSS modifier class.'),
+          Field::make('complex', 'features')
+            ->set_layout('tabbed-vertical')
+            ->setup_labels([
+              'plural_name' => 'Features',
+              'singular_name' => 'Feature',
+            ])
+            ->add_fields([
+              Field::make('text', 'text')
+                ->set_required(TRUE)
+                ->set_help_text('The feature text.'),
+            ]),
         ]),
     ]);
 });
@@ -573,6 +610,25 @@ add_action('graphql_register_types', function () {
               'media' => resolve_media_field($section['media'] ?? NULL),
             ]);
 
+          case 'sidebyside':
+            return array_merge($base, [
+              'eyebrow' => $section['eyebrow'] ?? '',
+              'layout' => $section['layout'] ?? 'image_left',
+              'title' => $section['title'] ?? '',
+              'summary' => $section['summary'] ?? '',
+              'link' => !empty($section['link_url']) ? [
+                'url' => $section['link_url'],
+                'title' => $section['link_title'] ?? '',
+              ] : NULL,
+              'media' => resolve_media_field($section['media']),
+              'modifier' => $section['modifier'] ?? '',
+              'features' => !empty($section['features']) ? array_map(function ($feature) {
+                return [
+                  'text' => $feature['text'] ?? '',
+                ];
+              }, $section['features']) : [],
+            ]);
+
           default:
             return $base;
         }
@@ -704,6 +760,24 @@ add_action('graphql_register_types', function () {
       'quote' => ['type' => 'String'],
       'author' => ['type' => 'String'],
       'jobTitle' => ['type' => 'String'],
+      // Sidebyside fields
+      'eyebrow' => ['type' => 'String'],
+      'layout' => ['type' => 'String'],
+      'title' => ['type' => 'String'],
+      'summary' => ['type' => 'String'],
+      'link' => ['type' => 'Link'],
+      'media' => ['type' => 'Media'],
+      'modifier' => ['type' => 'String'],
+      'features' => [
+        'type' => ['list_of' => 'FeatureItem'],
+        'description' => 'Features for sidebyside section',
+      ],
+    ],
+  ]);
+
+  register_graphql_object_type('FeatureItem', [
+    'fields' => [
+      'text' => ['type' => 'String'],
     ],
   ]);
 });

@@ -286,6 +286,25 @@ $sections = [
     'job_title' => 'Lead Developer at TechCorp',
     'media' => $image_url,
   ],
+  [
+    '_type' => 'sidebyside',
+    'eyebrow' => 'Powerful Features',
+    'layout' => 'image_right',
+    'title' => 'Modern Development Experience',
+    'summary' => '<p>PressX combines the power of WordPress with modern frontend technologies, ' .
+      'offering a seamless headless CMS experience. Build faster, more maintainable ' .
+      'websites with our component-driven approach.</p>',
+    'link_title' => 'Learn More',
+    'link_url' => '/features',
+    'media' => $image_url,
+    'modifier' => 'bg-gray-50',
+    'features' => [
+      ['text' => 'Next.js and TypeScript integration'],
+      ['text' => 'GraphQL API with WPGraphQL'],
+      ['text' => 'Component-driven development'],
+      ['text' => 'Modern tooling and workflows'],
+    ],
+  ],
 ];
 
 // Update meta values in Carbon Fields format.

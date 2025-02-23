@@ -11,6 +11,7 @@ import SectionMedia, { MediaSection, mediaSectionFragment } from '@/components/s
 import SectionNewsletter, { NewsletterSection, newsletterSectionFragment } from '@/components/sections/SectionNewsletter';
 import SectionPricing, { PricingSection, pricingSectionFragment } from '@/components/sections/SectionPricing';
 import SectionQuote, { QuoteSection, quoteSectionFragment } from '@/components/sections/SectionQuote';
+import SectionSidebyside, { SidebysideSection, sidebysideSectionFragment } from '@/components/sections/SectionSidebyside';
 
 interface LogoCollectionSection {
   type: 'logo_collection';
@@ -27,7 +28,7 @@ interface LandingPageData {
   landing: {
     title: string;
     databaseId: number;
-    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection | MediaSection | NewsletterSection | PricingSection | QuoteSection>;
+    sections: Array<HeroSection | AccordionSection | CardGroupSection | CarouselSection | EmbedSection | GallerySection | LogoCollectionSection | MediaSection | NewsletterSection | PricingSection | QuoteSection | SidebysideSection>;
   };
 }
 
@@ -42,6 +43,7 @@ const getLandingPageQuery = `
   ${newsletterSectionFragment}
   ${pricingSectionFragment}
   ${quoteSectionFragment}
+  ${sidebysideSectionFragment}
   fragment LogoCollectionSection on LandingSection {
     type
     title
@@ -68,6 +70,7 @@ const getLandingPageQuery = `
         ...NewsletterSection
         ...PricingSection
         ...QuoteSection
+        ...SidebysideSection
       }
     }
   }
@@ -183,6 +186,14 @@ export default async function LandingPage({
               <SectionQuote
                 key={index}
                 section={section as QuoteSection}
+              />
+            );
+          }
+          if (section.type === 'sidebyside') {
+            return (
+              <SectionSidebyside
+                key={index}
+                section={section as SidebysideSection}
               />
             );
           }
