@@ -61,6 +61,7 @@ export const getImage = (
               quality={mobileImageStyle.quality ?? 90}
               priority={priority}
               sizes="100vw"
+              unoptimized
             />
           </div>
         )}
@@ -74,6 +75,7 @@ export const getImage = (
             quality={quality}
             priority={priority}
             sizes="100vw"
+            unoptimized
           />
         </div>
       </>
@@ -91,6 +93,7 @@ export const getImage = (
         sizes={`${desktopImageStyle.width}px`}
         quality={quality}
         priority={priority}
+        unoptimized
       />
     );
   }

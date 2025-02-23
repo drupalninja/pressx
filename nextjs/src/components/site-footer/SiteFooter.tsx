@@ -35,7 +35,7 @@ const SiteFooter: React.FC<SiteFooterProps> = ({
         <div className="flex justify-center md:w-1/3">
           <Link href="/" className="flex items-center justify-center">
             {showLogo && siteLogo && (
-              <Image src={siteLogo} width={siteLogoWidth} height={siteLogoHeight} alt={siteName} />
+              <Image src={siteLogo} width={siteLogoWidth} height={siteLogoHeight} alt={siteName} unoptimized />
             )}
           </Link>
         </div>
