@@ -91,6 +91,7 @@ add_action('init', function () {
     'supports' => ['title'],
     'has_archive' => TRUE,
     'show_in_rest' => TRUE,
+    'menu_icon' => 'dashicons-welcome-add-page',
     'rewrite' => [
       'slug' => 'landing',
     ],
@@ -837,7 +838,7 @@ add_action('graphql_register_types', function () {
       }
 
       $post_count = isset($section['post_count']) ? intval($section['post_count']) : 6;
-      
+
       $args = [
         'post_type' => 'post',
         'posts_per_page' => $post_count,
@@ -855,7 +856,7 @@ add_action('graphql_register_types', function () {
           $image_id = get_post_thumbnail_id($post->ID);
           $image_url = wp_get_attachment_image_url($image_id, 'full');
           $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
-          
+
           $featured_image = [
             'node' => [
               'sourceUrl' => $image_url,
@@ -939,7 +940,7 @@ add_action('graphql_register_types', function () {
           }
 
           $post_count = isset($section['post_count']) ? intval($section['post_count']) : 6;
-          
+
           $args = [
             'post_type' => 'post',
             'posts_per_page' => $post_count,
@@ -957,7 +958,7 @@ add_action('graphql_register_types', function () {
               $image_id = get_post_thumbnail_id($post->ID);
               $image_url = wp_get_attachment_image_url($image_id, 'full');
               $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
-              
+
               $featured_image = [
                 'node' => [
                   'sourceUrl' => $image_url,
@@ -1047,7 +1048,7 @@ add_filter('graphql_RootQuery_fields', function($fields) {
     ],
     'resolve' => function($source, $args) {
       $menu_id = null;
-      
+
       if (isset($args['idType']) && $args['idType'] === 'NAME') {
         $menu = wp_get_nav_menu_object($args['id']);
         $menu_id = $menu ? $menu->term_id : null;
