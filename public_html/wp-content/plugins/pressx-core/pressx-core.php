@@ -385,7 +385,7 @@ add_action('carbon_fields_loaded', function () {
             ->set_value_type('url')
             ->set_help_text('Optional photo of the person being quoted.'),
         ])
-        ->add_fields('sidebyside', [
+        ->add_fields('side_by_side', [
           Field::make('text', 'eyebrow')
             ->set_help_text('Optional eyebrow text above the title.'),
           Field::make('select', 'layout')
@@ -683,7 +683,7 @@ add_action('graphql_register_types', function () {
               'media' => resolve_media_field($section['media'] ?? NULL),
             ]);
 
-          case 'sidebyside':
+          case 'side_by_side':
             return array_merge($base, [
               'eyebrow' => $section['eyebrow'] ?? '',
               'layout' => $section['layout'] ?? 'image_left',

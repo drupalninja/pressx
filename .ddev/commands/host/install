@@ -81,6 +81,10 @@ ddev exec -d /var/www/html/public_html wp rewrite flush
 echo "Creating test landing page..."
 ddev create-landing
 
+# Create test home page
+echo "Creating test home page..."
+ddev create-home
+
 # Create test posts
 echo "Creating test posts..."
 ddev create-articles

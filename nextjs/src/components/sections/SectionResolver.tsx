@@ -66,7 +66,7 @@ export function SectionResolver({ section }: { section: Section }) {
       return <SectionPricing section={section} />;
     case 'quote':
       return <SectionQuote section={section} />;
-    case 'sidebyside':
+    case 'side_by_side':
       return <SectionSidebyside section={section} />;
     case 'recent_posts':
       return <SectionRecentPosts section={section} />;
