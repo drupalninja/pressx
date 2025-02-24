@@ -20,21 +20,16 @@ interface MenuItem {
 }
 
 interface MenuResponse {
-  menus: {
+  menuItems: {
     nodes: Array<{
       id: string;
-      menuItems: {
+      label: string;
+      path: string;
+      childItems: {
         nodes: Array<{
           id: string;
           label: string;
           path: string;
-          childItems: {
-            nodes: Array<{
-              id: string;
-              label: string;
-              path: string;
-            }>;
-          };
         }>;
       };
     }>;
@@ -44,21 +39,16 @@ interface MenuResponse {
 async function getMainMenu(): Promise<MenuItem[]> {
   const query = `
     query GetMainMenu {
-      menus {
+      menuItems(where: { location: PRIMARY }) {
         nodes {
           id
-          menuItems {
+          label
+          path
+          childItems {
             nodes {
               id
               label
               path
-              childItems {
-                nodes {
-                  id
-                  label
-                  path
-                }
-              }
             }
           }
         }
@@ -68,14 +58,7 @@ async function getMainMenu(): Promise<MenuItem[]> {
 
   try {
     const data = await graphQLClient.request<MenuResponse>(query);
-    const menu = data.menus.nodes[0];
-
-    if (!menu) {
-      console.error('No menu found');
-      return [];
-    }
-
-    const menuItems = menu.menuItems.nodes;
+    const menuItems = data.menuItems.nodes;
 
     return menuItems.map(item => ({
       id: item.id,

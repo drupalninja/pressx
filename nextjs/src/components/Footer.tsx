@@ -4,6 +4,18 @@ import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();
 
+type MenuItem = {
+  id: string;
+  label: string;
+  url: string;
+};
+
+type FooterMenuResponse = {
+  menuItems: {
+    nodes: MenuItem[];
+  };
+};
+
 const FooterMenuQuery = `
   query FooterMenu {
     menuItems(where: { location: FOOTER }) {
@@ -19,7 +31,7 @@ const FooterMenuQuery = `
 async function getFooterMenu() {
   try {
     console.log('Fetching footer menu data from:', process.env.NEXT_PUBLIC_WORDPRESS_API_URL);
-    const data = await graphQLClient.request(FooterMenuQuery);
+    const data = await graphQLClient.request<FooterMenuResponse>(FooterMenuQuery);
     console.log('Raw GraphQL response:', JSON.stringify(data, null, 2));
     return data.menuItems;
   } catch (error) {
@@ -35,7 +47,7 @@ export default async function Footer() {
   const menuItems = await getFooterMenu();
   console.log('Footer menu items:', menuItems?.nodes);
 
-  const links: SiteFooterProps['links'] = menuItems?.nodes?.map(item => ({
+  const links: SiteFooterProps['links'] = menuItems?.nodes?.map((item: MenuItem) => ({
     title: item.label,
     url: item.url,
   })) || [];
