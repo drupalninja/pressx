@@ -84,6 +84,10 @@ $sections = [
         'link2_url' => '#secondary-cta',
     ],
     [
+        '_type' => 'recent_posts',
+        'title' => 'Latest from Our Blog',
+    ],
+    [
         '_type' => 'logo_collection',
         'title' => 'Trusted by Leading Companies',
         'logos' => [
