@@ -89,6 +89,10 @@ ddev create-articles
 echo "Creating default menu..."
 ddev create-menu
 
+# Create footer menu
+echo "Creating footer menu..."
+ddev create-footer-menu
+
 # Register menu location in WordPress
 echo "Registering menu location..."
 ddev exec -d /var/www/html/public_html "wp eval 'register_nav_menus([\"primary\" => \"Primary Navigation\"]);'"

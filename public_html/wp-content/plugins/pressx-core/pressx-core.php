@@ -1030,6 +1030,115 @@ add_action('init', function () {
   ]);
 });
 
+// Add GraphQL resolvers for menus
+add_filter('graphql_RootQuery_fields', function($fields) {
+  $fields['menu'] = [
+    'type' => 'Menu',
+    'description' => 'A WordPress navigation menu',
+    'args' => [
+      'id' => [
+        'type' => ['non_null' => 'ID'],
+        'description' => 'ID of the menu',
+      ],
+      'idType' => [
+        'type' => 'MenuNodeIdTypeEnum',
+        'description' => 'Type of ID being used to identify the menu',
+      ],
+    ],
+    'resolve' => function($source, $args) {
+      $menu_id = null;
+      
+      if (isset($args['idType']) && $args['idType'] === 'NAME') {
+        $menu = wp_get_nav_menu_object($args['id']);
+        $menu_id = $menu ? $menu->term_id : null;
+      } else {
+        $menu_id = absint($args['id']);
+      }
+
+      if (!$menu_id) {
+        return null;
+      }
+
+      $menu_items = wp_get_nav_menu_items($menu_id);
+      if (!$menu_items) {
+        return null;
+      }
+
+      // Build hierarchical menu items
+      $menu_items_by_parent = [];
+      foreach ($menu_items as $menu_item) {
+        $menu_items_by_parent[$menu_item->menu_item_parent][] = [
+          'id' => (string) $menu_item->ID,
+          'title' => $menu_item->title,
+          'url' => str_replace(home_url(), '', $menu_item->url),
+          'parent' => $menu_item->menu_item_parent,
+        ];
+      }
+
+      // Function to build tree
+      $build_tree = function($parent) use (&$build_tree, $menu_items_by_parent) {
+        $items = $menu_items_by_parent[$parent] ?? [];
+        foreach ($items as &$item) {
+          if (isset($menu_items_by_parent[$item['id']])) {
+            $item['children'] = [
+              'nodes' => $build_tree($item['id'])
+            ];
+          }
+        }
+        return $items;
+      };
+
+      return [
+        'id' => (string) $menu_id,
+        'name' => wp_get_nav_menu_name($menu_id),
+        'items' => $build_tree('0'),
+      ];
+    }
+  ];
+
+  return $fields;
+});
+
+// Add GraphQL types for menus
+add_action('graphql_register_types', function() {
+  register_graphql_enum_type('MenuNodeIdTypeEnum', [
+    'description' => 'Identifies the type of ID being used to identify the menu',
+    'values' => [
+      'DATABASE_ID' => [
+        'value' => 'DATABASE_ID',
+        'description' => 'Identifies a menu node by its database ID',
+      ],
+      'NAME' => [
+        'value' => 'NAME',
+        'description' => 'Identifies a menu node by its name',
+      ],
+    ],
+  ]);
+
+  register_graphql_object_type('Menu', [
+    'fields' => [
+      'id' => ['type' => 'ID'],
+      'name' => ['type' => 'String'],
+      'items' => ['type' => ['list_of' => 'MenuItem']],
+    ],
+  ]);
+
+  register_graphql_object_type('MenuItem', [
+    'fields' => [
+      'id' => ['type' => 'ID'],
+      'title' => ['type' => 'String'],
+      'url' => ['type' => 'String'],
+      'children' => ['type' => 'MenuItemChildren'],
+    ],
+  ]);
+
+  register_graphql_object_type('MenuItemChildren', [
+    'fields' => [
+      'nodes' => ['type' => ['list_of' => 'MenuItem']],
+    ],
+  ]);
+});
+
 // Modify preview links for Next.js.
 add_filter('preview_post_link', function ($preview_link, $post) {
   if (!$post) {

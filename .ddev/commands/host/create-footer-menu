@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Description: Create footer navigation menu for PressX
+## Usage: create-footer-menu
+## Example: "ddev create-footer-menu"
+
+ddev wp-script /var/www/html/scripts/create-footer-menu.php

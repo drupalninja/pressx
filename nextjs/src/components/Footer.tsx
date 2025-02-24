@@ -1,30 +1,45 @@
-import { ResultOf } from '@/graphql/client';
 import SiteFooter, { SiteFooterProps } from './site-footer/SiteFooter';
 import { graphQLClient } from "@/lib/graphql";
 import getConfig from 'next/config';
 
 const { publicRuntimeConfig } = getConfig();
 
-type FooterMenuData = ResultOf<typeof FooterMenuQuery>;
+const FooterMenuQuery = `
+  query FooterMenu {
+    menuItems(where: { location: FOOTER }) {
+      nodes {
+        id
+        label
+        url
+      }
+    }
+  }
+`;
 
 async function getFooterMenu() {
   try {
-    const data = await graphQLClient.request<FooterMenuData>(FooterMenuQuery);
-    return data.menu;
+    console.log('Fetching footer menu data from:', process.env.NEXT_PUBLIC_WORDPRESS_API_URL);
+    const data = await graphQLClient.request(FooterMenuQuery);
+    console.log('Raw GraphQL response:', JSON.stringify(data, null, 2));
+    return data.menuItems;
   } catch (error) {
-    console.error('Error fetching footer menu:', error);
+    console.error('Error fetching footer menu. Full error:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+    }
     return null;
   }
 }
 
 export default async function Footer() {
-  const footerMenu = await getFooterMenu();
-  const menus = footerMenu?.items;
+  const menuItems = await getFooterMenu();
+  console.log('Footer menu items:', menuItems?.nodes);
 
-  const links: SiteFooterProps['links'] = menus?.map(item => ({
-    title: item.title,
+  const links: SiteFooterProps['links'] = menuItems?.nodes?.map(item => ({
+    title: item.label,
     url: item.url,
   })) || [];
+  console.log('Transformed footer links:', links);
 
   return (
     <SiteFooter
@@ -37,24 +52,3 @@ export default async function Footer() {
     />
   );
 }
-
-const FooterMenuQuery = `
-  query FooterMenu {
-    menu(id: "footer", idType: NAME) {
-      id
-      name
-      items {
-        id
-        title
-        url
-        children {
-          nodes {
-            id
-            title
-            url
-          }
-        }
-      }
-    }
-  }
-`;
