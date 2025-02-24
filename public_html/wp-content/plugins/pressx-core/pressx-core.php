@@ -39,11 +39,28 @@ add_action('after_setup_theme', function () {
     define('Carbon_Fields\\URL', plugins_url('vendor/carbon-fields', __FILE__));
   }
 
-  // Boot Carbon Fields
+  // Boot Carbon Fields.
   Carbon_Fields::boot();
 
+  // Configure image sizes.
+  add_filter('intermediate_image_sizes_advanced', function ($sizes) {
+    // Remove default WordPress image sizes.
+    unset($sizes['thumbnail']);
+    unset($sizes['medium']);
+    unset($sizes['medium_large']);
+    unset($sizes['large']);
+    unset($sizes['1536x1536']);
+    unset($sizes['2048x2048']);
+
+    // Add our custom scaled sizes.
+    add_image_size('large', 1280, 9999, FALSE);
+    add_image_size('medium', 960, 9999, FALSE);
+    add_image_size('thumbnail', 320, 9999, FALSE);
+
+    return $sizes;
+  });
+
   // Disable default WordPress image sizes.
-  add_filter('intermediate_image_sizes', '__return_empty_array');
   add_filter('big_image_size_threshold', '__return_false');
 
   // Set excerpt length to 25 words.

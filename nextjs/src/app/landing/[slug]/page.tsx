@@ -29,18 +29,12 @@ export default async function LandingPage({
   params: { slug: string };
 }) {
   try {
-    console.log('Fetching landing page with slug:', slug);
-    console.log('GraphQL endpoint:', process.env.NEXT_PUBLIC_WORDPRESS_API_URL);
-
     const data = await graphQLClient.request<LandingPageData>(
       getLandingPageQuery,
       { slug }
     );
 
-    console.log('GraphQL response:', JSON.stringify(data, null, 2));
-
     if (!data?.landing) {
-      console.log('No landing page found in response');
       notFound();
     }
 

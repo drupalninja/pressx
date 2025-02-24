@@ -3,6 +3,7 @@ export interface ImageStyle {
   height: number;
   quality?: number;
   priority?: boolean;
+  crop?: boolean;  // false for scaling, true for cropping (default)
 }
 
 export const imageStyles = {
@@ -85,11 +86,13 @@ export const imageStyles = {
     width: 1280,
     height: 720,
     quality: 85,
+    crop: false,
   },
   medium: {
     width: 960,
     height: 540,
     quality: 85,
+    crop: false,
   },
 
   // Thumbnail styles
@@ -97,6 +100,7 @@ export const imageStyles = {
     width: 320,
     height: 320,
     quality: 80,
+    crop: false,
   },
 } as const;
 
