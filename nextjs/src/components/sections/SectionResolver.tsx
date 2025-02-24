@@ -11,6 +11,7 @@ import SectionNewsletter, { NewsletterSection, newsletterSectionFragment } from 
 import SectionPricing, { PricingSection, pricingSectionFragment } from './SectionPricing';
 import SectionQuote, { QuoteSection, quoteSectionFragment } from './SectionQuote';
 import SectionSidebyside, { SidebysideSection, sidebysideSectionFragment } from './SectionSidebyside';
+import SectionRecentPosts, { RecentPostsSection, recentPostsSectionFragment } from './SectionRecentPosts';
 
 interface LogoCollectionSection {
   type: 'logo_collection';
@@ -36,7 +37,8 @@ export type Section =
   | NewsletterSection
   | PricingSection
   | QuoteSection
-  | SidebysideSection;
+  | SidebysideSection
+  | RecentPostsSection;
 
 export function SectionResolver({ section }: { section: Section }) {
   switch (section.type) {
@@ -66,6 +68,8 @@ export function SectionResolver({ section }: { section: Section }) {
       return <SectionQuote section={section} />;
     case 'sidebyside':
       return <SectionSidebyside section={section} />;
+    case 'recent_posts':
+      return <SectionRecentPosts section={section} />;
     default:
       return null;
   }
@@ -97,6 +101,7 @@ export const sectionsFragment = `
     ...PricingSection
     ...QuoteSection
     ...SidebysideSection
+    ...RecentPostsSection
   }
   ${heroSectionFragment}
   ${textSectionFragment}
@@ -110,4 +115,5 @@ export const sectionsFragment = `
   ${pricingSectionFragment}
   ${quoteSectionFragment}
   ${sidebysideSectionFragment}
+  ${recentPostsSectionFragment}
 `;

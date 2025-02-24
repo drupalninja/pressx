@@ -311,6 +311,11 @@ add_action('carbon_fields_loaded', function () {
             ->set_help_text('The summary text for the newsletter section.')
             ->set_default_value('Stay up to date with our latest news and updates.'),
         ])
+        ->add_fields('recent_posts', [
+          Field::make('text', 'title')
+            ->set_help_text('Optional title for the recent posts section.')
+            ->set_default_value('Recent Posts'),
+        ])
         ->add_fields('pricing', [
           Field::make('text', 'eyebrow')
             ->set_required(TRUE)
@@ -632,6 +637,11 @@ add_action('graphql_register_types', function () {
               'summary' => $section['summary'] ?? NULL,
             ]);
 
+          case 'recent_posts':
+            return array_merge($base, [
+              'title' => $section['title'] ?? 'Recent Posts',
+            ]);
+
           case 'pricing':
             return array_merge($base, [
               'eyebrow' => $section['eyebrow'] ?? '',
@@ -772,6 +782,113 @@ add_action('graphql_register_types', function () {
     ],
   ]);
 
+  // Register GraphQL types for recent posts
+  register_graphql_object_type('FeaturedImageNode', [
+    'fields' => [
+      'sourceUrl' => ['type' => 'String'],
+      'altText' => ['type' => 'String'],
+    ],
+  ]);
+
+  register_graphql_object_type('FeaturedImage', [
+    'fields' => [
+      'node' => ['type' => 'FeaturedImageNode'],
+    ],
+  ]);
+
+  register_graphql_object_type('PostTag', [
+    'fields' => [
+      'name' => ['type' => 'String'],
+      'slug' => ['type' => 'String'],
+    ],
+  ]);
+
+  register_graphql_object_type('PostTags', [
+    'fields' => [
+      'nodes' => ['type' => ['list_of' => 'PostTag']],
+    ],
+  ]);
+
+  register_graphql_object_type('RecentPost', [
+    'fields' => [
+      'databaseId' => ['type' => 'Int'],
+      'title' => ['type' => 'String'],
+      'slug' => ['type' => 'String'],
+      'excerpt' => ['type' => 'String'],
+      'date' => ['type' => 'String'],
+      'featuredImage' => [
+        'type' => 'FeaturedImage',
+        'description' => 'Featured image of the post',
+      ],
+      'tags' => [
+        'type' => 'PostTags',
+        'description' => 'Tags associated with the post',
+      ],
+    ],
+  ]);
+
+  // Update the LandingSection type to include recent posts
+  register_graphql_field('LandingSection', 'recentPosts', [
+    'type' => ['list_of' => 'RecentPost'],
+    'description' => 'Recent posts for recent posts section',
+    'resolve' => function($section) {
+      if ($section['type'] !== 'recent_posts') {
+        return null;
+      }
+
+      $post_count = isset($section['post_count']) ? intval($section['post_count']) : 6;
+      
+      $args = [
+        'post_type' => 'post',
+        'posts_per_page' => $post_count,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'post_status' => 'publish',
+      ];
+
+      $recent_posts = get_posts($args);
+
+      return array_map(function($post) {
+        // Get featured image data
+        $featured_image = null;
+        if (has_post_thumbnail($post->ID)) {
+          $image_id = get_post_thumbnail_id($post->ID);
+          $image_url = wp_get_attachment_image_url($image_id, 'full');
+          $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+          
+          $featured_image = [
+            'node' => [
+              'sourceUrl' => $image_url,
+              'altText' => $alt_text,
+            ]
+          ];
+        }
+
+        // Get post tags
+        $tags = wp_get_post_tags($post->ID, ['fields' => 'all']);
+        $tag_nodes = array_map(function($tag) {
+          return [
+            'name' => $tag->name,
+            'slug' => $tag->slug,
+          ];
+        }, $tags);
+
+        return [
+          'databaseId' => $post->ID,
+          'title' => get_the_title($post),
+          'slug' => $post->post_name,
+          'excerpt' => get_the_excerpt($post),
+          'date' => get_the_date('c', $post),
+          'featuredImage' => $featured_image,
+          'tags' => [
+            'nodes' => $tag_nodes,
+          ],
+        ];
+      }, $recent_posts);
+    }
+  ]);
+
+  // Update the LandingSection type
   register_graphql_object_type('LandingSection', [
     'fields' => [
       'type' => ['type' => 'String'],
@@ -812,6 +929,66 @@ add_action('graphql_register_types', function () {
         'type' => ['list_of' => 'Media'],
         'description' => 'Logos for logo collection section',
       ],
+      // Recent posts fields
+      'recentPosts' => [
+        'type' => ['list_of' => 'RecentPost'],
+        'description' => 'Recent posts for recent posts section',
+        'resolve' => function($section) {
+          if ($section['type'] !== 'recent_posts') {
+            return null;
+          }
+
+          $post_count = isset($section['post_count']) ? intval($section['post_count']) : 6;
+          
+          $args = [
+            'post_type' => 'post',
+            'posts_per_page' => $post_count,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'post_status' => 'publish',
+          ];
+
+          $recent_posts = get_posts($args);
+
+          return array_map(function($post) {
+            // Get featured image data
+            $featured_image = null;
+            if (has_post_thumbnail($post->ID)) {
+              $image_id = get_post_thumbnail_id($post->ID);
+              $image_url = wp_get_attachment_image_url($image_id, 'full');
+              $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+              
+              $featured_image = [
+                'node' => [
+                  'sourceUrl' => $image_url,
+                  'altText' => $alt_text,
+                ]
+              ];
+            }
+
+            // Get post tags
+            $tags = wp_get_post_tags($post->ID, ['fields' => 'all']);
+            $tag_nodes = array_map(function($tag) {
+              return [
+                'name' => $tag->name,
+                'slug' => $tag->slug,
+              ];
+            }, $tags);
+
+            return [
+              'databaseId' => $post->ID,
+              'title' => get_the_title($post),
+              'slug' => $post->post_name,
+              'excerpt' => get_the_excerpt($post),
+              'date' => get_the_date('c', $post),
+              'featuredImage' => $featured_image,
+              'tags' => [
+                'nodes' => $tag_nodes,
+              ],
+            ];
+          }, $recent_posts);
+        }
+      ],
       // Newsletter fields
       'summary' => ['type' => 'String'],
       // Pricing fields
@@ -826,12 +1003,7 @@ add_action('graphql_register_types', function () {
       'author' => ['type' => 'String'],
       'jobTitle' => ['type' => 'String'],
       // Sidebyside fields
-      'eyebrow' => ['type' => 'String'],
       'layout' => ['type' => 'String'],
-      'title' => ['type' => 'String'],
-      'summary' => ['type' => 'String'],
-      'link' => ['type' => 'Link'],
-      'media' => ['type' => 'Media'],
       'modifier' => ['type' => 'String'],
       'features' => [
         'type' => ['list_of' => 'FeatureItem'],
