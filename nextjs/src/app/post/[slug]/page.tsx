@@ -74,8 +74,6 @@ export default async function PostPage({
       {
         sourceUrl: post.featuredImage.node.sourceUrl,
         altText: post.featuredImage.node.altText,
-        width: post.featuredImage.node.mediaDetails?.width,
-        height: post.featuredImage.node.mediaDetails?.height,
       },
       'w-full h-full object-cover',
       'i169large'
@@ -107,14 +105,6 @@ export default async function PostPage({
             className="prose prose-lg"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
-          <div className="mt-8 pt-8 border-t border-border">
-            <Link
-              href="/post"
-              className="text-primary hover:text-primary/80 transition-colors duration-200"
-            >
-              ← Back to Posts
-            </Link>
-          </div>
         </div>
       </div>
     </article>
