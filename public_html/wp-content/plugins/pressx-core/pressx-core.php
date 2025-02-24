@@ -408,18 +408,31 @@ add_action('carbon_fields_loaded', function () {
             ->set_value_type('url')
             ->set_required(TRUE)
             ->set_help_text('The image to display in this section.'),
-          Field::make('text', 'modifier')
-            ->set_help_text('Optional CSS modifier class.'),
           Field::make('complex', 'features')
             ->set_layout('tabbed-vertical')
             ->setup_labels([
               'plural_name' => 'Features',
               'singular_name' => 'Feature',
             ])
-            ->add_fields([
+            ->add_fields('bullet', [
               Field::make('text', 'text')
                 ->set_required(TRUE)
                 ->set_help_text('The feature text.'),
+              Field::make('text', 'icon')
+                ->set_help_text('Optional icon name (e.g., "check", "star", "rocket"). Defaults to "check" if not specified.'),
+            ])
+            ->add_fields('stat', [
+              Field::make('text', 'title')
+                ->set_required(TRUE)
+                ->set_help_text('The stat title/heading.'),
+              Field::make('text', 'summary')
+                ->set_required(TRUE)
+                ->set_help_text('The stat summary/value.'),
+              Field::make('text', 'icon')
+                ->set_help_text('Optional icon name (e.g., "users", "chart", "trending-up").'),
+              Field::make('image', 'custom_icon')
+                ->set_value_type('url')
+                ->set_help_text('Optional custom icon image. Takes precedence over icon name if both are specified.'),
             ]),
         ]),
     ]);
@@ -681,11 +694,23 @@ add_action('graphql_register_types', function () {
                 'title' => $section['link_title'] ?? '',
               ] : NULL,
               'media' => resolve_media_field($section['media']),
-              'modifier' => $section['modifier'] ?? '',
               'features' => !empty($section['features']) ? array_map(function ($feature) {
-                return [
-                  'text' => $feature['text'] ?? '',
-                ];
+                if ($feature['_type'] === 'bullet') {
+                  return [
+                    'type' => 'bullet',
+                    'text' => $feature['text'] ?? '',
+                    'icon' => $feature['icon'] ?? 'check',
+                  ];
+                } else if ($feature['_type'] === 'stat') {
+                  return [
+                    'type' => 'stat',
+                    'title' => $feature['title'] ?? '',
+                    'summary' => $feature['summary'] ?? '',
+                    'icon' => $feature['icon'] ?? '',
+                    'customIcon' => isset($feature['custom_icon']) ? resolve_media_field($feature['custom_icon']) : NULL,
+                  ];
+                }
+                return NULL;
               }, $section['features']) : [],
             ]);
 
@@ -1005,7 +1030,6 @@ add_action('graphql_register_types', function () {
       'jobTitle' => ['type' => 'String'],
       // Sidebyside fields
       'layout' => ['type' => 'String'],
-      'modifier' => ['type' => 'String'],
       'features' => [
         'type' => ['list_of' => 'FeatureItem'],
         'description' => 'Features for sidebyside section',
@@ -1018,8 +1042,42 @@ add_action('graphql_register_types', function () {
 
   register_graphql_object_type('FeatureItem', [
     'fields' => [
+      'type' => ['type' => 'String'],
       'text' => ['type' => 'String'],
+      'icon' => ['type' => 'String'],
+      'title' => ['type' => 'String'],
+      'summary' => ['type' => 'String'],
+      'customIcon' => ['type' => 'Media'],
     ],
+  ]);
+
+  register_graphql_field('LandingSection', 'features', [
+    'type' => ['list_of' => 'FeatureItem'],
+    'description' => 'Features for sidebyside section',
+    'resolve' => function($section) {
+      if (!isset($section['features']) || !is_array($section['features'])) {
+        return [];
+      }
+
+      return array_map(function($feature) {
+        if ($feature['_type'] === 'bullet') {
+          return [
+            'type' => 'bullet',
+            'text' => $feature['text'] ?? '',
+            'icon' => $feature['icon'] ?? 'check',
+          ];
+        } else if ($feature['_type'] === 'stat') {
+          return [
+            'type' => 'stat',
+            'title' => $feature['title'] ?? '',
+            'summary' => $feature['summary'] ?? '',
+            'icon' => $feature['icon'] ?? '',
+            'customIcon' => isset($feature['custom_icon']) ? resolve_media_field($feature['custom_icon']) : NULL,
+          ];
+        }
+        return NULL;
+      }, $section['features']);
+    },
   ]);
 });
 

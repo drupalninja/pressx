@@ -246,6 +246,57 @@ $sections = [
         ],
     ],
     [
+        '_type' => 'sidebyside',
+        'eyebrow' => 'Developer Experience',
+        'layout' => 'image_right',
+        'title' => 'Built for Modern Development',
+        'summary' => 'PressX combines the best of WordPress with modern development practices, offering a seamless experience for developers and content creators alike.',
+        'media' => $image_url,
+        'link_title' => 'Get Started',
+        'link_url' => '/get-started',
+        'features' => [
+            [
+                '_type' => 'bullet',
+                'text' => 'TypeScript and Next.js support out of the box',
+                'icon' => 'code',
+            ],
+            [
+                '_type' => 'bullet',
+                'text' => 'GraphQL API for efficient data fetching',
+                'icon' => 'database',
+            ],
+            [
+                '_type' => 'bullet',
+                'text' => 'Modern development workflow with hot reloading',
+                'icon' => 'refresh-cw',
+            ],
+        ],
+    ],
+    [
+        '_type' => 'sidebyside',
+        'eyebrow' => 'Performance Metrics',
+        'layout' => 'image_left',
+        'title' => 'Built for Speed',
+        'summary' => 'Experience lightning-fast performance with our optimized architecture and modern build tools.',
+        'media' => $image_url,
+        'link_title' => 'Learn More',
+        'link_url' => '/performance',
+        'features' => [
+            [
+                '_type' => 'stat',
+                'title' => 'Performance Score',
+                'summary' => '95+',
+                'icon' => 'trending-up',
+            ],
+            [
+                '_type' => 'stat',
+                'title' => 'Build Time',
+                'summary' => '< 10s',
+                'icon' => 'timer',
+            ],
+        ],
+    ],
+    [
         '_type' => 'embed',
         'title' => 'Watch Our Tutorial',
         'embed_url' => 'https://www.youtube.com/embed/71EZb94AS1k',

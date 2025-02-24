@@ -1,5 +1,6 @@
 import Sidebyside, { BulletProps } from '@/components/sidebyside/Sidebyside';
 import { getImage } from '@/components/helpers/Utilities';
+import { StatCardProps } from '@/components/stat-card/StatCard';
 
 export interface SidebysideSection {
   type: 'sidebyside';
@@ -18,7 +19,17 @@ export interface SidebysideSection {
     alt?: string;
   };
   features?: Array<{
-    text: string;
+    type: 'bullet' | 'stat';
+    text?: string;
+    icon?: string;
+    title?: string;
+    summary?: string;
+    customIcon?: {
+      sourceUrl: string;
+      width?: number;
+      height?: number;
+      alt?: string;
+    };
   }>;
 }
 
@@ -29,11 +40,30 @@ export default function SectionSidebyside({ section }: { section: SidebysideSect
     ['i43medium', 'i43large']
   ) : null;
 
-  const features = section.features?.map(feature => ({
-    type: 'bullet' as const,
-    icon: 'check',
-    summary: feature.text
-  }));
+  const features = section.features?.map(feature => {
+    if (feature.type === 'bullet') {
+      return {
+        type: 'bullet' as const,
+        icon: feature.icon || 'check',
+        summary: feature.text || ''
+      } as BulletProps;
+    } else if (feature.type === 'stat') {
+      return {
+        type: 'stat' as const,
+        heading: feature.title || '',
+        body: feature.summary || '',
+        icon: feature.icon,
+        media: feature.customIcon ? getImage(
+          feature.customIcon,
+          'w-16 h-16 object-contain mx-auto',
+          ['thumbnail', 'medium']
+        ) : undefined,
+        border: false,
+        layout: 'left'
+      } as StatCardProps;
+    }
+    return null;
+  }).filter((f): f is BulletProps | StatCardProps => f !== null);
 
   return (
     <Sidebyside
@@ -67,7 +97,17 @@ export const sidebysideSectionFragment = `
       alt
     }
     features {
+      type
       text
+      icon
+      title
+      summary
+      customIcon {
+        sourceUrl
+        width
+        height
+        alt
+      }
     }
   }
 `;
