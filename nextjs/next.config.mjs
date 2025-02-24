@@ -8,6 +8,13 @@ const nextConfig = {
     loader: 'custom',
     loaderFile: './src/lib/image-loader.ts',
   },
+  publicRuntimeConfig: {
+    LOGO_URL: process.env.LOGO_URL || '/images/logo.svg',
+    LOGO_WIDTH: process.env.LOGO_WIDTH || '160',
+    LOGO_HEIGHT: process.env.LOGO_HEIGHT || '42',
+    SITE_NAME: process.env.SITE_NAME || 'PressX',
+    SHOW_LOGO: process.env.SHOW_LOGO || '1',
+  },
 }
 
 export default nextConfig;
