@@ -18,7 +18,7 @@ export default function SectionLogoCollection({ title, logos }: SectionLogoColle
     media: getImage(
       logo,
       "max-w-[100px] md:max-w-[120px] h-auto",
-      ["i11medium", "i11medium"]
+      ["medium", "medium"]
     ),
   }));
 

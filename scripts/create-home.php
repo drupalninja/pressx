@@ -51,6 +51,56 @@ if (file_exists($image_path)) {
   }
 }
 
+// First, import all the technology logos.
+$logo_paths = [
+  'wordpress' => __DIR__ . '/images/wordpress.png',
+  'nextjs' => __DIR__ . '/images/nextjs.png',
+  'storybook' => __DIR__ . '/images/storybook.png',
+  'tailwind' => __DIR__ . '/images/tailwind.png',
+  'shadcn' => __DIR__ . '/images/shadcn.png',
+  'graphql' => __DIR__ . '/images/graphql.png',
+  'react' => __DIR__ . '/images/react.png',
+];
+
+$logo_ids = [];
+
+// Import each logo into the media library.
+foreach ($logo_paths as $name => $logo_path) {
+  if (file_exists($logo_path)) {
+    $upload_dir = wp_upload_dir();
+    $filename = basename($logo_path);
+    $wp_filetype = wp_check_filetype($filename);
+
+    $attachment = [
+      'post_mime_type' => $wp_filetype['type'],
+      'post_title' => sanitize_file_name($name),
+      'post_content' => '',
+      'post_status' => 'inherit',
+    ];
+
+    $target_path = $upload_dir['path'] . '/' . $filename;
+    if (!file_exists($target_path)) {
+      copy($logo_path, $target_path);
+    }
+
+    $existing_attachment = new WP_Query([
+      'post_type' => 'attachment',
+      'title' => sanitize_file_name($name),
+      'post_status' => 'inherit',
+      'posts_per_page' => 1,
+    ]);
+
+    if (!$existing_attachment->have_posts()) {
+      $logo_id = wp_insert_attachment($attachment, $target_path);
+      $attachment_data = wp_generate_attachment_metadata($logo_id, $target_path);
+      wp_update_attachment_metadata($logo_id, $attachment_data);
+      $logo_ids[] = $logo_id;
+    } else {
+      $logo_ids[] = $existing_attachment->posts[0]->ID;
+    }
+  }
+}
+
 // Create a new landing page.
 $post_data = [
   'post_title' => 'Home',
@@ -129,15 +179,8 @@ $sections = [
   ],
   [
     '_type' => 'logo_collection',
-    'title' => 'Trusted Open Source Technology',
-    'logos' => [
-      $image_id, // Replace with actual partner logos
-      $image_id,
-      $image_id,
-      $image_id,
-      $image_id,
-      $image_id,
-    ],
+    'title' => 'Built with Modern Technologies',
+    'logos' => $logo_ids,
   ],
   [
     '_type' => 'side_by_side',
