@@ -109,20 +109,20 @@ $sections = [
     'cards' => [
       [
         'type' => 'stat',
-        'heading' => 'Modern Web Solutions',
-        'body' => 'Unlock the power of modern web solutions tailored for your needs with our innovative platform.',
-        'icon' => 'box',
+        'heading' => 'Unlock the Power of Modern Web Solutions Tailored for You',
+        'body' => 'Experience seamless integration and flexibility with our Decoupled Architecture.',
+        'icon' => 'code',
       ],
       [
         'type' => 'stat',
-        'heading' => 'Seamless Integration',
-        'body' => 'Experience seamless integration with WordPress and modern front-end technologies.',
-        'icon' => 'git-merge',
+        'heading' => 'Experience seamless integration and flexibility with our Decoupled Architecture.',
+        'body' => 'Leverage the power of React and Node.js to dramatically improve your website\'s efficiency and speed.',
+        'icon' => 'git-branch',
       ],
       [
         'type' => 'stat',
-        'heading' => 'Blazing Fast',
-        'body' => '95% performance score with sub-second page loads and optimal user experience.',
+        'heading' => 'Achieve Blazing Fast Performance That Keeps Your Users Engaged and Satisfied',
+        'body' => 'Deliver lightning-quick load times and smooth interactions that keep your audience coming back.',
         'icon' => 'zap',
       ],
     ],
