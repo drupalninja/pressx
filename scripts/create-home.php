@@ -135,7 +135,7 @@ $sections = [
     '_type' => 'side_by_side',
     'eyebrow' => '',
     'layout' => 'image_right',
-    'title' => 'Unmatched Advantages of DrupalX',
+    'title' => 'Unmatched Advantages of PressX',
     'summary' => 'Elevate Your Web Development with PressX\'s Cutting Edge Features',
     'media' => $image_url,
     'features' => [
@@ -194,7 +194,7 @@ $sections = [
     '_type' => 'text',
     'title' => 'Accelerate Your Web Development Journey',
     'body' => 'Start building faster, more efficient websites today. Explore PressX\'s capabilities and see how it can transform your development process.',
-    'text_layout' => 'centered',
+    'text_layout' => 'buttons-right',
     'link_title' => 'Get Started',
     'link_url' => '/get-started',
     'link2_title' => 'Learn More',
@@ -214,14 +214,14 @@ $sections = [
     'media' => $image_url,
     'features' => [
       [
-        '_type' => 'bullet',
+        '_type' => 'stat',
         'text' => 'Key Features',
-        'icon' => 'key',
+        'summary' => 'Explore our innovative tools designed to enhance your web development journey, from AI-assisted coding to seamless React integration.',
       ],
       [
-        '_type' => 'bullet',
+        '_type' => 'stat',
         'text' => 'Accelerate Your Projects',
-        'icon' => 'fast-forward',
+        'summary' => 'Leverage PressX\'s powerful features to reduce development time and deliver high-performance websites faster than ever.',
       ],
     ],
   ],

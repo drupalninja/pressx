@@ -109,6 +109,7 @@ add_action('init', function () {
     'has_archive' => TRUE,
     'show_in_rest' => TRUE,
     'menu_icon' => 'dashicons-welcome-add-page',
+    'menu_position' => 3,
     'rewrite' => [
       'slug' => 'landing',
     ],
