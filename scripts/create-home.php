@@ -215,12 +215,12 @@ $sections = [
     'features' => [
       [
         '_type' => 'stat',
-        'text' => 'Key Features',
+        'title' => 'Key Features',
         'summary' => 'Explore our innovative tools designed to enhance your web development journey, from AI-assisted coding to seamless React integration.',
       ],
       [
         '_type' => 'stat',
-        'text' => 'Accelerate Your Projects',
+        'title' => 'Accelerate Your Projects',
         'summary' => 'Leverage PressX\'s powerful features to reduce development time and deliver high-performance websites faster than ever.',
       ],
     ],
