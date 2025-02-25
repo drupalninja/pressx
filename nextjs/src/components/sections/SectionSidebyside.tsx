@@ -36,8 +36,8 @@ export interface SidebysideSection {
 export default function SectionSidebyside({ section }: { section: SidebysideSection }) {
   const media = section.media ? getImage(
     section.media,
-    'w-full h-auto',
-    ['i43medium', 'i43large']
+    'w-full h-auto rounded-lg',
+    ['i43medium', 'i43medium']
   ) : null;
 
   const features = section.features?.map(feature => {
