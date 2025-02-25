@@ -179,13 +179,13 @@ $sections = [
   ],
   [
     '_type' => 'logo_collection',
-    'title' => 'Built with Modern Technologies',
+    'title' => 'Trusted Open Source Technology',
     'logos' => $logo_ids,
   ],
   [
     '_type' => 'side_by_side',
-    'eyebrow' => 'Developer Experience',
-    'layout' => 'image_right',
+    'eyebrow' => '',
+    'layout' => 'image_left',
     'title' => 'Elevate Your Web Development Skills with PressX',
     'summary' => 'Join the PressX ecosystem to unlock new possibilities in web development. Our platform combines the best of WordPress\'s robust back-end with cutting-edge front-end technologies, enabling you to create powerful, scalable, and innovative web solutions.',
     'media' => $image_url,
