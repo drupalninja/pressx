@@ -1,8 +1,39 @@
 import { graphQLClient } from '@/lib/graphql';
+import { notFound, redirect } from 'next/navigation';
+import { Section, SectionResolver, sectionsFragment } from '@/components/sections/SectionResolver';
 import type { Post, PostsResponse } from '@/types/wordpress';
 
+interface HomepageSettings {
+  showOnFront: string;
+  pageOnFront: number;
+}
+
+interface HomepageData {
+  homepageSettings: HomepageSettings;
+  landing?: {
+    title: string;
+    databaseId: number;
+    sections: Section[];
+  };
+  posts?: {
+    nodes: Post[];
+  };
+}
+
 const query = `
-  query Posts {
+  ${sectionsFragment}
+  query Homepage {
+    homepageSettings {
+      showOnFront
+      pageOnFront
+    }
+    landing(id: "home", idType: SLUG) {
+      title
+      databaseId
+      sections {
+        ...Sections
+      }
+    }
     posts {
       nodes {
         id
@@ -22,8 +53,26 @@ const query = `
 `;
 
 export default async function Home() {
-  const data = await graphQLClient.request<PostsResponse>(query);
-  const posts = data.posts.nodes;
+  const data = await graphQLClient.request<HomepageData>(query);
+
+  // If showing a static page as homepage
+  if (data.homepageSettings.showOnFront === 'page') {
+    // If the homepage is set to the landing page with slug "home"
+    if (data.landing && data.landing.databaseId === data.homepageSettings.pageOnFront) {
+      return (
+        <main className="min-h-screen">
+          {data.landing.sections?.map((section, index) => (
+            <SectionResolver key={index} section={section} />
+          ))}
+        </main>
+      );
+    }
+    // If homepage is set to a different page, redirect to it
+    redirect(`/landing/${data.homepageSettings.pageOnFront}`);
+  }
+
+  // If showing latest posts as homepage
+  const posts = data.posts?.nodes || [];
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">

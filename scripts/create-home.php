@@ -234,10 +234,15 @@ carbon_set_post_meta($post_id, 'sections', $sections);
 $post = get_post($post_id);
 $slug = $post->post_name;
 
+// Set this page as the homepage
+update_option('show_on_front', 'page');
+update_option('page_on_front', $post_id);
+
 echo "\nHome page created successfully! 🎉\n";
 echo "----------------------------------------\n";
 echo "ID: {$post_id}\n";
 echo "Slug: {$slug}\n";
+echo "Set as WordPress homepage: ✅\n";
 echo "\nView your page at:\n";
-echo "http://pressx.ddev.site/landing/{$slug}\n";
-echo "http://pressx.ddev.site:3333/landing/{$slug} (Next.js)\n";
+echo "http://pressx.ddev.site/\n";
+echo "http://pressx.ddev.site:3333/ (Next.js)\n";

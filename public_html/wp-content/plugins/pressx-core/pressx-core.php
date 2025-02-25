@@ -481,6 +481,25 @@ function resolve_media_field($media_url) {
 
 // Register GraphQL fields.
 add_action('graphql_register_types', function () {
+  // Add homepage settings field
+  register_graphql_field('RootQuery', 'homepageSettings', [
+    'type' => 'HomepageSettings',
+    'description' => 'Get WordPress homepage settings',
+    'resolve' => function() {
+      return [
+        'showOnFront' => get_option('show_on_front'),
+        'pageOnFront' => get_option('page_on_front'),
+      ];
+    }
+  ]);
+
+  register_graphql_object_type('HomepageSettings', [
+    'fields' => [
+      'showOnFront' => ['type' => 'String'],
+      'pageOnFront' => ['type' => 'Int'],
+    ],
+  ]);
+
   // Register CarouselItem type
   register_graphql_object_type('CarouselItem', [
     'fields' => [
