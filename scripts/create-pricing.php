@@ -33,7 +33,7 @@ $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
 $sections = [
   [
     '_type' => 'hero',
-    'hero_layout' => 'image_right',
+    'hero_layout' => 'image_bottom',
     'heading' => 'Empower Your Content with PressX Today',
     'summary' => "Discover the power of a decoupled CMS that adapts to your needs. With PressX, you can create, manage, and scale your content effortlessly.",
     'media' => $image_url,

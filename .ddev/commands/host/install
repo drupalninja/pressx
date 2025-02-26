@@ -101,6 +101,14 @@ ddev create-pricing
 echo "Creating test resources page..."
 ddev create-resources
 
+# Create test get-started page
+echo "Creating test get-started page..."
+ddev create-get-started
+
+# Create test contact page
+echo "Creating test contact page..."
+ddev create-contact
+
 # Create default menu
 echo "Creating default menu..."
 ddev create-menu
