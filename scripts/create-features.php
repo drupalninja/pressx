@@ -174,4 +174,4 @@ echo "ID: {$post_id}\n";
 echo "Slug: {$slug}\n";
 echo "\nView your page at:\n";
 echo "http://pressx.ddev.site/landing/{$slug}\n";
-echo "http://pressx.ddev.site:3333/landing/{$slug} (Next.js)\n";
+echo "http://pressx.ddev.site:3333/{$slug} (Next.js)\n";

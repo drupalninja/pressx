@@ -25,17 +25,17 @@ $menu_items = [
   ],
   [
     'title' => 'Features',
-    'url' => home_url('/landing/features'),
+    'url' => home_url('/features'),
     'order' => 2,
   ],
   [
     'title' => 'Pricing',
-    'url' => home_url('/landing/pricing'),
+    'url' => home_url('/pricing'),
     'order' => 3,
   ],
   [
     'title' => 'Resources',
-    'url' => home_url('/landing/resources'),
+    'url' => home_url('/resources'),
     'order' => 4,
   ],
   [

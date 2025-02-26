@@ -40,10 +40,10 @@ export async function middleware(request: NextRequest) {
     if (homepageSettings.showOnFront === 'page') {
       // If homepage is set to the landing page with slug "home"
       if (data.landing && data.landing.databaseId === homepageSettings.pageOnFront) {
-        return NextResponse.rewrite(new URL('/landing/home', request.url));
+        return NextResponse.rewrite(new URL('/home', request.url));
       }
       // If homepage is set to a different page
-      return NextResponse.redirect(new URL(`/landing/${homepageSettings.pageOnFront}`, request.url));
+      return NextResponse.redirect(new URL(`/${homepageSettings.pageOnFront}`, request.url));
     }
 
     // If showing latest posts as homepage

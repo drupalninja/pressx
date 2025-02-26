@@ -1263,7 +1263,7 @@ add_filter('post_type_link', function ($post_link, $post) {
   switch ($post->post_type) {
     case 'landing':
       return sprintf(
-        '%s/landing/%s',
+        '%s/%s',
         untrailingslashit($frontend_url),
         $post->post_name
       );
@@ -1289,7 +1289,7 @@ add_filter('post_link', function ($url, $post) {
   switch ($post->post_type) {
     case 'landing':
       return sprintf(
-        '%s/landing/%s',
+        '%s/%s',
         untrailingslashit($frontend_url),
         $post->post_name
       );
@@ -1316,7 +1316,7 @@ add_filter('get_sample_permalink', function ($permalink, $post_id, $title, $name
   switch ($post->post_type) {
     case 'landing':
       return [
-        sprintf('%s/landing/%%pagename%%', untrailingslashit($frontend_url)),
+        sprintf('%s/%%pagename%%', untrailingslashit($frontend_url)),
         $post_name,
       ];
     case 'post':
