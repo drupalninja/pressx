@@ -97,6 +97,10 @@ ddev create-features
 echo "Creating test pricing page..."
 ddev create-pricing
 
+# Create test resources page
+echo "Creating test resources page..."
+ddev create-resources
+
 # Create default menu
 echo "Creating default menu..."
 ddev create-menu

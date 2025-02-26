@@ -35,7 +35,7 @@ $menu_items = [
   ],
   [
     'title' => 'Resources',
-    'url' => home_url('/resources'),
+    'url' => home_url('/landing/resources'),
     'order' => 4,
   ],
   [

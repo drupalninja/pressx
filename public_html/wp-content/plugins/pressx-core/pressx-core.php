@@ -333,7 +333,7 @@ add_action('carbon_fields_loaded', function () {
         ->add_fields('recent_posts', [
           Field::make('text', 'title')
             ->set_help_text('Optional title for the recent posts section.')
-            ->set_default_value('Recent Posts'),
+            ->set_default_value(''),
         ])
         ->add_fields('pricing', [
           Field::make('text', 'eyebrow')
