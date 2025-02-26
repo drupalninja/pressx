@@ -1,4 +1,5 @@
 import RecentCards from '@/components/recent-cards/RecentCards';
+import { getImage } from '@/components/helpers/Utilities';
 
 export interface RecentPostsSection {
   type: 'recent_posts';
@@ -25,29 +26,34 @@ export interface RecentPostsSection {
 }
 
 export default function SectionRecentPosts({ section }: { section: RecentPostsSection }) {
-  const recentCardResults = section.recentPosts.map(post => ({
-    id: post.databaseId.toString(),
-    path: `/post/${post.slug}`,
-    title: post.title,
-    summary: post.excerpt,
-    media: post.featuredImage?.node ? (
-      <img
-        src={post.featuredImage.node.sourceUrl}
-        alt={post.featuredImage.node.altText || ''}
-        className="w-full h-full object-cover"
-      />
+  const recentCardResults = section.recentPosts.map(post => {
+    const mediaElement = post.featuredImage?.node ? getImage(
+      {
+        sourceUrl: post.featuredImage.node.sourceUrl,
+        altText: post.featuredImage.node.altText
+      },
+      'w-full h-full object-cover',
+      ['i169medium', 'i169large']
     ) : (
       <img
         src="/images/card.webp"
         alt="Placeholder"
         className="w-full h-full object-cover"
       />
-    ),
-    metadata: {
-      date: new Date(post.date).toLocaleDateString(),
-      tags: post.tags?.nodes || [],
-    },
-  }));
+    );
+
+    return {
+      id: post.databaseId.toString(),
+      path: `/post/${post.slug}`,
+      title: post.title,
+      summary: post.excerpt,
+      media: mediaElement,
+      metadata: {
+        date: new Date(post.date).toLocaleDateString(),
+        tags: post.tags?.nodes || [],
+      },
+    };
+  });
 
   return (
     <div className="container mx-auto my-6 lg:my-25">
