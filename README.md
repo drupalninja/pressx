@@ -27,6 +27,16 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    npm install
    ```
 
+3. **Running the Application**
+   ```bash
+   # Start WordPress backend
+   ddev start
+
+   # Start Next.js frontend (in a separate terminal)
+   cd nextjs
+   npm run dev
+   ```
+
 ## 🏗️ Project Structure
 
 ```
@@ -36,6 +46,13 @@ pressx/
 │       └── plugins/
 │           └── pressx-core/  # Custom plugin for headless functionality
 ├── nextjs/                   # Next.js frontend application
+│   └── src/
+│       ├── components/       # Reusable UI components
+│       │   └── sections/     # Page section components
+│       ├── pages/            # Next.js pages
+│       └── lib/              # Utility functions and API clients
+├── drupal-config/            # Drupal configuration reference files
+├── scripts/                  # Helper scripts for content creation
 ├── vendor/                   # Composer dependencies
 └── .ddev/                    # DDEV configuration
 ```
@@ -54,6 +71,7 @@ The WordPress backend uses several key components:
 
 ### Next.js Frontend
 
+- **Development URL**: http://pressx.ddev.site:3333
 - **Development**: `cd nextjs && npm run dev`
 - **Build**: `cd nextjs && npm run build`
 - **Start**: `cd nextjs && npm start`
@@ -69,11 +87,59 @@ The WordPress backend uses several key components:
    - Next.js for server-side rendering
    - TypeScript support
    - Component-based architecture
+   - Tailwind CSS for styling
 
 3. **Development Environment**
    - DDEV for containerization
    - Automated setup process
    - Consistent development environment
+
+4. **Content Sections**
+   - Flexible page builder with multiple section types
+   - Component-based design for easy customization
+   - Responsive layouts for all devices
+
+## 📦 Available Section Types
+
+PressX includes a variety of section types for building flexible landing pages:
+
+1. **Hero** - Feature prominent content with various layout options
+2. **Text** - Simple text sections with optional links
+3. **Accordion** - Expandable content sections for FAQs or detailed information
+4. **Card Group** - Display content in card format with various card types
+5. **Carousel** - Scrollable content with images and text
+6. **Embed** - Embed external content with support for rich media scripts
+7. **Gallery** - Display multiple images in a grid layout
+8. **Logo Collection** - Showcase partner or client logos
+9. **Media** - Display images or videos with optional captions
+10. **Newsletter** - Email signup form
+11. **Pricing** - Display pricing options in a structured format
+12. **Quote** - Highlight testimonials or important quotes
+13. **Side by Side** - Two-column layout with text and media
+14. **Recent Posts** - Display recent blog posts
+
+## 🔄 Working with Section Types
+
+### Embed Section
+
+The Embed section allows you to include external content like videos, maps, or other third-party widgets. Recent updates have improved this section to support full HTML/script embeds rather than just URLs.
+
+**Key Features:**
+- Support for rich script embeds (iframes, JavaScript widgets, etc.)
+- Optional title and caption
+- Configurable maximum width
+- Responsive design
+
+**Example Usage:**
+```php
+[
+  '_type' => 'embed',
+  'title' => 'Watch Our Tutorial',
+  'script' => '<iframe src="https://www.youtube.com/embed/VIDEO_ID" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; aspect-ratio:16/9;"></iframe>',
+  'caption' => 'Learn how to get started with PressX in this quick tutorial.',
+  'max_width' => '800px',
+]
+```
 
 ## 📦 Dependencies
 
@@ -85,20 +151,29 @@ The WordPress backend uses several key components:
 ### Frontend (npm)
 - Next.js
 - TypeScript
+- Tailwind CSS
+- Shadcn UI components
 - Other frontend dependencies managed via npm
 
 ## 🔄 Common Workflows
 
 ### Adding Custom Fields
-1. Define fields in `pressx-core/includes/carbon-fields/`
+1. Define fields in `pressx-core/pressx-core.php`
 2. Update GraphQL schema if needed
 3. Update TypeScript types in the frontend
 
 ### Adding New Post Types
-1. Register post type in `pressx-core/includes/post-types/`
+1. Register post type in `pressx-core/pressx-core.php`
 2. Add custom fields if needed
 3. Update GraphQL schema
 4. Create corresponding frontend components
+
+### Creating Content
+1. Use the WordPress admin interface to create content
+2. Alternatively, use the helper scripts in the `scripts/` directory:
+   ```bash
+   ddev exec php scripts/create-landing.php
+   ```
 
 ## 🚨 Troubleshooting
 
@@ -113,6 +188,11 @@ The WordPress backend uses several key components:
    - Verify WPGraphQL plugin is activated
    - Check field registration in the schema
    - Validate query structure
+
+3. **Next.js Development Server Issues**
+   - Ensure Node.js version is compatible
+   - Check for TypeScript errors
+   - Verify GraphQL queries match the schema
 
 ## 📝 Contributing
 
