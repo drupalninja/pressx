@@ -259,7 +259,7 @@ $sections = [
   [
     '_type' => 'embed',
     'title' => 'Watch Our Tutorial',
-    'embed_url' => 'https://www.youtube.com/embed/71EZb94AS1k',
+    'script' => '<iframe src="https://www.youtube.com/embed/71EZb94AS1k" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%; aspect-ratio:16/9;"></iframe>',
     'caption' => 'Learn how to get started with PressX in this quick tutorial video.',
     'max_width' => '800px',
   ],

@@ -284,9 +284,9 @@ add_action('carbon_fields_loaded', function () {
         ->add_fields('embed', [
           Field::make('text', 'title')
             ->set_help_text('The title for the embed section.'),
-          Field::make('text', 'embed_url')
+          Field::make('rich_text', 'script')
             ->set_required(TRUE)
-            ->set_help_text('The URL to embed (e.g., YouTube, Twitter, etc.).'),
+            ->set_help_text('Paste the third-party script embed here (e.g., YouTube, Twitter, etc.).'),
           Field::make('text', 'caption')
             ->set_help_text('Optional caption text for the embedded content.'),
           Field::make('text', 'max_width')
@@ -662,7 +662,7 @@ add_action('graphql_register_types', function () {
 
           case 'embed':
             return array_merge($base, [
-              'embedUrl' => $section['embed_url'] ?? '',
+              'script' => $section['script'] ?? '',
               'caption' => $section['caption'] ?? '',
               'maxWidth' => $section['max_width'] ?? '',
             ]);
@@ -979,7 +979,7 @@ add_action('graphql_register_types', function () {
         'description' => 'Cards for card group section',
       ],
       // Embed fields
-      'embedUrl' => ['type' => 'String'],
+      'script' => ['type' => 'String'],
       'caption' => ['type' => 'String'],
       'maxWidth' => ['type' => 'String'],
       // Gallery fields
