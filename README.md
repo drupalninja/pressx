@@ -27,6 +27,14 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    npm install
    ```
 
+   The `ddev install` command will:
+   - Set up the WordPress installation
+   - Install and activate required plugins (pressx-core, classic-editor, wp-graphql)
+   - Configure permalink structure
+   - Create sample content (landing pages, blog posts)
+   - Set up navigation menus
+   - Generate admin credentials
+
 3. **Running the Application**
    ```bash
    # Start WordPress backend
@@ -63,15 +71,17 @@ pressx/
 
 - **Local URL**: https://pressx.ddev.site
 - **Admin URL**: https://pressx.ddev.site/wp-admin
+- **GraphQL Endpoint**: https://pressx.ddev.site/graphql
 
 The WordPress backend uses several key components:
 - Carbon Fields for custom fields
 - WPGraphQL for the GraphQL API
 - Custom post types and fields defined in the pressx-core plugin
+- Classic Editor for content management
 
 ### Next.js Frontend
 
-- **Development URL**: http://pressx.ddev.site:3333
+- **Development URL**: http://pressx.ddev.site:3333 or http://localhost:3333
 - **Development**: `cd nextjs && npm run dev`
 - **Build**: `cd nextjs && npm run build`
 - **Start**: `cd nextjs && npm start`
@@ -98,6 +108,11 @@ The WordPress backend uses several key components:
    - Flexible page builder with multiple section types
    - Component-based design for easy customization
    - Responsive layouts for all devices
+
+5. **Sample Content**
+   - Pre-configured landing pages (Home, Features, Pricing, Resources, Get Started, Contact)
+   - Sample blog posts
+   - Navigation menus (Primary and Footer)
 
 ## 📦 Available Section Types
 
@@ -145,7 +160,8 @@ The Embed section allows you to include external content like videos, maps, or o
 
 ### WordPress (Composer)
 - `htmlburger/carbon-fields`: Custom fields framework
-- `wp-graphql`: GraphQL API
+- `wp-graphql`: GraphQL API for WordPress
+- `classic-editor`: Traditional WordPress editing experience
 - Other WordPress plugins managed via Composer
 
 ### Frontend (npm)
@@ -173,6 +189,8 @@ The Embed section allows you to include external content like videos, maps, or o
 2. Alternatively, use the helper scripts in the `scripts/` directory:
    ```bash
    ddev exec php scripts/create-landing.php
+   ddev exec php scripts/create-contact.php
+   ddev exec php scripts/create-get-started.php
    ```
 
 ## 🚨 Troubleshooting
@@ -188,11 +206,17 @@ The Embed section allows you to include external content like videos, maps, or o
    - Verify WPGraphQL plugin is activated
    - Check field registration in the schema
    - Validate query structure
+   - Test queries in the GraphQL IDE at https://pressx.ddev.site/graphql
 
 3. **Next.js Development Server Issues**
    - Ensure Node.js version is compatible
    - Check for TypeScript errors
    - Verify GraphQL queries match the schema
+
+4. **DDEV Configuration Issues**
+   - Run `ddev describe` to check the current configuration
+   - Ensure ports 80, 443, and 3333 are available
+   - Check DDEV logs with `ddev logs`
 
 ## 📝 Contributing
 
