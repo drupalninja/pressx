@@ -93,6 +93,10 @@ ddev create-articles
 echo "Creating test features page..."
 ddev create-features
 
+# Create test pricing page
+echo "Creating test pricing page..."
+ddev create-pricing
+
 # Create default menu
 echo "Creating default menu..."
 ddev create-menu

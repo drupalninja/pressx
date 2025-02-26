@@ -30,7 +30,7 @@ $menu_items = [
   ],
   [
     'title' => 'Pricing',
-    'url' => home_url('/pricing'),
+    'url' => home_url('/landing/pricing'),
     'order' => 3,
   ],
   [

@@ -14,7 +14,7 @@ $image_id = pressx_ensure_image($image_path);
 
 // Create a new landing page.
 $post_data = [
-  'post_title'    => 'PressX Landing Page ' . time(),
+  'post_title'    => 'PressX Features',
   'post_status'   => 'publish',
   'post_type'     => 'landing',
   'post_name'     => 'features',

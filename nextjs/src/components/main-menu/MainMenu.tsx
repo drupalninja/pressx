@@ -34,9 +34,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
   menuItems = menuItems.map((item, index) => {
     const isCTA = index >= menuItems.length - ctaLinkCount
 
-    const inActiveTrail = item.url === '/welcome' && pathname === '/'
-      ? true
-      : pathname.startsWith(item.url)
+    // Fix for root path: only mark it as active if we're exactly at the root
+    // or if it's the welcome page and we're at the root
+    const inActiveTrail =
+      (item.url === '/' && (pathname === '/' || pathname === '/welcome')) ||
+      (item.url !== '/' && pathname.startsWith(item.url))
 
     const below = item.below?.map((subItem) => ({
       ...subItem,
