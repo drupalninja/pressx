@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Script to create a test features page with various sections.
+ * Script to create a test landing page with components from the PressX design.
  */
 
 // Include the image handler.
@@ -12,22 +12,22 @@ require_once __DIR__ . '/includes/image-handler.php';
 $image_path = __DIR__ . '/images/card.png';
 $image_id = pressx_ensure_image($image_path);
 
-// Create a new features page.
+// Create a new landing page.
 $post_data = [
-  'post_title' => 'Features',
-  'post_status' => 'publish',
-  'post_type' => 'landing',
-  'post_name' => 'features',
+  'post_title'    => 'PressX Landing Page ' . time(),
+  'post_status'   => 'publish',
+  'post_type'     => 'landing',
+  'post_name'     => 'features',
 ];
 
 $post_id = wp_insert_post($post_data);
 
 if (is_wp_error($post_id)) {
-  echo "Error creating feature page: " . $post_id->get_error_message() . "\n";
+  echo "Error creating landing page: " . $post_id->get_error_message() . "\n";
   exit(1);
 }
 
-// Add the hero section.
+// Add sections based on the PressX screenshot
 $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
 
 $sections = [
@@ -35,9 +35,7 @@ $sections = [
     '_type' => 'hero',
     'hero_layout' => 'image_bottom',
     'heading' => 'Empower Your Web Development with PressX',
-    'summary' => "Discover how PressX combines the flexibility of WordPress with " .
-      "modern development tools to create a seamless content management experience " .
-      "that empowers both developers and content creators.",
+    'summary' => "Discover the future of web development with PressX, where innovation meets reliability. Our platform offers cutting-edge tools that streamline your workflow and elevate your projects.",
     'media' => $image_url,
     'link_title' => 'Get Started',
     'link_url' => '#primary-cta',
@@ -45,245 +43,121 @@ $sections = [
     'link2_url' => '#secondary-cta',
   ],
   [
-    '_type' => 'text',
-    'eyebrow' => 'Feature Overview',
-    'title' => 'Modern Headless WordPress',
-    'body' => '<p>PressX delivers a true headless WordPress experience with a powerful GraphQL API, ' .
-      'custom post types, and a modern development workflow. Our platform bridges the gap between ' .
-      'traditional WordPress and modern frontend technologies.</p>',
-    'text_layout' => 'centered',
-    'link_title' => 'Technical Documentation',
-    'link_url' => '/docs',
+    '_type' => 'side_by_side',
+    'eyebrow' => 'Customizable Components',
+    'layout' => 'image_right',
+    'title' => 'Discover the Future of Web Development with PressX\'s Innovative Tools',
+    'summary' => "At PressX, we empower developers with cutting-edge tools and a modern tech stack, ensuring seamless integration and unparalleled performance that elevate your web projects.",
+    'media' => $image_url,
+    'features' => [
+      [
+        '_type' => 'bullet',
+        'text' => 'Streamlined workflows for faster project delivery',
+        'icon' => 'box',
+      ],
+      [
+        '_type' => 'bullet',
+        'text' => 'Streamlined workflows for faster project delivery',
+        'icon' => 'box',
+      ],
+      [
+        '_type' => 'bullet',
+        'text' => 'User-friendly interface for all skill levels',
+        'icon' => 'box',
+      ],
+    ],
+  ],
+  [
+    '_type' => 'side_by_side',
+    'eyebrow' => 'Dependable',
+    'layout' => 'image_left',
+    'title' => 'Experience Unmatched Reliability and Scalability Today',
+    'summary' => "At PressX, we prioritize reliability and scalability to ensure your web projects thrive. Our robust platform adapts seamlessly to your growing needs, empowering you to build with confidence.",
+    'media' => $image_url,
+    'link_title' => 'Explore',
+    'link_url' => '#explore',
   ],
   [
     '_type' => 'card_group',
-    'title' => 'Core Features',
+    'title' => 'Discover Our Cutting-Edge Features',
     'cards' => [
       [
         'type' => 'stat',
-        'heading' => 'Headless CMS',
-        'body' => 'WordPress as a backend with full GraphQL API support',
-        'icon' => 'database',
+        'heading' => 'User-friendly Interface',
+        'body' => 'Navigate effortlessly with our intuitive design',
+        'icon' => 'box',
       ],
       [
         'type' => 'stat',
-        'heading' => 'Next.js Frontend',
-        'body' => 'Modern React-based frontend with SSR and SSG capabilities',
-        'icon' => 'code',
+        'heading' => 'Customizable Modules',
+        'body' => 'Tailor your experience with flexible module options',
+        'icon' => 'box',
       ],
       [
         'type' => 'stat',
-        'heading' => 'Component Library',
-        'body' => 'Extensive collection of pre-built, customizable components',
-        'icon' => 'layers',
-      ],
-      [
-        'type' => 'stat',
-        'heading' => 'Developer Tools',
-        'body' => 'Integrated tooling for efficient development workflows',
-        'icon' => 'tool',
+        'heading' => 'Comprehensive Support',
+        'body' => 'Get assistance anytime with our dedicated support team',
+        'icon' => 'box',
       ],
     ],
   ],
   [
-    '_type' => 'sidebyside',
-    'eyebrow' => 'Headless CMS',
+    '_type' => 'side_by_side',
+    'eyebrow' => 'Innovate',
     'layout' => 'image_right',
-    'title' => 'WordPress as a Service',
-    'summary' => 'Leverage the power of WordPress as a content management system while delivering content through a modern GraphQL API.',
+    'title' => 'Experience the Future of Web Development',
+    'summary' => "PressX empowers you to build dynamic websites with ease. Our platform combines cutting-edge technology with user-friendly features.",
     'media' => $image_url,
+    'features' => [
+      [
+        '_type' => 'stat',
+        'title' => 'Seamless Integration',
+        'summary' => 'Easily connect with various tools and services to enhance your web projects.',
+      ],
+      [
+        '_type' => 'stat',
+        'title' => 'Robust Security',
+        'summary' => 'Protect your website with advanced security features and regular updates.',
+      ],
+    ],
     'link_title' => 'Learn More',
-    'link_url' => '/features/headless-cms',
-    'features' => [
-      [
-        '_type' => 'bullet',
-        'text' => 'Full GraphQL API with WPGraphQL',
-        'icon' => 'database',
-      ],
-      [
-        '_type' => 'bullet',
-        'text' => 'Custom post types and fields with Carbon Fields',
-        'icon' => 'edit',
-      ],
-      [
-        '_type' => 'bullet',
-        'text' => 'Secure authentication and permissions',
-        'icon' => 'lock',
-      ],
-    ],
+    'link_url' => '#learn-more',
   ],
   [
-    '_type' => 'sidebyside',
-    'eyebrow' => 'Frontend Framework',
-    'layout' => 'image_left',
-    'title' => 'Next.js Powered Frontend',
-    'summary' => 'Build lightning-fast websites with Next.js, React, and TypeScript for optimal performance and developer experience.',
-    'media' => $image_url,
-    'link_title' => 'View Documentation',
-    'link_url' => '/features/nextjs',
-    'features' => [
-      [
-        '_type' => 'bullet',
-        'text' => 'Server-side rendering for optimal SEO',
-        'icon' => 'search',
-      ],
-      [
-        '_type' => 'bullet',
-        'text' => 'Static site generation for blazing fast performance',
-        'icon' => 'zap',
-      ],
-      [
-        '_type' => 'bullet',
-        'text' => 'TypeScript support for type safety',
-        'icon' => 'check-circle',
-      ],
-    ],
-  ],
-  [
-    '_type' => 'carousel',
-    'title' => 'Component Library',
-    'items' => [
-      [
-        'media' => $image_url,
-        'title' => 'Hero Sections',
-        'summary' => 'Multiple hero layouts for impactful page introductions.',
-      ],
-      [
-        'media' => $image_url,
-        'title' => 'Content Blocks',
-        'summary' => 'Flexible content blocks for diverse page layouts.',
-      ],
-      [
-        'media' => $image_url,
-        'title' => 'Interactive Elements',
-        'summary' => 'Accordions, tabs, and other interactive components.',
-      ],
-      [
-        'media' => $image_url,
-        'title' => 'Media Components',
-        'summary' => 'Image galleries, videos, and other media displays.',
-      ],
-    ],
+    '_type' => 'text',
+    'title' => 'Start Your Journey with PressX',
+    'body' => '<p>Unlock your web development potential today with our innovative and user-friendly platform.</p>',
+    'text_layout' => 'default',
+    'link_title' => 'Get Started',
+    'link_url' => '#get-started',
+    'link2_title' => 'Learn More',
+    'link2_url' => '#learn-more',
   ],
   [
     '_type' => 'accordion',
-    'title' => 'Technical Specifications',
+    'title' => 'FAQs',
     'items' => [
       [
-        'title' => 'WordPress Requirements',
-        'body' => 'PressX requires WordPress 5.9+ and PHP 7.4+. The core plugin includes WPGraphQL and Carbon Fields for extended functionality.',
-        'link_title' => 'WordPress Documentation',
-        'link_url' => '/docs/wordpress',
+        'title' => 'What is PressX?',
+        'body' => 'PressX is a modern web development platform that combines the power of Wordpress with cutting-edge frontend technologies.',
       ],
       [
-        'title' => 'Frontend Requirements',
-        'body' => 'The frontend is built with Next.js 13+, React 18+, and TypeScript. Node.js 16+ is required for development.',
-        'link_title' => 'Frontend Documentation',
-        'link_url' => '/docs/frontend',
+        'title' => 'Is PressX easy to use?',
+        'body' => 'Yes! PressX is designed with user experience in mind, making it accessible for developers of all skill levels.',
       ],
       [
-        'title' => 'Development Environment',
-        'body' => 'DDEV is used for local development, providing a consistent environment with Docker containers for WordPress and the database.',
-        'link_title' => 'Setup Guide',
-        'link_url' => '/docs/setup',
+        'title' => 'What features does it offer?',
+        'body' => 'PressX offers a comprehensive suite of features including customizable modules, responsive design tools, and robust security features.',
+      ],
+      [
+        'title' => 'Is support available?',
+        'body' => 'Absolutely! We provide dedicated support to all our users with various service level options.',
+      ],
+      [
+        'title' => 'Can I try it?',
+        'body' => 'Yes, you can try PressX with our free tier or request a demo to see its capabilities firsthand.',
       ],
     ],
-  ],
-  [
-    '_type' => 'gallery',
-    'title' => 'Feature Showcase',
-    'summary' => 'Visual examples of PressX features and components in action.',
-    'media_items' => [
-      [
-        'media' => $image_url,
-        'alt' => 'Headless CMS Dashboard',
-      ],
-      [
-        'media' => $image_url,
-        'alt' => 'Next.js Frontend',
-      ],
-      [
-        'media' => $image_url,
-        'alt' => 'Component Library',
-      ],
-      [
-        'media' => $image_url,
-        'alt' => 'GraphQL API',
-      ],
-    ],
-  ],
-  [
-    '_type' => 'embed',
-    'title' => 'Feature Walkthrough',
-    'embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    'caption' => 'Watch this video for a detailed walkthrough of PressX features and capabilities.',
-    'max_width' => '800px',
-  ],
-  [
-    '_type' => 'quote',
-    'quote' => 'PressX has revolutionized our WordPress development workflow. ' .
-      'The headless approach combined with Next.js gives us the best of both worlds: ' .
-      'WordPress for content management and modern frontend technologies for performance.',
-    'author' => 'Alex Chen',
-    'job_title' => 'CTO at Digital Innovations',
-    'media' => $image_url,
-  ],
-  [
-    '_type' => 'card_group',
-    'title' => 'Use Cases',
-    'cards' => [
-      [
-        'type' => 'custom',
-        'media' => $image_url,
-        'mediaLink' => '/use-cases/corporate',
-        'heading' => 'Corporate Websites',
-        'heading_url' => '/use-cases/corporate',
-        'summaryText' => 'Build high-performance corporate websites with advanced content management',
-        'tags' => [
-          ['tag' => 'Enterprise'],
-          ['tag' => 'Performance'],
-          ['tag' => 'SEO'],
-        ],
-        'link_title' => 'View Case Study',
-        'link_url' => '/use-cases/corporate',
-      ],
-      [
-        'type' => 'custom',
-        'media' => $image_url,
-        'mediaLink' => '/use-cases/ecommerce',
-        'heading' => 'E-commerce',
-        'heading_url' => '/use-cases/ecommerce',
-        'summaryText' => 'Create fast, conversion-optimized online stores with headless commerce',
-        'tags' => [
-          ['tag' => 'WooCommerce'],
-          ['tag' => 'Headless'],
-          ['tag' => 'Performance'],
-        ],
-        'link_title' => 'View Case Study',
-        'link_url' => '/use-cases/ecommerce',
-      ],
-      [
-        'type' => 'custom',
-        'media' => $image_url,
-        'mediaLink' => '/use-cases/media',
-        'heading' => 'Media & Publishing',
-        'heading_url' => '/use-cases/media',
-        'summaryText' => 'Deliver content-rich media sites with optimal performance',
-        'tags' => [
-          ['tag' => 'Content'],
-          ['tag' => 'Publishing'],
-          ['tag' => 'Performance'],
-        ],
-        'link_title' => 'View Case Study',
-        'link_url' => '/use-cases/media',
-      ],
-    ],
-  ],
-  [
-    '_type' => 'newsletter',
-    'title' => 'Stay Updated on PressX Features',
-    'summary' => 'Subscribe to our newsletter to receive updates on new features, ' .
-      'tutorials, and best practices for building with PressX.',
   ],
 ];
 
@@ -294,7 +168,7 @@ carbon_set_post_meta($post_id, 'sections', $sections);
 $post = get_post($post_id);
 $slug = $post->post_name;
 
-echo "\nFeatures landing page created successfully! 🎉\n";
+echo "\nLanding page created successfully! 🎉\n";
 echo "----------------------------------------\n";
 echo "ID: {$post_id}\n";
 echo "Slug: {$slug}\n";

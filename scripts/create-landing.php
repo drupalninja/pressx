@@ -207,7 +207,7 @@ $sections = [
     ],
   ],
   [
-    '_type' => 'sidebyside',
+    '_type' => 'side_by_side',
     'eyebrow' => 'Developer Experience',
     'layout' => 'image_right',
     'title' => 'Built for Modern Development',
@@ -234,7 +234,7 @@ $sections = [
     ],
   ],
   [
-    '_type' => 'sidebyside',
+    '_type' => 'side_by_side',
     'eyebrow' => 'Performance Metrics',
     'layout' => 'image_left',
     'title' => 'Built for Speed',
@@ -325,7 +325,7 @@ $sections = [
     'media' => $image_url,
   ],
   [
-    '_type' => 'sidebyside',
+    '_type' => 'side_by_side',
     'eyebrow' => 'Features',
     'layout' => 'image_right',
     'title' => 'Modern Development Experience',
