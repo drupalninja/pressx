@@ -25,7 +25,7 @@ $menu_items = [
   ],
   [
     'title' => 'Features',
-    'url' => home_url('/features'),
+    'url' => home_url('/landing/features'),
     'order' => 2,
   ],
   [

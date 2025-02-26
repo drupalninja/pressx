@@ -89,6 +89,10 @@ ddev create-home
 echo "Creating test posts..."
 ddev create-articles
 
+# Create test features page
+echo "Creating test features page..."
+ddev create-features
+
 # Create default menu
 echo "Creating default menu..."
 ddev create-menu

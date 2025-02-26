@@ -5,51 +5,12 @@
  * Script to create the PressX home page.
  */
 
-// First, ensure the image exists in WordPress media library.
+// Include the image handler.
+require_once __DIR__ . '/includes/image-handler.php';
+
+// Get the image ID using the helper function.
 $image_path = __DIR__ . '/images/card.png';
-$image_id = NULL;
-
-// Check if image exists locally.
-if (file_exists($image_path)) {
-  // Import the image into WordPress media library if not already there.
-  $upload_dir = wp_upload_dir();
-  $filename = basename($image_path);
-  $wp_filetype = wp_check_filetype($filename);
-
-  // Prepare the file array.
-  $attachment = [
-    'post_mime_type' => $wp_filetype['type'],
-    'post_title' => sanitize_file_name($filename),
-    'post_content' => '',
-    'post_status' => 'inherit',
-  ];
-
-  // Copy the file to the uploads directory.
-  $target_path = $upload_dir['path'] . '/' . $filename;
-  if (!file_exists($target_path)) {
-    copy($image_path, $target_path);
-  }
-
-  // Check if image already exists in media library.
-  $existing_attachment = new WP_Query([
-    'post_type' => 'attachment',
-    'title' => sanitize_file_name($filename),
-    'post_status' => 'inherit',
-    'posts_per_page' => 1,
-  ]);
-
-  if (!$existing_attachment->have_posts()) {
-    // Insert the attachment.
-    $image_id = wp_insert_attachment($attachment, $target_path);
-
-    // Generate metadata for the attachment.
-    $attachment_data = wp_generate_attachment_metadata($image_id, $target_path);
-    wp_update_attachment_metadata($image_id, $attachment_data);
-  }
-  else {
-    $image_id = $existing_attachment->posts[0]->ID;
-  }
-}
+$image_id = pressx_ensure_image($image_path);
 
 // First, import all the technology logos.
 $logo_paths = [
@@ -64,39 +25,13 @@ $logo_paths = [
 
 $logo_ids = [];
 
-// Import each logo into the media library.
+// Import each logo into the media library using the helper function.
 foreach ($logo_paths as $name => $logo_path) {
   if (file_exists($logo_path)) {
-    $upload_dir = wp_upload_dir();
-    $filename = basename($logo_path);
-    $wp_filetype = wp_check_filetype($filename);
-
-    $attachment = [
-      'post_mime_type' => $wp_filetype['type'],
-      'post_title' => sanitize_file_name($name),
-      'post_content' => '',
-      'post_status' => 'inherit',
-    ];
-
-    $target_path = $upload_dir['path'] . '/' . $filename;
-    if (!file_exists($target_path)) {
-      copy($logo_path, $target_path);
-    }
-
-    $existing_attachment = new WP_Query([
-      'post_type' => 'attachment',
-      'title' => sanitize_file_name($name),
-      'post_status' => 'inherit',
-      'posts_per_page' => 1,
-    ]);
-
-    if (!$existing_attachment->have_posts()) {
-      $logo_id = wp_insert_attachment($attachment, $target_path);
-      $attachment_data = wp_generate_attachment_metadata($logo_id, $target_path);
-      wp_update_attachment_metadata($logo_id, $attachment_data);
+    // Use the pressx_ensure_image function with a custom title.
+    $logo_id = pressx_ensure_image($logo_path, sanitize_file_name($name));
+    if ($logo_id) {
       $logo_ids[] = $logo_id;
-    } else {
-      $logo_ids[] = $existing_attachment->posts[0]->ID;
     }
   }
 }
@@ -207,7 +142,6 @@ $sections = [
   ],
   [
     '_type' => 'side_by_side',
-    'eyebrow' => 'Essential Features',
     'layout' => 'image_right',
     'title' => 'Discover the Essential Features That Make PressX Stand Out in Web Development',
     'summary' => 'PressX offers a powerful blend of flexibility and performance, enabling seamless integration and unparalleled user experience.',
@@ -234,7 +168,7 @@ carbon_set_post_meta($post_id, 'sections', $sections);
 $post = get_post($post_id);
 $slug = $post->post_name;
 
-// Set this page as the homepage
+// Set this page as the homepage.
 update_option('show_on_front', 'page');
 update_option('page_on_front', $post_id);
 

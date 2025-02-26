@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Description: Create a test features page with sample sections
+## Usage: create-features
+## Example: "ddev create-features"
+
+ddev wp-script /var/www/html/scripts/create-features.php
