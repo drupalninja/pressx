@@ -111,7 +111,16 @@ PressX supports a preview mode that allows you to see content changes in real-ti
    - Click the "Preview" button to see changes in the Next.js frontend
    - Preview URLs follow the pattern: `http://localhost:3333/preview/[id]`
 
-3. **Preview Mode Environment Variables**:
+3. **Admin Bar**:
+   - When in preview mode, an admin bar appears at the top of all pages
+   - Shows the current page type and post ID for easy reference
+   - Provides quick links to edit the current content in WordPress
+   - Includes a home button for easy navigation
+   - Can be hidden/shown with a toggle button
+   - Responsive design works on all device sizes
+   - Automatically adjusts the page layout to prevent overlap with content
+
+4. **Preview Mode Environment Variables**:
    ```
    NEXT_PUBLIC_PREVIEW_MODE=true
    WORDPRESS_PREVIEW_SECRET=pressx_preview_secret
@@ -121,7 +130,7 @@ PressX supports a preview mode that allows you to see content changes in real-ti
 
    > **IMPORTANT**: You must set `WORDPRESS_PREVIEW_USERNAME` and `WORDPRESS_PREVIEW_PASSWORD` to valid WordPress credentials with appropriate permissions. These credentials are used to authenticate with the WordPress GraphQL API to access unpublished content. Never commit these credentials to version control.
 
-4. **JWT Authentication**:
+5. **JWT Authentication**:
    - The preview mode uses JWT authentication to securely access unpublished content
    - JWT tokens are automatically retrieved and stored in cookies
    - The GraphQL client uses these tokens when making requests to the WordPress API
@@ -259,7 +268,18 @@ The Embed section allows you to include external content like videos, maps, or o
    - Check for TypeScript errors
    - Verify GraphQL queries match the schema
 
-4. **DDEV Configuration Issues**
+4. **Preview Mode Authentication Issues**
+   - If you're having trouble with preview mode authentication:
+     - Run `ddev toggle-preview on` to reset the admin password and update environment variables
+     - Check that the WPGraphQL JWT Authentication plugin is active
+     - Verify that your `.env.local` file contains the correct credentials
+     - Clear your browser cookies and try again
+   - The `toggle-preview` script automatically:
+     - Sets a secure password for the admin user
+     - Updates the `.env.local` file with the correct credentials
+     - Activates the necessary plugins for JWT authentication
+
+5. **DDEV Configuration Issues**
    - Run `ddev describe` to check the current configuration
    - Ensure ports 80, 443, and 3333 are available
    - Check DDEV logs with `ddev logs`
