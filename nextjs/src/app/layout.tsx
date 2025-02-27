@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { graphQLClient } from "@/lib/graphql";
 import './globals.css'
+import AdminBarWrapper from "@/components/admin/AdminBarWrapper";
 
 const font = Open_Sans({ subsets: ["latin"] });
 
@@ -82,10 +83,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const mainMenu = await getMainMenu();
+  const isPreviewMode = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
 
   return (
     <html lang="en">
-      <body className={font.className}>
+      <body className={`${font.className} ${isPreviewMode ? 'pt-10' : ''}`}>
+        <AdminBarWrapper isPreviewMode={isPreviewMode} />
         <Container>
           <Header mainMenu={mainMenu} />
           {children}

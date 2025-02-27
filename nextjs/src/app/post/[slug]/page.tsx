@@ -8,6 +8,7 @@ interface Post {
   content: string;
   excerpt: string;
   date: string;
+  databaseId: number;
   featuredImage?: {
     node: {
       sourceUrl: string;
@@ -37,6 +38,7 @@ const getPostQuery = `
       content
       excerpt
       date
+      databaseId
       featuredImage {
         node {
           sourceUrl
@@ -81,7 +83,7 @@ export default async function PostPage({
     : null;
 
   return (
-    <article className="mb-8">
+    <article className="mb-8" data-post-id={post.databaseId}>
       <div className="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
         {featuredImage && (
           <div className="relative aspect-[16/9] mb-6">
