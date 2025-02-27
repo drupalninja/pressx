@@ -334,20 +334,22 @@ add_action('carbon_fields_loaded', function () {
           Field::make('text', 'title')
             ->set_help_text('Optional title for the recent posts section.')
             ->set_default_value(''),
+          Field::make('text', 'post_count')
+            ->set_attribute('type', 'number')
+            ->set_default_value(6)
+            ->set_help_text('Number of recent posts to display.'),
         ])
         ->add_fields('pricing', [
           Field::make('text', 'eyebrow')
-            ->set_required(TRUE)
             ->set_help_text('The eyebrow text above the title.')
-            ->set_default_value('Choose Your Plan'),
+            ->set_default_value(''),
           Field::make('text', 'title')
             ->set_required(TRUE)
             ->set_help_text('The main title for the pricing section.')
             ->set_default_value('Compare Our Options'),
           Field::make('text', 'summary')
-            ->set_required(TRUE)
             ->set_help_text('The summary text below the title.')
-            ->set_default_value('Select the best option for your needs'),
+            ->set_default_value(''),
           Field::make('text', 'includes_label')
             ->set_required(TRUE)
             ->set_help_text('The label for the features list.')

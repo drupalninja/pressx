@@ -65,16 +65,11 @@ $sections = [
     'link_url' => '#learn-more',
   ],
   [
-    '_type' => 'text',
+    '_type' => 'pricing',
     'eyebrow' => 'Tailored PressX Offerings',
     'title' => 'Unlock the Full Potential of PressX',
-    'body' => '<p>Tailor your PressX experience: choose between self-managed and full-service options</p>',
-    'text_layout' => 'centered',
-  ],
-  [
-    '_type' => 'pricing',
-    'title' => '',
-    'includes_label' => 'Includes:',
+    'summary' => 'Tailor your PressX experience: choose between self-managed and full-service options',
+    'includes_label' => 'Includes',
     'cards' => [
       [
         'eyebrow' => 'PressX CMS Platform',
