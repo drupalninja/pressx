@@ -38,7 +38,7 @@ foreach ($logo_paths as $name => $logo_path) {
 
 // Create a new landing page.
 $post_data = [
-  'post_title' => 'Home',
+  'post_title' => 'PressX - AI-Powered Lightning Fast Development',
   'post_status' => 'publish',
   'post_type' => 'landing',
   'post_name' => 'home',

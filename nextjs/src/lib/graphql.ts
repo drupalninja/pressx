@@ -83,10 +83,12 @@ export async function getJwtToken() {
       return data.data.login.authToken;
     }
 
-    console.error('Failed to get JWT token:', data);
+    // Reduce logging
+    // console.error('Failed to get JWT token:', data);
     return null;
   } catch (error) {
-    console.error('Error getting JWT token:', error);
+    // Reduce logging
+    // console.error('Error getting JWT token:', error);
     return null;
   }
 }

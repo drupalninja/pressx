@@ -53,17 +53,9 @@ export default async function PreviewPage({
   params: { id: string };
 }) {
   try {
-    console.log(`Fetching preview for content ID: ${id}`);
-
     // Check if we have a JWT token in cookies
     const cookieStore = cookies();
     const jwtToken = cookieStore.get('wp_jwt_token')?.value;
-
-    if (!jwtToken) {
-      console.warn('No JWT token found in cookies. Authentication may fail.');
-    } else {
-      console.log('JWT token found in cookies. Using for authentication.');
-    }
 
     // First try to fetch as a post
     let postData: { post: Post } | null = null;
@@ -75,10 +67,9 @@ export default async function PreviewPage({
       postData = await previewClient.request<{ post: Post }>(postQuery, { id });
       if (postData?.post) {
         contentType = 'post';
-        console.log('Content found as a regular post');
       }
     } catch (postError) {
-      console.log('Content not found as a regular post, trying landing page');
+      // If post fetch fails, we'll try landing page next
     }
 
     // If not a post, try as a landing page
@@ -87,10 +78,9 @@ export default async function PreviewPage({
         landingData = await previewClient.request<{ landing: Landing }>(landingQuery, { id });
         if (landingData?.landing) {
           contentType = 'landing';
-          console.log('Content found as a landing page');
         }
       } catch (landingError) {
-        console.log('Content not found as a landing page either');
+        // Content not found as either post or landing page
       }
     }
 
