@@ -28,6 +28,9 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
   // Determine if we're on a landing page
   const isLandingPage = postType === 'landing';
 
+  // Determine if we're on the homepage
+  const isHomepage = pathname === '/';
+
   // Create edit URL if we have a post ID
   let editUrl = wpAdminUrl + '/wp-admin/';
 
@@ -76,6 +79,8 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
         </svg>
         {isPreviewPage ? (
           <span className="font-medium">Preview Mode</span>
+        ) : isHomepage ? (
+          <span className="font-medium">Homepage</span>
         ) : isLandingPage ? (
           <span className="font-medium">Landing Page</span>
         ) : isPostPage ? (
@@ -102,7 +107,7 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
           </svg>
           {postId ? 'Edit This Page' : 'WordPress Admin'}
         </a>
-        {!pathname.startsWith('/') && (
+        {pathname !== '/' && (
           <Link
             href="/"
             className="text-gray-300 hover:text-white text-sm flex items-center"

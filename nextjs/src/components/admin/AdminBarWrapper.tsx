@@ -37,9 +37,9 @@ export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps)
       }
     }
 
-    // Check for landing page
-    // Landing pages use the root slug pattern /[slug]
-    if (!pathname.startsWith('/post/') && !pathname.startsWith('/preview/') && pathname !== '/') {
+    // Check for landing page (including homepage)
+    // Landing pages use the root slug pattern /[slug] or / for homepage
+    if (!pathname.startsWith('/post/') && !pathname.startsWith('/preview/')) {
       // Look for main element with data-post-id attribute
       const mainElement = document.querySelector('main[data-post-id]');
       if (mainElement) {
