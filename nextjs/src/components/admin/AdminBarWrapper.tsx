@@ -11,13 +11,15 @@ interface AdminBarWrapperProps {
 export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps) {
   const pathname = usePathname();
   const [postId, setPostId] = useState<string | undefined>(undefined);
+  const [postType, setPostType] = useState<string | undefined>(undefined);
 
-  // Extract post ID from preview path if available
+  // Extract post ID from path or DOM
   useEffect(() => {
     // First check for preview path
     const previewPathMatch = pathname.match(/\/preview\/(\d+)/);
     if (previewPathMatch && previewPathMatch[1]) {
       setPostId(previewPathMatch[1]);
+      setPostType('preview');
       return;
     }
 
@@ -29,6 +31,23 @@ export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps)
         const id = articleElement.getAttribute('data-post-id');
         if (id) {
           setPostId(id);
+          setPostType('post');
+          return;
+        }
+      }
+    }
+
+    // Check for landing page
+    // Landing pages use the root slug pattern /[slug]
+    if (!pathname.startsWith('/post/') && !pathname.startsWith('/preview/') && pathname !== '/') {
+      // Look for main element with data-post-id attribute
+      const mainElement = document.querySelector('main[data-post-id]');
+      if (mainElement) {
+        const id = mainElement.getAttribute('data-post-id');
+        const type = mainElement.getAttribute('data-post-type') || 'landing';
+        if (id) {
+          setPostId(id);
+          setPostType(type);
           return;
         }
       }
@@ -36,6 +55,7 @@ export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps)
 
     // Reset if no post ID found
     setPostId(undefined);
+    setPostType(undefined);
   }, [pathname]);
 
   // Only show AdminBar in preview mode
@@ -43,5 +63,5 @@ export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps)
     return null;
   }
 
-  return <AdminBar postId={postId} isPreviewMode={true} />;
+  return <AdminBar postId={postId} postType={postType} isPreviewMode={true} />;
 }

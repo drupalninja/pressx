@@ -39,7 +39,7 @@ export default async function LandingPage({
     }
 
     return (
-      <main className="min-h-screen">
+      <main className="min-h-screen" data-post-id={data.landing.databaseId} data-post-type="landing">
         {data.landing.sections?.map((section, index) => (
           <SectionResolver key={index} section={section} />
         ))}

@@ -6,10 +6,11 @@ import { useState, useEffect } from 'react';
 
 interface AdminBarProps {
   postId?: string;
+  postType?: string;
   isPreviewMode: boolean;
 }
 
-export default function AdminBar({ postId, isPreviewMode }: AdminBarProps) {
+export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarProps) {
   const [isVisible, setIsVisible] = useState(true);
   const pathname = usePathname();
 
@@ -24,8 +25,19 @@ export default function AdminBar({ postId, isPreviewMode }: AdminBarProps) {
   // Determine if we're on a published post page
   const isPostPage = pathname.startsWith('/post/');
 
+  // Determine if we're on a landing page
+  const isLandingPage = postType === 'landing';
+
   // Create edit URL if we have a post ID
-  const editUrl = postId ? `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit` : `${wpAdminUrl}/wp-admin/`;
+  let editUrl = wpAdminUrl + '/wp-admin/';
+
+  if (postId) {
+    if (postType === 'landing') {
+      editUrl = `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit`;
+    } else {
+      editUrl = `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit`;
+    }
+  }
 
   // Toggle admin bar visibility
   const toggleVisibility = () => {
@@ -64,13 +76,18 @@ export default function AdminBar({ postId, isPreviewMode }: AdminBarProps) {
         </svg>
         {isPreviewPage ? (
           <span className="font-medium">Preview Mode</span>
+        ) : isLandingPage ? (
+          <span className="font-medium">Landing Page</span>
         ) : isPostPage ? (
-          <span className="font-medium">Edit Mode</span>
+          <span className="font-medium">Post</span>
         ) : (
           <span className="font-medium">Admin Mode</span>
         )}
         {postId && (
           <span className="ml-2 text-xs bg-gray-700 px-2 py-1 rounded">ID: {postId}</span>
+        )}
+        {postType && (
+          <span className="ml-2 text-xs bg-gray-700 px-2 py-1 rounded">Type: {postType}</span>
         )}
       </div>
       <div className="flex items-center space-x-4">
@@ -83,7 +100,7 @@ export default function AdminBar({ postId, isPreviewMode }: AdminBarProps) {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-          {postId ? 'Edit This Post' : 'WordPress Admin'}
+          {postId ? 'Edit This Page' : 'WordPress Admin'}
         </a>
         {!pathname.startsWith('/') && (
           <Link
