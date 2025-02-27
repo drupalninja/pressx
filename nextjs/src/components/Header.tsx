@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export default function Header({ mainMenu }: HeaderProps) {
   const scrolled = useScrollPosition();
-  
+
   // Transform WordPress menu items to MainMenu format
   const transformedMenuItems: MainMenuItem[] = mainMenu.map(item => ({
     title: item.title,
@@ -29,7 +29,7 @@ export default function Header({ mainMenu }: HeaderProps) {
   }));
 
   return (
-    <header role="banner" className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-8">
+    <header role="banner" className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-8">
       <div className={`lg:container mx-auto transition-all duration-300 ease-in-out ${scrolled ? 'py-2' : 'py-6'}`}>
         <MainMenu
           siteLogo='/images/logo.svg'
