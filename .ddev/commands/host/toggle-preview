@@ -1,0 +1,66 @@
+#!/bin/bash
+
+## Description: Toggle preview mode on or off
+## Usage: toggle-preview [on|off]
+## Example: "ddev toggle-preview on" or "ddev toggle-preview off"
+
+# Check if argument is provided
+if [ -z "$1" ]; then
+    echo "Please specify 'on' or 'off' to toggle preview mode"
+    exit 1
+fi
+
+# Generate a secure random password
+ADMIN_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c 12)
+
+# Update the admin password
+ddev exec -d /var/www/html/public_html wp user update admin --user_pass="${ADMIN_PASSWORD}"
+echo "Updated admin password for authentication: ${ADMIN_PASSWORD}"
+
+# Toggle preview mode based on argument
+case "$1" in
+    on)
+        echo "Enabling preview mode..."
+
+        # Create or update .env.local file with preview settings
+        cat > nextjs/.env.local <<EOF
+NEXT_PUBLIC_WORDPRESS_API_URL=http://pressx.ddev.site/graphql
+NEXT_PUBLIC_PREVIEW_MODE=true
+WORDPRESS_PREVIEW_SECRET=pressx_preview_secret
+WORDPRESS_PREVIEW_USERNAME=admin
+WORDPRESS_PREVIEW_PASSWORD=${ADMIN_PASSWORD}
+NODE_TLS_REJECT_UNAUTHORIZED=0
+EOF
+
+        echo "Preview mode enabled!"
+        echo "To start the Next.js frontend with preview mode:"
+        echo "  ddev nextjs"
+        echo "Admin password: ${ADMIN_PASSWORD}"
+
+        # Verify that the JWT plugin is active
+        JWT_PLUGIN_STATUS=$(ddev exec -d /var/www/html/public_html wp plugin is-active wp-graphql-jwt-authentication)
+        if [ "$JWT_PLUGIN_STATUS" != "1" ]; then
+            echo "Warning: WPGraphQL JWT Authentication plugin is not active"
+            echo "Activating the plugin now..."
+            ddev exec -d /var/www/html/public_html wp plugin activate wp-graphql-jwt-authentication
+        fi
+        ;;
+
+    off)
+        echo "Disabling preview mode..."
+
+        # Create or update .env.local file without preview settings
+        cat > nextjs/.env.local <<EOF
+NEXT_PUBLIC_WORDPRESS_API_URL=http://pressx.ddev.site/graphql
+NEXT_PUBLIC_PREVIEW_MODE=false
+NODE_TLS_REJECT_UNAUTHORIZED=0
+EOF
+
+        echo "Preview mode disabled!"
+        ;;
+
+    *)
+        echo "Invalid argument. Please use 'on' or 'off'"
+        exit 1
+        ;;
+esac

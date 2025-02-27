@@ -12,6 +12,7 @@ export interface Post {
   date: string;
   excerpt: string;
   content: string;
+  status?: string;
   blocks?: Block[];
   featuredImage?: {
     node: {

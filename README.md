@@ -22,6 +22,9 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    # Install WordPress and dependencies
    ddev install
 
+   # Or install with preview mode enabled
+   ddev install --preview
+
    # Install Next.js dependencies
    cd nextjs
    npm install
@@ -35,6 +38,11 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    - Set up navigation menus
    - Generate admin credentials
 
+   Using the `--preview` flag will additionally:
+   - Configure the Next.js environment for preview mode
+   - Set up the necessary environment variables
+   - Enable real-time content previewing from WordPress to Next.js
+
 3. **Running the Application**
    ```bash
    # Start WordPress backend
@@ -43,6 +51,9 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    # Start Next.js frontend (in a separate terminal)
    cd nextjs
    npm run dev
+
+   # Or use the DDEV command if you installed with preview mode
+   ddev nextjs
    ```
 
 ## 🏗️ Project Structure
@@ -86,6 +97,36 @@ The WordPress backend uses several key components:
 - **Build**: `cd nextjs && npm run build`
 - **Start**: `cd nextjs && npm start`
 
+### Preview Mode
+
+PressX supports a preview mode that allows you to see content changes in real-time before publishing:
+
+1. **Enabling Preview Mode**:
+   - Install with preview mode: `ddev install --preview`
+   - Or toggle it on/off anytime: `ddev toggle-preview on` or `ddev toggle-preview off`
+   - Or manually configure by setting `NEXT_PUBLIC_PREVIEW_MODE=true` in `nextjs/.env.local`
+
+2. **Using Preview Mode**:
+   - Edit content in WordPress
+   - Click the "Preview" button to see changes in the Next.js frontend
+   - Preview URLs follow the pattern: `http://localhost:3333/preview/[id]`
+
+3. **Preview Mode Environment Variables**:
+   ```
+   NEXT_PUBLIC_PREVIEW_MODE=true
+   WORDPRESS_PREVIEW_SECRET=pressx_preview_secret
+   WORDPRESS_PREVIEW_USERNAME=admin
+   WORDPRESS_PREVIEW_PASSWORD=your_password_here
+   ```
+
+   > **IMPORTANT**: You must set `WORDPRESS_PREVIEW_USERNAME` and `WORDPRESS_PREVIEW_PASSWORD` to valid WordPress credentials with appropriate permissions. These credentials are used to authenticate with the WordPress GraphQL API to access unpublished content. Never commit these credentials to version control.
+
+4. **JWT Authentication**:
+   - The preview mode uses JWT authentication to securely access unpublished content
+   - JWT tokens are automatically retrieved and stored in cookies
+   - The GraphQL client uses these tokens when making requests to the WordPress API
+   - For security, tokens expire after a short period and are automatically refreshed
+
 ## 🛠️ Key Features
 
 1. **Headless WordPress**
@@ -113,6 +154,11 @@ The WordPress backend uses several key components:
    - Pre-configured landing pages (Home, Features, Pricing, Resources, Get Started, Contact)
    - Sample blog posts
    - Navigation menus (Primary and Footer)
+
+6. **Preview Mode**
+   - Real-time content previewing
+   - Secure preview links
+   - Seamless WordPress to Next.js integration
 
 ## 📦 Available Section Types
 

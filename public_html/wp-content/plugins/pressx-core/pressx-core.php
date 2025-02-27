@@ -30,6 +30,9 @@ use Carbon_Fields\Container;
 use Carbon_Fields\Field;
 use Carbon_Fields\Carbon_Fields;
 
+// Include GraphQL configuration.
+require_once plugin_dir_path(__FILE__) . 'includes/graphql.php';
+
 // Initialize Carbon Fields.
 add_action('after_setup_theme', function () {
   require_once dirname(dirname(dirname(dirname(__DIR__)))) . '/vendor/autoload.php';
