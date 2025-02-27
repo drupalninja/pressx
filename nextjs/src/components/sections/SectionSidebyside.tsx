@@ -3,7 +3,7 @@ import { getImage } from '@/components/helpers/Utilities';
 import { StatCardProps } from '@/components/stat-card/StatCard';
 
 export interface SidebysideSection {
-  type: 'sidebyside';
+  type: 'side_by_side';
   eyebrow?: string;
   layout?: 'image_left' | 'image_right';
   title: string;

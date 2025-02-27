@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "NODE_NO_WARNINGS=1 next dev --port 3333",
-    "build": "next build",
-    "start": "next start",
+    "build": "NODE_NO_WARNINGS=1 next build",
+    "start": "NODE_NO_WARNINGS=1 next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
