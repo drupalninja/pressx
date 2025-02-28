@@ -239,7 +239,11 @@ IMPORTANT: If you include a gallery section, it MUST have EXACTLY 4 media_items.
 
 IMPORTANT: The content MUST be customized to match the user's prompt. For example, if they ask for a coffee shop landing page, all headings, text, and content should be about coffee, cafes, etc.
 
-IMPORTANT FOR CARD GROUPS: When creating a card_group section, make sure each card includes an icon field (e.g., \\\"icon\\\": \\\"code\\\").
+IMPORTANT FOR CARD GROUPS: When creating a card_group section, EACH CARD MUST include an array of 3 DIFFERENT Lucide icons that are semantically relevant to the card's content.
+- The first icon should be the most appropriate/preferred icon.
+- The second and third icons are alternative suggestions.
+- Icons MUST be valid Lucide icon names.
+- Icons should relate to the card's theme or content.
 
 IMPORTANT FOR IMAGES: For each section that can include images (hero, side_by_side, gallery items, etc.), include an \\\"image_search\\\" field with a specific search phrase that would find a relevant image. For example, for a coffee shop, you might use \\\"barista pouring latte art\\\" or \\\"cozy coffee shop interior\\\".
 
@@ -248,7 +252,7 @@ Your response MUST be only valid JSON with an array of 6 sections, each containi
 1. hero: Must include heading, summary, image_search, and can optionally include hero_layout, link_title, link_url, link2_title, link2_url.
 2. text: Must include title, body, and can optionally include text_layout.
 3. side_by_side: Must include title, summary, image_search, and can optionally include layout, features, link_title, link_url.
-4. card_group: Must include title, summary, cards array (each with title, body, and icon - MUST be a valid Lucide icon name from the list above).
+4. card_group: Must include title, summary, cards array (each with title, body, and icons array with 3 different Lucide icon names).
 5. gallery: Must include title, summary, media_items array (each with title, summary, and image_search).
 6. quote: Must include quote, author, image_search.
 7. logo_collection: Must include title, summary.
@@ -258,19 +262,15 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 {
   \"sections\": [
     {
-      \"_type\": \"hero\",
-      \"heading\": \"Your headline here\",
-      \"summary\": \"Your summary here\",
-      \"image_search\": \"Specific search phrase for a relevant image\",
-      ...other fields...
-    },
-    {
-      \"_type\": \"side_by_side\",
-      \"title\": \"Your title here\",
-      \"summary\": \"Your summary here\",
-      \"image_search\": \"Specific search phrase for a relevant image\",
-      ...other fields...
-    },
+      \"_type\": \"card_group\",
+      \"cards\": [
+        {
+          \"title\": \"Card Title\",
+          \"body\": \"Card description\",
+          \"icons\": [\"preferred-icon\", \"alternative-icon-1\", \"alternative-icon-2\"]
+        }
+      ]
+    }
     ...more sections...
   ]
 }";
@@ -398,14 +398,55 @@ foreach ($sections as &$section) {
     }
   }
 
-  // Ensure each card has an icon field, but no validation is needed
+  // Ensure each card has an icon field, but validate the icon.
   if ($section['_type'] === 'card_group' && isset($section['cards'])) {
     foreach ($section['cards'] as &$card) {
-      // Set default icon if none exists
-      if (!isset($card['icon']) || empty($card['icon'])) {
-        $card['icon'] = 'star';
-        echo "Added default 'star' icon to card '" . $card['title'] . "'.\n";
+      // If icons are not set, default to star
+      $icon_options = $card['icons'] ?? ['star'];
+
+      // Validate each icon, keeping the first valid icon as primary
+      $validated_icons = [];
+      foreach ($icon_options as $icon) {
+        echo "Attempting to validate icon: '$icon' for card '" . $card['title'] . "'.\n";
+
+        // Validate the icon
+        $validated_icon_options = validate_lucide_icon($icon);
+
+        // Log the validation result
+        echo "Validation result for '$icon': " . implode(', ', $validated_icon_options) . "\n";
+
+        // If the first option is not the original icon, try the next options
+        if ($validated_icon_options[0] !== $icon) {
+          // Try the other options in the order they were returned
+          for ($i = 0; $i < count($validated_icon_options); $i++) {
+            echo "Trying alternative icon: '" . $validated_icon_options[$i] . "' for '$icon'.\n";
+
+            // If this icon is valid, use it
+            if ($validated_icon_options[$i] !== 'star') {
+              $validated_icons[] = $validated_icon_options[$i];
+              break;
+            }
+          }
+        } else {
+          // Original icon was valid, use it
+          $validated_icons[] = $icon;
+        }
       }
+
+      // If no valid icons were found, default to star
+      if (empty($validated_icons)) {
+        $validated_icons = ['star'];
+      }
+
+      // Use the first validated icon as primary
+      $card['icon'] = $validated_icons[0];
+
+      // If more than one icon was found, store alternatives
+      if (count($validated_icons) > 1) {
+        $card['icon_alternatives'] = array_slice($validated_icons, 1);
+      }
+
+      echo "Card icon set to '" . $card['icon'] . "' for card '" . $card['title'] . "'.\n";
     }
   }
 
@@ -505,3 +546,46 @@ echo "Slug: {$slug}\n";
 echo "\nView your page at:\n";
 echo "http://pressx.ddev.site/landing/{$slug}\n";
 echo "http://pressx.ddev.site:3333/{$slug} (Next.js)\n";
+
+/**
+ * Validate a Lucide icon name against the icon names file.
+ *
+ * @param string $icon
+ *   The icon name to validate.
+ *
+ * @return array
+ *   An array of validated icon names.
+ */
+function validate_lucide_icon($icon) {
+  // Path to the Lucide icon names file.
+  $icon_file = __DIR__ . '/includes/lucide-icon-names.txt';
+
+  // If file doesn't exist, default to star.
+  if (!file_exists($icon_file)) {
+    echo "Warning: Lucide icon names file not found. Using default 'star' icon.\n";
+    return ['star'];
+  }
+
+  // Read icon names from file.
+  $icon_names = array_filter(array_map('trim', file($icon_file, FILE_IGNORE_NEW_LINES)));
+
+  // If no icons found, default to star.
+  if (empty($icon_names)) {
+    echo "Warning: No icon names found in the file. Using default 'star' icon.\n";
+    return ['star'];
+  }
+
+  // Exact matches first (case-insensitive).
+  $exact_matches = array_filter($icon_names, function($name) use ($icon) {
+    return strtolower($name) === strtolower($icon);
+  });
+
+  // If exact match found, return it.
+  if (!empty($exact_matches)) {
+    return array_slice($exact_matches, 0, 1);
+  }
+
+  // If no match found, default to star.
+  echo "Warning: Icon '$icon' not found. Using default 'star' icon.\n";
+  return ['star'];
+}
