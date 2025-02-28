@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## Description: Create sample ai-landing in WordPress
+## Usage: create-ai-landing
+## Example: "ddev create-ai-landing"
+
+# Run the script without any arguments
+ddev wp-script /var/www/html/scripts/create-ai-landing.php
