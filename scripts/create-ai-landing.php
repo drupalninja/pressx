@@ -16,8 +16,15 @@ $_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
 // Check if Pexels image search is enabled.
 $_pressx_use_pexels_images = defined('PRESSX_USE_PEXELS_IMAGES') ? PRESSX_USE_PEXELS_IMAGES : FALSE;
 
+// Add color and formatting constants at the top of the file
+define('COLOR_GREEN', "\033[0;32m");
+define('COLOR_YELLOW', "\033[0;33m");
+define('COLOR_RED', "\033[0;31m");
+define('COLOR_BLUE', "\033[0;34m");
+define('COLOR_RESET', "\033[0m");
+
 if (!$_pressx_openrouter_api_key && !$_pressx_groq_api_key) {
-  echo "Error: Neither OPENROUTER_API_KEY nor GROQ_API_KEY is defined in wp-config.php.\n";
+  echo COLOR_RED . "❌ Error: Neither OPENROUTER_API_KEY nor GROQ_API_KEY is defined in wp-config.php.\n" . COLOR_RESET;
   echo "Please add at least one of the following to your wp-config.php file:\n";
   echo "'define( 'OPENROUTER_API_KEY', 'your-api-key-here' );'\n";
   echo "'define( 'GROQ_API_KEY', 'your-api-key-here' );'\n";
@@ -100,10 +107,10 @@ function make_ai_request($prompt, $system_prompt = NULL) {
     }
     // Handle fallback if preferred API isn't available
     elseif ($preferred_api === 'groq' && !$_pressx_groq_api_key && $_pressx_openrouter_api_key) {
-        echo "Warning: Groq API is configured but GROQ_API_KEY is not set. Falling back to OpenRouter.\n";
+        echo COLOR_YELLOW . "⚠️ Warning: Groq API is configured but GROQ_API_KEY is not set. Falling back to OpenRouter.\n" . COLOR_RESET;
         $config = $configure_openrouter();
     } elseif ($preferred_api === 'openrouter' && !$_pressx_openrouter_api_key && $_pressx_groq_api_key) {
-        echo "Warning: OpenRouter API is configured but OPENROUTER_API_KEY is not set. Falling back to Groq.\n";
+        echo COLOR_YELLOW . "⚠️ Warning: OpenRouter API is configured but OPENROUTER_API_KEY is not set. Falling back to Groq.\n" . COLOR_RESET;
         $config = $configure_groq();
     }
 
@@ -111,13 +118,13 @@ function make_ai_request($prompt, $system_prompt = NULL) {
     if (!$config) {
         // Just use any available API
         if ($_pressx_groq_api_key) {
-            echo "Using available Groq API.\n";
+            echo COLOR_YELLOW . "🔄 Using available Groq API.\n" . COLOR_RESET;
             $config = $configure_groq();
         } elseif ($_pressx_openrouter_api_key) {
-            echo "Using available OpenRouter API.\n";
+            echo COLOR_YELLOW . "🔄 Using available OpenRouter API.\n" . COLOR_RESET;
             $config = $configure_openrouter();
         } else {
-            echo "Error: No valid API configuration available.\n";
+            echo COLOR_RED . "❌ Error: No valid API configuration available.\n" . COLOR_RESET;
             exit(1);
         }
     }
@@ -127,8 +134,8 @@ function make_ai_request($prompt, $system_prompt = NULL) {
     $headers = $config['headers'];
     $model = $config['model'];
 
-    echo "Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter') . "\n";
-    echo "Model: " . $model . "\n";
+    echo COLOR_BLUE . "🔍 Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter') . COLOR_RESET . "\n";
+    echo COLOR_BLUE . "🤖 Model: " . $model . COLOR_RESET . "\n";
 
     $data = [
         'model' => $model,
@@ -174,40 +181,91 @@ if ($existing_landing_id) {
   echo "Found " . count($existing_sections) . " sections in the existing landing page.\n";
 }
 
+// Add a function to display a welcome message
+function display_welcome_message() {
+  echo COLOR_BLUE . "🚀 Welcome to PressX AI Landing Page Generator\n" . COLOR_RESET;
+  echo COLOR_YELLOW . "Create stunning, AI-generated landing pages with ease!\n\n" . COLOR_RESET;
+}
+
+// Add a function to validate and sanitize user input
+function sanitize_prompt($prompt) {
+  // Remove any potentially harmful characters
+  $sanitized = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $prompt);
+
+  // Trim and convert to lowercase
+  $sanitized = strtolower(trim($sanitized));
+
+  // Ensure the prompt is not empty
+  if (empty($sanitized)) {
+    echo COLOR_RED . "❌ Error: Prompt cannot be empty.\n" . COLOR_RESET;
+    exit(1);
+  }
+
+  return $sanitized;
+}
+
+// Add a function to provide suggestions if the prompt is too generic
+function suggest_prompt_improvements($prompt) {
+  $generic_prompts = [
+    'coffee' => "Try something more specific like 'artisan coffee shop in urban setting'",
+    'shop' => "Be more descriptive, e.g., 'boutique clothing store for sustainable fashion'",
+    'business' => "Add more context, like 'tech startup focusing on AI innovation'",
+    'website' => "Provide more details, such as 'photography portfolio for wedding photographers'",
+  ];
+
+  foreach ($generic_prompts as $keyword => $suggestion) {
+    if (strpos($prompt, $keyword) !== false) {
+      echo COLOR_YELLOW . "💡 Tip: " . $suggestion . "\n" . COLOR_RESET;
+      break;
+    }
+  }
+}
+
+// Modify the script's initial setup
+function initialize_ai_landing_page_generator() {
+  // Clear the screen (works on most Unix-like systems)
+  system('clear');
+
+  // Display welcome message
+  display_welcome_message();
+
+  // Check API key configuration
+  if (!defined('OPENROUTER_API_KEY') && !defined('GROQ_API_KEY')) {
+    echo COLOR_RED . "❌ Error: No AI API keys configured.\n" . COLOR_RESET;
+    echo "Please add OPENROUTER_API_KEY or GROQ_API_KEY to your wp-config.php\n";
+    exit(1);
+  }
+}
+
+// Modify the existing script to use the new initialization
+initialize_ai_landing_page_generator();
+
 // Include the create-landing.php file to get the template sections.
-// We'll capture the output to prevent it from being displayed.
 ob_start();
-// Store the original post_id to restore it later.
 $original_post_id = $post_id ?? NULL;
-// Include the file in a way that allows us to access its variables.
 include __DIR__ . '/create-landing.php';
-// Get the template sections from the included file.
 $template_sections = $sections;
-// Restore the original post_id if it existed.
 if ($original_post_id !== NULL) {
   $post_id = $original_post_id;
 }
-// Clear the output buffer.
 ob_end_clean();
 
-echo "Loaded " . count($template_sections) . " template sections from create-landing.php.\n";
+echo COLOR_GREEN . "📋 Loaded " . count($template_sections) . " template sections from create-landing.php.\n" . COLOR_RESET;
 
-// Prompt the user for input.
-echo "What kind of landing page would you like to create?\n";
-if ($existing_landing_id) {
-  echo "Your prompt will be combined with the existing landing page content.\n";
-}
-else {
-  echo "Your prompt will be combined with template sections from create-landing.php.\n";
-}
-echo "Example: Create a landing page for a coffee shop\n";
-echo "> ";
-$prompt = trim(fgets(STDIN));
+// Prompt the user for input with improved guidance
+echo COLOR_BLUE . "🌟 What kind of landing page would you like to create?\n" . COLOR_RESET;
+echo "Your prompt will be combined with template sections from create-landing.php.\n";
+echo COLOR_YELLOW . "Examples:\n" . COLOR_RESET;
+echo "  • Create a landing page for a coffee shop\n";
+echo "  • Sustainable fashion brand website\n";
+echo "  • Tech startup portfolio\n";
+echo "\n> ";
 
-if (empty($prompt)) {
-  echo "Error: No prompt provided. Exiting.\n";
-  exit(1);
-}
+// Read and sanitize user input
+$prompt = sanitize_prompt(trim(fgets(STDIN)));
+
+// Provide suggestions for improvement if needed
+suggest_prompt_improvements($prompt);
 
 // Get the default image ID using the helper function.
 $image_path = __DIR__ . '/images/card.png';
@@ -227,7 +285,7 @@ $section_types = [
 ];
 
 // Call OpenRouter API to generate landing page content.
-echo "Generating landing page content based on prompt: \"{$prompt}\"...\n";
+echo COLOR_GREEN . "📝 Generating landing page content based on prompt: \"" . $prompt . "\"...\n" . COLOR_RESET;
 
 $system_prompt = "You are a landing page content generator specialized in creating compelling, targeted content based on user prompts.
 
@@ -335,7 +393,7 @@ foreach ($sections as &$section) {
   // Handle image search for sections that need it.
   if ($_pressx_use_pexels_images) {
     if (in_array($section['_type'], ['hero', 'side_by_side', 'quote']) && isset($section['image_search'])) {
-      echo "Searching for image: " . $section['image_search'] . "\n";
+      echo COLOR_BLUE . "🖼️ Searching for image: " . $section['image_search'] . COLOR_RESET . "\n";
       $image_url = pressx_get_pexels_image($section['image_search']);
 
       if ($image_url) {
@@ -365,7 +423,7 @@ foreach ($sections as &$section) {
     if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
       foreach ($section['media_items'] as &$item) {
         if (isset($item['image_search'])) {
-          echo "Searching for gallery image: " . $item['image_search'] . "\n";
+          echo COLOR_BLUE . "🖼️ Searching for gallery image: " . $item['image_search'] . COLOR_RESET . "\n";
           $image_url = pressx_get_pexels_image($item['image_search']);
 
           if ($image_url) {
@@ -530,13 +588,13 @@ carbon_set_post_meta($post_id, 'sections', $sections);
 $post = get_post($post_id);
 $slug = $post->post_name;
 
-echo "\nAI Landing page created successfully! 🎉\n";
+echo "\n" . COLOR_GREEN . "🎉 AI Landing page created successfully!\n" . COLOR_RESET;
 echo "----------------------------------------\n";
-echo "ID: {$post_id}\n";
-echo "Slug: {$slug}\n";
-echo "\nView your page at:\n";
-echo "http://pressx.ddev.site/landing/{$slug}\n";
-echo "http://pressx.ddev.site:3333/{$slug} (Next.js)\n";
+echo COLOR_BLUE . "🆔 ID: " . COLOR_RESET . "{$post_id}\n";
+echo COLOR_BLUE . "🔗 Slug: " . COLOR_RESET . "{$slug}\n";
+echo "\n" . COLOR_GREEN . "🌐 View your page at:\n" . COLOR_RESET;
+echo COLOR_YELLOW . "• WordPress: " . COLOR_RESET . "http://pressx.ddev.site/landing/{$slug}\n";
+echo COLOR_YELLOW . "• Next.js: " . COLOR_RESET . "http://pressx.ddev.site:3333/{$slug}\n";
 
 /**
  * Validate a Lucide icon name against the icon names file.
