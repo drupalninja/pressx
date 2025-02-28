@@ -407,20 +407,13 @@ foreach ($sections as &$section) {
       // Validate each icon, keeping the first valid icon as primary
       $validated_icons = [];
       foreach ($icon_options as $icon) {
-        echo "Attempting to validate icon: '$icon' for card '" . $card['title'] . "'.\n";
-
         // Validate the icon
         $validated_icon_options = validate_lucide_icon($icon);
-
-        // Log the validation result
-        echo "Validation result for '$icon': " . implode(', ', $validated_icon_options) . "\n";
 
         // If the first option is not the original icon, try the next options
         if ($validated_icon_options[0] !== $icon) {
           // Try the other options in the order they were returned
           for ($i = 0; $i < count($validated_icon_options); $i++) {
-            echo "Trying alternative icon: '" . $validated_icon_options[$i] . "' for '$icon'.\n";
-
             // If this icon is valid, use it
             if ($validated_icon_options[$i] !== 'star') {
               $validated_icons[] = $validated_icon_options[$i];
@@ -445,8 +438,6 @@ foreach ($sections as &$section) {
       if (count($validated_icons) > 1) {
         $card['icon_alternatives'] = array_slice($validated_icons, 1);
       }
-
-      echo "Card icon set to '" . $card['icon'] . "' for card '" . $card['title'] . "'.\n";
     }
   }
 
@@ -575,14 +566,30 @@ function validate_lucide_icon($icon) {
     return ['star'];
   }
 
-  // Exact matches first (case-insensitive).
-  $exact_matches = array_filter($icon_names, function($name) use ($icon) {
-    return strtolower($name) === strtolower($icon);
+  // Normalize the input icon name
+  $normalized_icon = strtolower(str_replace([' ', '_'], '-', $icon));
+
+  // Exact matches first (case-insensitive, with normalization)
+  $exact_matches = array_filter($icon_names, function($name) use ($normalized_icon) {
+    return strtolower(str_replace([' ', '_'], '-', $name)) === $normalized_icon;
   });
 
-  // If exact match found, return it.
+  // If exact match found, return up to 5 matches.
   if (!empty($exact_matches)) {
-    return array_slice($exact_matches, 0, 1);
+    return array_slice($exact_matches, 0, 5);
+  }
+
+  // Partial matches (contains the icon name)
+  $partial_matches = array_filter($icon_names, function($name) use ($normalized_icon) {
+    $normalized_name = strtolower(str_replace([' ', '_'], '-', $name));
+    return
+      strpos($normalized_name, $normalized_icon) !== false ||
+      strpos($normalized_icon, $normalized_name) !== false;
+  });
+
+  // If partial matches found, return up to 5 matches.
+  if (!empty($partial_matches)) {
+    return array_slice($partial_matches, 0, 5);
   }
 
   // If no match found, default to star.
