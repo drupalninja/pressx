@@ -1,6 +1,7 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import { Section, SectionResolver, sectionsFragment } from '@/components/sections/SectionResolver';
+import { Metadata } from 'next';
 
 interface HomepageData {
   landing: {
@@ -47,3 +48,7 @@ export default async function Homepage() {
     notFound();
   }
 }
+
+export const metadata: Metadata = {
+  title: 'Home',
+};

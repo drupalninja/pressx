@@ -2,6 +2,7 @@ import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import { getImage } from '@/components/helpers/Utilities';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 interface Post {
   title: string;
@@ -111,4 +112,22 @@ export default async function PostPage({
       </div>
     </article>
   );
+}
+
+export async function generateMetadata({
+  params: { slug },
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  try {
+    const data = await graphQLClient.request<PostPageData>(getPostQuery, { slug });
+
+    return {
+      title: data.post?.title || slug,
+    };
+  } catch (error) {
+    return {
+      title: slug,
+    };
+  }
 }

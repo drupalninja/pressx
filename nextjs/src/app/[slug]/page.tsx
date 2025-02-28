@@ -1,6 +1,7 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import { Section, SectionResolver, sectionsFragment } from '@/components/sections/SectionResolver';
+import { Metadata } from 'next';
 
 interface LandingPageData {
   landing: {
@@ -52,5 +53,26 @@ export default async function LandingPage({
       stack: error instanceof Error ? error.stack : undefined
     });
     notFound();
+  }
+}
+
+export async function generateMetadata({
+  params: { slug },
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  try {
+    const data = await graphQLClient.request<LandingPageData>(
+      getLandingPageQuery,
+      { slug }
+    );
+
+    return {
+      title: data.landing?.title || slug,
+    };
+  } catch (error) {
+    return {
+      title: slug,
+    };
   }
 }

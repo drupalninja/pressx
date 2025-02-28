@@ -9,7 +9,10 @@ import AdminBarWrapper from "@/components/admin/AdminBarWrapper";
 const font = Open_Sans({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'PressX',
+  title: {
+    template: '%s | PressX',
+    default: 'PressX',
+  },
   description: 'Next.js + WordPress Headless CMS',
 }
 
