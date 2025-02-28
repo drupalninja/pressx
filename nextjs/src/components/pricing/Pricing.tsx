@@ -39,13 +39,15 @@ const PricingCard: PricingCard = ({ eyebrow, title, monthlyLabel = '', features,
         ))}
       </div>
     </div>
-    <div>
-      <Button asChild variant="default" className='w-full'>
-        <Link href={ctaLink}>
-          {ctaText}
-        </Link>
-      </Button>
-    </div>
+    {ctaText && ctaText.trim() !== '' && ctaLink && ctaLink.trim() !== '' && (
+      <div>
+        <Button asChild variant="default" className='w-full'>
+          <Link href={ctaLink}>
+            {ctaText}
+          </Link>
+        </Button>
+      </div>
+    )}
   </Card>
 );
 

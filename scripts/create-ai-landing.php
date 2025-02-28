@@ -2,18 +2,21 @@
 
 /**
  * @file
- * Script to create an AI-generated landing page using OpenRouter or Groq.
- * With added Lucide icon validation for card groups.
+ * Script to create an AI-generated landing page using OpenRouter or Groq with Pexels image search.
  */
 
-// Include the image handler.
+// Include the image handler files.
 require_once __DIR__ . '/includes/image-handler.php';
+require_once __DIR__ . '/includes/pexels-image-handler.php';
 
-// Get the API keys from wp-config.php
-$openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
-$groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
+// Get the API keys from wp-config.php.
+$_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
+$_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
 
-if (!$openrouter_api_key && !$groq_api_key) {
+// Check if Pexels image search is enabled.
+$_pressx_use_pexels_images = defined('PRESSX_USE_PEXELS_IMAGES') ? PRESSX_USE_PEXELS_IMAGES : FALSE;
+
+if (!$_pressx_openrouter_api_key && !$_pressx_groq_api_key) {
   echo "Error: Neither OPENROUTER_API_KEY nor GROQ_API_KEY is defined in wp-config.php.\n";
   echo "Please add at least one of the following to your wp-config.php file:\n";
   echo "'define( 'OPENROUTER_API_KEY', 'your-api-key-here' );'\n";
@@ -29,17 +32,27 @@ $preferred_api = defined('PRESSX_AI_API') ? PRESSX_AI_API : 'openrouter';
 // Check if an existing landing page ID was provided.
 $existing_landing_id = isset($argv[1]) ? intval($argv[1]) : 0;
 
-// Define the make_ai_request function
-function make_ai_request($prompt, $system_prompt = null) {
-    global $openrouter_api_key, $groq_api_key, $preferred_api;
+/**
+ * Makes an AI request to the configured API.
+ *
+ * @param string $prompt
+ *   The prompt to send to the API.
+ * @param string|NULL $system_prompt
+ *   Optional system prompt to include.
+ *
+ * @return array
+ *   The API response data.
+ */
+function make_ai_request($prompt, $system_prompt = NULL) {
+    global $_pressx_openrouter_api_key, $_pressx_groq_api_key, $preferred_api;
 
     // If globals aren't working, get the values directly
-    if (empty($openrouter_api_key)) {
-        $openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
+    if (empty($_pressx_openrouter_api_key)) {
+        $_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
     }
 
-    if (empty($groq_api_key)) {
-        $groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
+    if (empty($_pressx_groq_api_key)) {
+        $_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
     }
 
     if (empty($preferred_api)) {
@@ -51,11 +64,11 @@ function make_ai_request($prompt, $system_prompt = null) {
     $model = '';
 
     // Helper function to configure Groq
-    $configure_groq = function() use ($groq_api_key) {
+    $configure_groq = function() use ($_pressx_groq_api_key) {
         return [
             'url' => 'https://api.groq.com/openai/v1/chat/completions',
             'headers' => [
-                'Authorization: Bearer ' . $groq_api_key,
+                'Authorization: Bearer ' . $_pressx_groq_api_key,
                 'Content-Type: application/json',
             ],
             'model' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile'
@@ -63,11 +76,11 @@ function make_ai_request($prompt, $system_prompt = null) {
     };
 
     // Helper function to configure OpenRouter
-    $configure_openrouter = function() use ($openrouter_api_key) {
+    $configure_openrouter = function() use ($_pressx_openrouter_api_key) {
         return [
             'url' => 'https://openrouter.ai/api/v1/chat/completions',
             'headers' => [
-                'Authorization: Bearer ' . $openrouter_api_key,
+                'Authorization: Bearer ' . $_pressx_openrouter_api_key,
                 'Content-Type: application/json',
                 'HTTP-Referer: http://localhost',
                 'X-Title: PressX',
@@ -77,19 +90,19 @@ function make_ai_request($prompt, $system_prompt = null) {
     };
 
     // Initialize config array
-    $config = null;
+    $config = NULL;
 
     // Try preferred API first
-    if ($preferred_api === 'groq' && $groq_api_key) {
+    if ($preferred_api === 'groq' && $_pressx_groq_api_key) {
         $config = $configure_groq();
-    } elseif ($preferred_api === 'openrouter' && $openrouter_api_key) {
+    } elseif ($preferred_api === 'openrouter' && $_pressx_openrouter_api_key) {
         $config = $configure_openrouter();
     }
     // Handle fallback if preferred API isn't available
-    elseif ($preferred_api === 'groq' && !$groq_api_key && $openrouter_api_key) {
+    elseif ($preferred_api === 'groq' && !$_pressx_groq_api_key && $_pressx_openrouter_api_key) {
         echo "Warning: Groq API is configured but GROQ_API_KEY is not set. Falling back to OpenRouter.\n";
         $config = $configure_openrouter();
-    } elseif ($preferred_api === 'openrouter' && !$openrouter_api_key && $groq_api_key) {
+    } elseif ($preferred_api === 'openrouter' && !$_pressx_openrouter_api_key && $_pressx_groq_api_key) {
         echo "Warning: OpenRouter API is configured but OPENROUTER_API_KEY is not set. Falling back to Groq.\n";
         $config = $configure_groq();
     }
@@ -97,10 +110,10 @@ function make_ai_request($prompt, $system_prompt = null) {
     // Check if we have a valid configuration
     if (!$config) {
         // Just use any available API
-        if ($groq_api_key) {
+        if ($_pressx_groq_api_key) {
             echo "Using available Groq API.\n";
             $config = $configure_groq();
-        } elseif ($openrouter_api_key) {
+        } elseif ($_pressx_openrouter_api_key) {
             echo "Using available OpenRouter API.\n";
             $config = $configure_openrouter();
         } else {
@@ -120,7 +133,7 @@ function make_ai_request($prompt, $system_prompt = null) {
     $data = [
         'model' => $model,
         'messages' => array_filter([
-            $system_prompt ? ['role' => 'system', 'content' => $system_prompt] : null,
+            $system_prompt ? ['role' => 'system', 'content' => $system_prompt] : NULL,
             ['role' => 'user', 'content' => $prompt]
         ]),
         'temperature' => 0.7,
@@ -128,8 +141,8 @@ function make_ai_request($prompt, $system_prompt = null) {
     ];
 
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($ch, CURLOPT_POST, TRUE);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
@@ -141,7 +154,7 @@ function make_ai_request($prompt, $system_prompt = null) {
         throw new Exception("API request failed with status $status: $response");
     }
 
-    $result = json_decode($response, true);
+    $result = json_decode($response, TRUE);
     return $result;
 }
 
@@ -196,10 +209,10 @@ if (empty($prompt)) {
   exit(1);
 }
 
-// Get the image ID using the helper function.
+// Get the default image ID using the helper function.
 $image_path = __DIR__ . '/images/card.png';
-$image_id = pressx_ensure_image($image_path);
-$image_url = $image_id ? wp_get_attachment_url($image_id) : '';
+$default_image_id = pressx_ensure_image($image_path);
+$default_image_url = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
 
 // Define the available section types.
 $section_types = [
@@ -228,14 +241,16 @@ IMPORTANT: The content MUST be customized to match the user's prompt. For exampl
 
 IMPORTANT FOR CARD GROUPS: When creating a card_group section, make sure each card includes an icon field (e.g., \\\"icon\\\": \\\"code\\\").
 
+IMPORTANT FOR IMAGES: For each section that can include images (hero, side_by_side, gallery items, etc.), include an \\\"image_search\\\" field with a specific search phrase that would find a relevant image. For example, for a coffee shop, you might use \\\"barista pouring latte art\\\" or \\\"cozy coffee shop interior\\\".
+
 Your response MUST be only valid JSON with an array of 6 sections, each containing at minimum a '_type' field from the section types list. Each section type has specific fields based on its type:
 
-1. hero: Must include heading, summary, and can optionally include hero_layout, link_title, link_url, link2_title, link2_url.
+1. hero: Must include heading, summary, image_search, and can optionally include hero_layout, link_title, link_url, link2_title, link2_url.
 2. text: Must include title, body, and can optionally include text_layout.
-3. side_by_side: Must include title, summary, and can optionally include layout, features, link_title, link_url.
+3. side_by_side: Must include title, summary, image_search, and can optionally include layout, features, link_title, link_url.
 4. card_group: Must include title, summary, cards array (each with title, body, and icon - MUST be a valid Lucide icon name from the list above).
-5. gallery: Must include title, summary, media_items array.
-6. quote: Must include quote, author.
+5. gallery: Must include title, summary, media_items array (each with title, summary, and image_search).
+6. quote: Must include quote, author, image_search.
 7. logo_collection: Must include title, summary.
 8. accordion: Must include title, summary, items array (each with title, body).
 
@@ -246,24 +261,15 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
       \"_type\": \"hero\",
       \"heading\": \"Your headline here\",
       \"summary\": \"Your summary here\",
+      \"image_search\": \"Specific search phrase for a relevant image\",
       ...other fields...
     },
     {
-      \"_type\": \"card_group\",
+      \"_type\": \"side_by_side\",
       \"title\": \"Your title here\",
       \"summary\": \"Your summary here\",
-      \"cards\": [
-        {
-          \"title\": \"Card 1\",
-          \"body\": \"Card 1 description\",
-          \"icon\": \"code\"
-        },
-        {
-          \"title\": \"Card 2\",
-          \"body\": \"Card 2 description\",
-          \"icon\": \"coffee\"
-        }
-      ]
+      \"image_search\": \"Specific search phrase for a relevant image\",
+      ...other fields...
     },
     ...more sections...
   ]
@@ -326,9 +332,70 @@ elseif (count($sections) < 6) {
 
 // Process the sections to add image URLs and validate Lucide icons.
 foreach ($sections as &$section) {
-  // Add media URL to sections that need it.
-  if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
-    $section['media'] = $image_url;
+  // Handle image search for sections that need it.
+  if ($_pressx_use_pexels_images) {
+    if (in_array($section['_type'], ['hero', 'side_by_side', 'quote']) && isset($section['image_search'])) {
+      echo "Searching for image: " . $section['image_search'] . "\n";
+      $image_url = pressx_get_pexels_image($section['image_search']);
+
+      if ($image_url) {
+        echo "Found image: " . $image_url . "\n";
+        // Import the image to WordPress media library.
+        $image_id = pressx_import_pexels_image($image_url, $section['image_search']);
+
+        if (!is_wp_error($image_id)) {
+          $section['media'] = wp_get_attachment_url($image_id);
+          echo "Imported image as attachment ID: " . $image_id . "\n";
+        } else {
+          // Fallback to default image.
+          $section['media'] = $default_image_url;
+          echo "Failed to import image, using default placeholder.\n";
+        }
+      } else {
+        // Fallback to default image.
+        $section['media'] = $default_image_url;
+        echo "No image found, using default placeholder.\n";
+      }
+    } else if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
+      // No image search provided, use default.
+      $section['media'] = $default_image_url;
+    }
+
+    // Handle gallery items.
+    if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
+      foreach ($section['media_items'] as &$item) {
+        if (isset($item['image_search'])) {
+          echo "Searching for gallery image: " . $item['image_search'] . "\n";
+          $image_url = pressx_get_pexels_image($item['image_search']);
+
+          if ($image_url) {
+            echo "Found gallery image: " . $image_url . "\n";
+            $image_id = pressx_import_pexels_image($image_url, $item['image_search']);
+
+            if (!is_wp_error($image_id)) {
+              $item['media'] = wp_get_attachment_url($image_id);
+              echo "Imported gallery image as attachment ID: " . $image_id . "\n";
+            } else {
+              // Fallback to default image.
+              $item['media'] = $default_image_url;
+              echo "Failed to import gallery image, using default placeholder.\n";
+            }
+          } else {
+            // Fallback to default image.
+            $item['media'] = $default_image_url;
+            echo "No gallery image found, using default placeholder.\n";
+          }
+        } else {
+          // No image search provided, use default.
+          $item['media'] = $default_image_url;
+        }
+      }
+    }
+  } else {
+    // Use default image if Pexels search is disabled.
+    if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
+      $section['media'] = $default_image_url;
+    }
   }
 
   // Ensure each card has an icon field, but no validation is needed
@@ -353,7 +420,7 @@ foreach ($sections as &$section) {
       $section['media_items'][] = [
         'title' => 'Gallery Item ' . (count($section['media_items']) + 1),
         'summary' => 'Additional gallery item',
-        'media' => $image_url
+        'media' => $default_image_url
       ];
       echo "Added missing gallery item to reach 4 items.\n";
     }
@@ -364,28 +431,30 @@ foreach ($sections as &$section) {
       $section['media_items'] = array_slice($section['media_items'], 0, 4);
     }
 
-    // Add media URLs to all gallery items
+    // Add media URLs to all gallery items if not already set
     foreach ($section['media_items'] as &$item) {
-      $item['media'] = $image_url;
+      if (!isset($item['media'])) {
+        $item['media'] = $default_image_url;
+      }
     }
   }
 
   // Add logo IDs to logo collection.
   if ($section['_type'] === 'logo_collection') {
     $section['logos'] = [
-      $image_id,
-      $image_id,
-      $image_id,
-      $image_id,
-      $image_id,
-      $image_id,
+      $default_image_id,
+      $default_image_id,
+      $default_image_id,
+      $default_image_id,
+      $default_image_id,
+      $default_image_id,
     ];
   }
 
   // Add media URLs to carousel items if they exist.
   if ($section['_type'] === 'carousel' && isset($section['items'])) {
     foreach ($section['items'] as &$item) {
-      $item['media'] = $image_url;
+      $item['media'] = $default_image_url;
     }
   }
 
@@ -393,7 +462,7 @@ foreach ($sections as &$section) {
   if ($section['_type'] === 'card_group' && isset($section['cards'])) {
     foreach ($section['cards'] as &$card) {
       if (isset($card['type']) && $card['type'] === 'custom') {
-        $card['media'] = $image_url;
+        $card['media'] = $default_image_url;
       }
     }
   }

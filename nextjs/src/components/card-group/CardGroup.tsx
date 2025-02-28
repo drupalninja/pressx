@@ -82,7 +82,7 @@ const CustomCard = ({ media, mediaLink, heading, tags = [], summaryText = '', li
         </CardHeader>
         {summaryText && <p className="text-gray-600">{summaryText}</p>}
       </CardContent>
-      {link && (
+      {link && link.url && link.title && link.url.trim() !== '' && link.title.trim() !== '' && (
         <CardFooter>
           <Button asChild variant="default" className="w-full md:w-auto">
             <Link href={link.url}>
