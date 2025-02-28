@@ -24,13 +24,6 @@ if (!$openrouter_api_key && !$groq_api_key) {
 // Check which API to use based on configuration
 $preferred_api = defined('PRESSX_AI_API') ? PRESSX_AI_API : 'openrouter';
 
-// Debug logging
-echo "Debug: Configuration Status:\n";
-echo "PRESSX_AI_API defined: " . (defined('PRESSX_AI_API') ? "yes" : "no") . "\n";
-echo "PRESSX_AI_API value: " . $preferred_api . "\n";
-echo "OPENROUTER_API_KEY defined: " . (defined('OPENROUTER_API_KEY') ? "yes" : "no") . "\n";
-echo "GROQ_API_KEY defined: " . (defined('GROQ_API_KEY') ? "yes" : "no") . "\n";
-
 // No icon validation is needed
 
 // Check if an existing landing page ID was provided.
@@ -120,6 +113,9 @@ function make_ai_request($prompt, $system_prompt = null) {
     $url = $config['url'];
     $headers = $config['headers'];
     $model = $config['model'];
+
+    echo "Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter') . "\n";
+    echo "Model: " . $model . "\n";
 
     $data = [
         'model' => $model,
