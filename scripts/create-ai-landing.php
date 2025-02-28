@@ -297,7 +297,8 @@ IMPORTANT: If you include a gallery section, it MUST have EXACTLY 4 media_items.
 
 IMPORTANT: The content MUST be customized to match the user's prompt. For example, if they ask for a coffee shop landing page, all headings, text, and content should be about coffee, cafes, etc.
 
-IMPORTANT FOR CARD GROUPS: When creating a card_group section, EACH CARD MUST include an array of 3 DIFFERENT Lucide icons that are semantically relevant to the card's content.
+IMPORTANT FOR CARD GROUPS: When creating a card_group section, you MUST create EXACTLY 3 CARDS.
+- Each card MUST include an array of 3 DIFFERENT Lucide icons that are semantically relevant to the card's content.
 - The first icon should be the most appropriate/preferred icon.
 - The second and third icons are alternative suggestions.
 - Icons MUST be valid Lucide icon names.
@@ -456,8 +457,22 @@ foreach ($sections as &$section) {
     }
   }
 
-  // Ensure each card has an icon field, but validate the icon.
+  // Ensure card groups have exactly 3 items
   if ($section['_type'] === 'card_group' && isset($section['cards'])) {
+    // Limit to first 3 cards
+    $section['cards'] = array_slice($section['cards'], 0, 3);
+
+    // If fewer than 3 cards, add placeholder cards
+    while (count($section['cards']) < 3) {
+      $section['cards'][] = [
+        'title' => 'Additional Card ' . (count($section['cards']) + 1),
+        'body' => 'Placeholder description for additional card.',
+        'icons' => ['star'],
+        'icon' => 'star'
+      ];
+      echo "Added placeholder card to reach 3 items.\n";
+    }
+
     foreach ($section['cards'] as &$card) {
       // If icons are not set, default to star
       $icon_options = $card['icons'] ?? ['star'];
@@ -651,6 +666,5 @@ function validate_lucide_icon($icon) {
   }
 
   // If no match found, default to star.
-  echo "Warning: Icon '$icon' not found. Using default 'star' icon.\n";
   return ['star'];
 }
