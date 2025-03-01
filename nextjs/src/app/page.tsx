@@ -14,7 +14,7 @@ interface HomepageData {
 const getHomepageQuery = `
   ${sectionsFragment}
   query GetHomepage {
-    landing(id: "home", idType: SLUG) {
+    landing(id: "home", idType: URI) {
       title
       databaseId
       sections {

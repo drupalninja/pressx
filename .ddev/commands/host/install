@@ -99,6 +99,10 @@ ddev create-home
 echo "Creating test posts..."
 ddev create-articles
 
+# Create test pages
+echo "Creating test pages..."
+ddev create-pages
+
 # Create test features page
 echo "Creating test features page..."
 ddev create-features

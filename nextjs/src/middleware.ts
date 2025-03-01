@@ -19,7 +19,7 @@ const query = `
       showOnFront
       pageOnFront
     }
-    landing(id: "home", idType: SLUG) {
+    landing(id: "home", idType: URI) {
       databaseId
       slug
     }

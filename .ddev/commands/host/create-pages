@@ -1,0 +1,7 @@
+#!/bin/bash
+
+## Description: Create sample pages in WordPress
+## Usage: create-pages
+## Example: "ddev create-pages"
+
+ddev wp-script /var/www/html/scripts/create-pages.php
