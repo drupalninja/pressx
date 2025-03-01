@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test contact page with sample sections
-## Usage: create-contact
-## Example: "ddev create-contact"
-
-ddev wp-script /var/www/html/scripts/create-contact.php

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test landing page with sample sections
-## Usage: create-landing
-## Example: "ddev create-landing"
-
-ddev wp-script /var/www/html/scripts/create-landing.php

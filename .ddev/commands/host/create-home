@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test home page with sample sections
-## Usage: create-home
-## Example: "ddev create-home"
-
-ddev wp-script /var/www/html/scripts/create-home.php

@@ -87,53 +87,56 @@ echo "Setting up permalink structure..."
 ddev exec -d /var/www/html/public_html wp rewrite structure '/%postname%/'
 ddev exec -d /var/www/html/public_html wp rewrite flush
 
-# Create test landing page
-echo "Creating test landing page..."
-ddev create-landing
+# Create all pages and content using the new WP CLI commands
+echo "Creating pages and content..."
 
-# Create test home page
-echo "Creating test home page..."
-ddev create-home
+# Create pages (Privacy Policy and Terms of Use)
+echo "Creating pages..."
+ddev wp pressx create_pages --force
 
-# Create test posts
-echo "Creating test posts..."
-ddev create-articles
+# Create home page
+echo "Creating home page..."
+ddev wp pressx create_home --force
 
-# Create test pages
-echo "Creating test pages..."
-ddev create-pages
+# Create features page
+echo "Creating features page..."
+ddev wp pressx create_features --force
 
-# Create test features page
-echo "Creating test features page..."
-ddev create-features
+# Create pricing page
+echo "Creating pricing page..."
+ddev wp pressx create_pricing --force
 
-# Create test pricing page
-echo "Creating test pricing page..."
-ddev create-pricing
+# Create resources page
+echo "Creating resources page..."
+ddev wp pressx create_resources --force
 
-# Create test resources page
-echo "Creating test resources page..."
-ddev create-resources
+# Create landing page
+echo "Creating landing page..."
+ddev wp pressx create_landing --force
 
-# Create test get-started page
-echo "Creating test get-started page..."
-ddev create-get-started
+# Create AI landing page
+echo "Creating AI landing page..."
+ddev wp pressx create_ai_landing --force
 
-# Create test contact page
-echo "Creating test contact page..."
-ddev create-contact
+# Create get-started page
+echo "Creating get-started page..."
+ddev wp pressx create_get_started --force
 
-# Create default menu
-echo "Creating default menu..."
-ddev create-menu
+# Create articles
+echo "Creating articles..."
+ddev wp pressx create_articles --force
+
+# Create contact page
+echo "Creating contact page..."
+ddev wp pressx create_contact --force
+
+# Create menus
+echo "Creating primary menu..."
+ddev wp pressx create_menu --force
 
 # Create footer menu
 echo "Creating footer menu..."
-ddev create-footer-menu
-
-# Register menu location in WordPress
-echo "Registering menu location..."
-ddev exec -d /var/www/html/public_html "wp eval 'register_nav_menus([\"primary\" => \"Primary Navigation\"]);'"
+ddev wp pressx create_footer_menu --force
 
 # Configure Next.js environment for preview mode if requested
 if [ "$PREVIEW_MODE" = true ]; then
