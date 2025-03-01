@@ -1,59 +1,99 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
-import { Section, SectionResolver, sectionsFragment } from '@/components/sections/SectionResolver';
+import { getImage } from '@/components/helpers/Utilities';
 import { Metadata } from 'next';
 
-interface LandingPageData {
-  landing: {
-    title: string;
-    databaseId: number;
-    sections: Section[];
+interface Page {
+  title: string;
+  content: string;
+  excerpt: string;
+  date: string;
+  databaseId: number;
+  featuredImage?: {
+    node: {
+      sourceUrl: string;
+      altText?: string;
+      mediaDetails?: {
+        width: number;
+        height: number;
+      };
+    };
   };
 }
 
-const getLandingPageQuery = `
-  ${sectionsFragment}
-  query GetLandingPage($slug: ID!) {
-    landing(id: $slug, idType: SLUG) {
+interface PagePageData {
+  page: Page | null;
+}
+
+const getPageQuery = `
+  query GetPage($slug: ID!) {
+    page(id: $slug, idType: SLUG) {
       title
+      content
+      excerpt
+      date
       databaseId
-      sections {
-        ...Sections
+      featuredImage {
+        node {
+          sourceUrl
+          altText
+          mediaDetails {
+            width
+            height
+          }
+        }
       }
     }
   }
 `;
 
-export default async function LandingPage({
+export default async function PagePage({
   params: { slug },
 }: {
   params: { slug: string };
 }) {
-  try {
-    const data = await graphQLClient.request<LandingPageData>(
-      getLandingPageQuery,
-      { slug }
-    );
+  const data = await graphQLClient.request<PagePageData>(getPageQuery, { slug });
 
-    if (!data?.landing) {
-      notFound();
-    }
-
-    return (
-      <main className="min-h-screen" data-post-id={data.landing.databaseId} data-post-type="landing">
-        {data.landing.sections?.map((section, index) => (
-          <SectionResolver key={index} section={section} />
-        ))}
-      </main>
-    );
-  } catch (error) {
-    console.error('Error fetching landing page:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+  if (!data?.page) {
     notFound();
   }
+
+  const { page } = data;
+  const featuredImage = page.featuredImage?.node
+    ? getImage(
+      {
+        sourceUrl: page.featuredImage.node.sourceUrl,
+        altText: page.featuredImage.node.altText,
+      },
+      'w-full h-full object-cover',
+      'i169large'
+    )
+    : null;
+
+  return (
+    <article className="mb-8" data-page-id={page.databaseId}>
+      <div className="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
+        {featuredImage && (
+          <div className="relative aspect-[16/9] mb-6">
+            {featuredImage}
+          </div>
+        )}
+        <div className="mx-auto max-w-2xl">
+          <h1 className="text-4xl font-bold mb-8">{page.title}</h1>
+          {page.excerpt && (
+            <div
+              className="prose prose-lg lead mb-4"
+              dangerouslySetInnerHTML={{ __html: page.excerpt }}
+            />
+          )}
+          <div
+            className="prose prose-lg"
+            dangerouslySetInnerHTML={{ __html: page.content }}
+          />
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export async function generateMetadata({
@@ -62,13 +102,10 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   try {
-    const data = await graphQLClient.request<LandingPageData>(
-      getLandingPageQuery,
-      { slug }
-    );
+    const data = await graphQLClient.request<PagePageData>(getPageQuery, { slug });
 
     return {
-      title: data.landing?.title || slug,
+      title: data.page?.title || slug,
     };
   } catch (error) {
     return {

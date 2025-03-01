@@ -1,7 +1,6 @@
 import { graphQLClient } from '@/lib/graphql';
 import { notFound } from 'next/navigation';
 import { getImage } from '@/components/helpers/Utilities';
-import Link from 'next/link';
 import { Metadata } from 'next';
 
 interface Post {
