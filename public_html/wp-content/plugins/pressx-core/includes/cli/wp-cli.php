@@ -173,22 +173,23 @@ class PressX_CLI_Command extends WP_CLI_Command {
    *
    * ## OPTIONS
    *
-   * [<prompt>]
+   * [<prompt>...]
    * : The prompt to use for generating the AI landing page (e.g., 'coffee shop').
    *
    * ## EXAMPLES
    *
    * wp pressx create-ai-landing
    * wp pressx create-ai-landing "coffee shop"
+   * wp pressx create-ai-landing coffee shop
    */
   public function create_ai_landing($args, $assoc_args) {
     // Include the script logic.
     require_once plugin_dir_path(__FILE__) . 'commands/create-ai-landing.php';
 
-    // Get the prompt from the positional argument
+    // Get the prompt from the positional arguments
     $options = [];
-    if (!empty($args[0])) {
-      $options['prompt'] = $args[0];
+    if (!empty($args)) {
+      $options['prompt'] = implode(' ', $args);
     }
 
     // Execute the script with options.
