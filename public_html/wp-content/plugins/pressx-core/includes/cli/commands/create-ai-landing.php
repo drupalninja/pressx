@@ -143,11 +143,57 @@ function pressx_create_ai_landing($force = FALSE) {
         'job_title' => 'CEO, Example Company',
         'media' => $image_id,
       ],
+      [
+        '_type' => 'accordion',
+        'title' => 'Frequently Asked Questions',
+        'items' => [
+          [
+            'title' => 'What is artificial intelligence?',
+            'content' => '<p>Artificial intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.</p>',
+          ],
+          [
+            'title' => 'How can AI benefit my business?',
+            'content' => '<p>AI can benefit your business in numerous ways, including automating repetitive tasks, analyzing large amounts of data to extract insights, personalizing customer experiences, improving decision-making, and enhancing security through advanced threat detection.</p>',
+          ],
+          [
+            'title' => 'Is AI difficult to implement?',
+            'content' => '<p>With PressX, implementing AI solutions is straightforward. Our platform provides pre-built AI components that can be easily integrated into your existing systems without requiring deep technical expertise.</p>',
+          ],
+        ],
+      ],
+      [
+        '_type' => 'gallery',
+        'title' => 'AI in Action',
+        'images' => [
+          $image_id,
+          $image_id,
+          $image_id,
+          $image_id,
+        ],
+      ],
+      [
+        '_type' => 'newsletter',
+        'title' => 'Stay Updated on AI Innovations',
+        'summary' => 'Subscribe to our newsletter to receive the latest updates on AI technologies and how they can benefit your business.',
+        'button_text' => 'Subscribe',
+      ],
     ];
 
-    // Save sections to Carbon Fields meta.
-    carbon_set_post_meta($landing_id, 'sections', $sections);
-    WP_CLI::log("Added sections to AI landing page.");
+    // Check if Carbon Fields is available.
+    if (function_exists('carbon_set_post_meta')) {
+      // Save sections to Carbon Fields meta.
+      carbon_set_post_meta($landing_id, 'sections', $sections);
+      WP_CLI::log("Added sections to AI landing page.");
+    }
+    else {
+      WP_CLI::warning("Carbon Fields not available. Sections not added.");
+    }
+
+    // Log success with URL.
+    $permalink = get_permalink($landing_id);
+    WP_CLI::success("AI landing page created with ID: $landing_id, slug: ai");
+    WP_CLI::log("View page: $permalink");
+    WP_CLI::log("Edit page: " . admin_url("post.php?post=$landing_id&action=edit"));
   }
 
   return TRUE;

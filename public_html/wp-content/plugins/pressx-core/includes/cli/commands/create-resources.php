@@ -38,19 +38,8 @@ function pressx_create_resources($force = FALSE) {
   $page_args = [
     'post_title' => 'Resources',
     'post_name' => 'resources',
-    'post_content' => '<h1>Resources</h1>
-      <p>Helpful resources to get the most out of PressX.</p>
-
-      <h2>Documentation</h2>
-      <p>Comprehensive documentation to help you get started.</p>
-
-      <h2>Tutorials</h2>
-      <p>Step-by-step tutorials for common tasks.</p>
-
-      <h2>API Reference</h2>
-      <p>Detailed API reference for developers.</p>',
     'post_status' => 'publish',
-    'post_type' => 'page',
+    'post_type' => 'landing',
   ];
 
   // If the page exists and force is true, update it.
@@ -70,11 +59,90 @@ function pressx_create_resources($force = FALSE) {
     set_post_thumbnail($page_id, $image_id);
   }
 
-  // Set meta fields.
-  if ($page_id) {
-    update_post_meta($page_id, '_wp_page_template', 'default');
-    update_post_meta($page_id, '_next_page_template', 'resources');
+  // Add sections based on the PressX design.
+  $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
+
+  $sections = [
+    [
+      '_type' => 'hero',
+      'hero_layout' => 'image_bottom',
+      'heading' => 'PressX Resources',
+      'summary' => 'Explore our collection of resources to help you get the most out of PressX.',
+      'media' => $image_url,
+      'link_title' => 'Get Started',
+      'link_url' => '#primary-cta',
+      'link2_title' => 'Learn More',
+      'link2_url' => '#secondary-cta',
+    ],
+    [
+      '_type' => 'recent_posts',
+      'title' => 'Latest Articles',
+      'post_type' => 'post',
+      'count' => 3,
+    ],
+    [
+      '_type' => 'side_by_side',
+      'eyebrow' => 'Documentation',
+      'layout' => 'image_right',
+      'title' => 'Comprehensive Documentation',
+      'summary' => 'Access our detailed documentation to learn how to use PressX effectively.',
+      'media' => $image_url,
+      'link_title' => 'View Docs',
+      'link_url' => '#docs',
+    ],
+    [
+      '_type' => 'card_group',
+      'title' => 'Helpful Resources',
+      'cards' => [
+        [
+          'type' => 'stat',
+          'heading' => 'Tutorials',
+          'body' => 'Step-by-step guides to help you get started with PressX.',
+          'icon' => 'book',
+        ],
+        [
+          'type' => 'stat',
+          'heading' => 'API Reference',
+          'body' => 'Detailed API documentation for developers.',
+          'icon' => 'code',
+        ],
+        [
+          'type' => 'stat',
+          'heading' => 'Community',
+          'body' => 'Join our community of developers and get help from peers.',
+          'icon' => 'users',
+        ],
+      ],
+    ],
+    [
+      '_type' => 'text',
+      'title' => 'Start Using PressX Today',
+      'body' => '<p>Ready to take your web development to the next level? Get started with PressX now.</p>',
+      'text_layout' => 'default',
+      'link_title' => 'Get Started',
+      'link_url' => '#get-started',
+    ],
+  ];
+
+  // Update meta values in Carbon Fields format.
+  if (function_exists('carbon_set_post_meta')) {
+    carbon_set_post_meta($page_id, 'sections', $sections);
+    WP_CLI::log("Added Carbon Fields sections to the resources page.");
   }
+  else {
+    WP_CLI::warning("Carbon Fields not available. Sections not added.");
+  }
+
+  // Get the post slug.
+  $post = get_post($page_id);
+  $slug = $post->post_name;
+
+  WP_CLI::success("Resources page created successfully!");
+  WP_CLI::log("ID: {$page_id}");
+  WP_CLI::log("Slug: {$slug}");
+  WP_CLI::log("View your page at:");
+  WP_CLI::log("http://pressx.ddev.site/landing/{$slug}");
+  WP_CLI::log("http://pressx.ddev.site:3333/{$slug} (Next.js)");
 
   return TRUE;
 }

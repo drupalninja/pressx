@@ -118,7 +118,16 @@ function pressx_create_articles($force = FALSE) {
     if (!empty($post_id) && !empty($article_data['tags'])) {
       wp_set_post_tags($post_id, $article_data['tags']);
     }
+
+    // Log success with URL.
+    if (!empty($post_id)) {
+      $permalink = get_permalink($post_id);
+      WP_CLI::success("Article created with ID: $post_id, slug: {$article_data['slug']}");
+      WP_CLI::log("View article: $permalink");
+      WP_CLI::log("Edit article: " . admin_url("post.php?post=$post_id&action=edit"));
+    }
   }
 
+  WP_CLI::success("Sample articles created successfully.");
   return TRUE;
 }

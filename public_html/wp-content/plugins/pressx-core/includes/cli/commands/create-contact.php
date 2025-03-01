@@ -38,15 +38,8 @@ function pressx_create_contact($force = FALSE) {
   $page_args = [
     'post_title' => 'Contact Us',
     'post_name' => 'contact',
-    'post_content' => '<h1>Contact Us</h1>
-      <p>We\'d love to hear from you. Please use the form below to get in touch.</p>
-
-      <h2>Contact Information</h2>
-      <p>Email: info@pressx.com</p>
-      <p>Phone: (123) 456-7890</p>
-      <p>Address: 123 Main St, Anytown, USA</p>',
     'post_status' => 'publish',
-    'post_type' => 'page',
+    'post_type' => 'landing',
   ];
 
   // If the page exists and force is true, update it.
@@ -66,11 +59,102 @@ function pressx_create_contact($force = FALSE) {
     set_post_thumbnail($page_id, $image_id);
   }
 
-  // Set meta fields.
-  if ($page_id) {
-    update_post_meta($page_id, '_wp_page_template', 'default');
-    update_post_meta($page_id, '_next_page_template', 'contact');
+  // Add sections based on the PressX design.
+  $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
+
+  $sections = [
+    [
+      '_type' => 'hero',
+      'hero_layout' => 'image_bottom',
+      'heading' => 'Get in Touch with PressX',
+      'summary' => 'We\'d love to hear from you. Reach out to our team with any questions, feedback, or inquiries about our services.',
+      'media' => $image_url,
+      'link_title' => 'Contact Now',
+      'link_url' => '#contact-form',
+      'link2_title' => 'Learn More',
+      'link2_url' => '/features',
+    ],
+    [
+      '_type' => 'side_by_side',
+      'eyebrow' => 'Contact Information',
+      'layout' => 'image_right',
+      'title' => 'How to Reach Us',
+      'summary' => 'Our team is available to assist you with any questions or concerns you may have about PressX.',
+      'media' => $image_url,
+      'features' => [
+        [
+          '_type' => 'bullet',
+          'text' => 'Email: info@pressx.com',
+          'icon' => 'mail',
+        ],
+        [
+          '_type' => 'bullet',
+          'text' => 'Phone: (123) 456-7890',
+          'icon' => 'phone',
+        ],
+        [
+          '_type' => 'bullet',
+          'text' => 'Address: 123 Main St, Anytown, USA',
+          'icon' => 'map-pin',
+        ],
+      ],
+    ],
+    [
+      '_type' => 'text',
+      'title' => 'Send Us a Message',
+      'body' => '<p>Fill out the form below and we\'ll get back to you as soon as possible.</p>',
+      'text_layout' => 'default',
+    ],
+    [
+      '_type' => 'form',
+      'title' => 'Contact Form',
+      'form_id' => 'contact-form',
+    ],
+    [
+      '_type' => 'card_group',
+      'title' => 'Our Team',
+      'cards' => [
+        [
+          'type' => 'stat',
+          'heading' => 'Sales Team',
+          'body' => 'For inquiries about our products and services',
+          'icon' => 'shopping-cart',
+        ],
+        [
+          'type' => 'stat',
+          'heading' => 'Support Team',
+          'body' => 'For technical assistance and troubleshooting',
+          'icon' => 'life-buoy',
+        ],
+        [
+          'type' => 'stat',
+          'heading' => 'Development Team',
+          'body' => 'For custom development and integration questions',
+          'icon' => 'code',
+        ],
+      ],
+    ],
+  ];
+
+  // Update meta values in Carbon Fields format.
+  if (function_exists('carbon_set_post_meta')) {
+    carbon_set_post_meta($page_id, 'sections', $sections);
+    WP_CLI::log("Added Carbon Fields sections to the contact page.");
   }
+  else {
+    WP_CLI::warning("Carbon Fields not available. Sections not added.");
+  }
+
+  // Get the post slug.
+  $post = get_post($page_id);
+  $slug = $post->post_name;
+
+  WP_CLI::success("Contact page created successfully!");
+  WP_CLI::log("ID: {$page_id}");
+  WP_CLI::log("Slug: {$slug}");
+  WP_CLI::log("View your page at:");
+  WP_CLI::log("http://pressx.ddev.site/landing/{$slug}");
+  WP_CLI::log("http://pressx.ddev.site:3333/{$slug} (Next.js)");
 
   return TRUE;
 }
