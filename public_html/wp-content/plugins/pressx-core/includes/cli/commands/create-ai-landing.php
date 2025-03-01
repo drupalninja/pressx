@@ -48,6 +48,7 @@ function pressx_create_ai_landing(array $options = []) {
   // Get the default image ID for fallback.
   $default_image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $default_image_id = pressx_ensure_image($default_image_path);
+  $default_image_url = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
 
   // Get the prompt from options or ask the user.
   $prompt = $options['prompt'] ?? NULL;
@@ -85,64 +86,33 @@ IMPORTANT FOR CARD GROUPS: When creating a card_group section, you MUST create E
 
 IMPORTANT FOR IMAGES: For each section that can include images (hero, side_by_side, gallery items, etc.), include an \"image_search\" field with a specific search phrase that would find a relevant image. For example, for a coffee shop, you might use \"barista pouring latte art\" or \"cozy coffee shop interior\".
 
-Your response MUST be only valid JSON with the following structure:
+Your response MUST be only valid JSON with an array of 6 sections, each containing at minimum a '_type' field from the section types list. Each section type has specific fields based on its type:
+
+1. hero: Must include heading, summary, image_search, and can optionally include hero_layout, link_title, link_url, link2_title, link2_url.
+2. text: Must include title, body, and can optionally include text_layout.
+3. side_by_side: Must include title, summary, image_search, and can optionally include layout, features, link_title, link_url.
+4. card_group: Must include title, summary, cards array (each with title, body, and icons array with 3 different Lucide icon names).
+5. gallery: Must include title, summary, media_items array (each with title, summary, and image_search).
+6. quote: Must include quote, author, image_search.
+7. logo_collection: Must include title, summary.
+8. accordion: Must include title, summary, items array (each with title, body).
+
+Your response format should be valid JSON that looks EXACTLY like this (with your content):
 {
-  \"title\": \"Page Title\",
   \"sections\": [
     {
-      \"type\": \"hero\",
-      \"content\": {
-        \"headline\": \"Main Headline\",
-        \"subheadline\": \"Supporting text that explains the value proposition\",
-        \"image_search\": \"specific image search term\",
-        \"cta\": {
-          \"text\": \"Button Text\",
-          \"url\": \"/action-page\"
-        }
-      }
-    },
-    {
-      \"type\": \"features\",
-      \"content\": [
+      \"_type\": \"card_group\",
+      \"title\": \"Features\",
+      \"summary\": \"What we offer\",
+      \"cards\": [
         {
-          \"title\": \"Feature Title\",
-          \"description\": \"Feature description\",
-          \"icons\": [\"preferred-icon\", \"alternative-icon-1\", \"alternative-icon-2\"]
-        },
-        {
-          \"title\": \"Feature Title\",
-          \"description\": \"Feature description\",
-          \"icons\": [\"preferred-icon\", \"alternative-icon-1\", \"alternative-icon-2\"]
-        },
-        {
-          \"title\": \"Feature Title\",
-          \"description\": \"Feature description\",
+          \"title\": \"Card Title\",
+          \"body\": \"Card description\",
           \"icons\": [\"preferred-icon\", \"alternative-icon-1\", \"alternative-icon-2\"]
         }
       ]
-    },
-    {
-      \"type\": \"benefits\",
-      \"content\": {
-        \"headline\": \"Why Choose Us?\",
-        \"points\": [
-          \"Benefit point 1\",
-          \"Benefit point 2\",
-          \"Benefit point 3\"
-        ]
-      }
-    },
-    {
-      \"type\": \"call_to_action\",
-      \"content\": {
-        \"headline\": \"Ready to Get Started?\",
-        \"description\": \"Take the next step\",
-        \"cta\": {
-          \"text\": \"Get Started\",
-          \"url\": \"/signup\"
-        }
-      }
     }
+    ...more sections...
   ]
 }";
 
@@ -173,176 +143,233 @@ Your response MUST be only valid JSON with the following structure:
     // Debug the parsed data.
     WP_CLI::log("Parsed landing data: " . print_r($landing_data, TRUE));
 
-    if (!$landing_data || !isset($landing_data['title']) || !isset($landing_data['sections'])) {
+    if (!$landing_data || !isset($landing_data['sections'])) {
       WP_CLI::error("Failed to parse AI response. Invalid JSON format.");
       return FALSE;
     }
 
-    // Debug the sections from the parsed data
-    WP_CLI::log("Sections from parsed data: " . print_r($landing_data['sections'], TRUE));
+    // Generate title if not provided by the AI
+    $landing_title = isset($landing_data['title']) ? $landing_data['title'] : "AI Landing Page: " . ucfirst($prompt);
 
-    // Transform the sections to match the expected format
-    $transformed_sections = [];
+    // Process the sections to ensure they have the correct structure.
+    $processed_sections = [];
+
     foreach ($landing_data['sections'] as $section) {
-      // Skip if no type is defined
-      if (!isset($section['type'])) {
+      // Ensure each section has a _type.
+      if (!isset($section['_type'])) {
         continue;
       }
 
-      $transformed_section = [
-        '_type' => $section['type']
-      ];
+      // Process card groups to ensure they have exactly 3 cards with valid icons.
+      if ($section['_type'] === 'card_group' && isset($section['cards'])) {
+        // Limit to first 3 cards.
+        $section['cards'] = array_slice($section['cards'], 0, 3);
 
-      // Transform based on section type
-      switch ($section['type']) {
-        case 'hero':
-          if (isset($section['content'])) {
-            $transformed_section['heading'] = $section['content']['headline'] ?? '';
-            $transformed_section['summary'] = $section['content']['subheadline'] ?? '';
-            $transformed_section['image_search'] = $prompt;
+        // If fewer than 3 cards, add placeholder cards.
+        while (count($section['cards']) < 3) {
+          $section['cards'][] = [
+            'title' => 'Additional Card ' . (count($section['cards']) + 1),
+            'body' => 'Placeholder description for additional card.',
+            'icons' => ['star'],
+            'icon' => 'star'
+          ];
+          WP_CLI::log("Added placeholder card to reach 3 items.");
+        }
 
-            // Handle different image field names
-            if (isset($section['content']['backgroundImage'])) {
-              $transformed_section['media'] = $section['content']['backgroundImage'];
-            }
-            elseif (isset($section['content']['background_image'])) {
-              $transformed_section['media'] = $section['content']['background_image'];
-            }
-            else {
-              $transformed_section['media'] = '';
-            }
+        // Process icons for each card.
+        foreach ($section['cards'] as &$card) {
+          // If icons are not set, default to star
+          $icon_options = $card['icons'] ?? ['star'];
 
-            $transformed_section['hero_layout'] = 'image_top';
+          // Validate each icon, keeping the first valid icon as primary
+          $validated_icons = [];
+          foreach ($icon_options as $icon) {
+            // Validate the icon
+            $validated_icon_options = validate_lucide_icon($icon);
 
-            // Handle different CTA field names
-            if (isset($section['content']['cta'])) {
-              $transformed_section['link_title'] = $section['content']['cta']['text'] ?? '';
-              $transformed_section['link_url'] = $section['content']['cta']['url'] ?? '';
-            }
-            elseif (isset($section['content']['callToAction'])) {
-              $transformed_section['link_title'] = $section['content']['callToAction']['text'] ?? '';
-              $transformed_section['link_url'] = $section['content']['callToAction']['url'] ?? '';
-            }
-          }
-          break;
-
-        case 'features':
-        case 'benefits':
-          if (isset($section['content'])) {
-            $transformed_section['_type'] = 'card_group';
-
-            // Handle different content structures
-            if (is_array($section['content']) && !isset($section['content']['headline']) && !isset($section['content']['title'])) {
-              // Content is directly an array of items
-              $transformed_section['title'] = 'Features';
-              $transformed_section['summary'] = '';
-
-              $transformed_section['cards'] = [];
-              foreach ($section['content'] as $item) {
-                if (is_array($item) && (isset($item['title']) || isset($item['description']))) {
-                  $card = [
-                    'title' => $item['title'] ?? '',
-                    'body' => $item['description'] ?? '',
-                    'icons' => ['star'],
-                    'icon' => 'star'
-                  ];
-                  $transformed_section['cards'][] = $card;
+            // If the first option is not the original icon, try the next options
+            if ($validated_icon_options[0] !== $icon) {
+              // Try the other options in the order they were returned
+              for ($i = 0; $i < count($validated_icon_options); $i++) {
+                // If this icon is valid, use it
+                if ($validated_icon_options[$i] !== 'star') {
+                  $validated_icons[] = $validated_icon_options[$i];
+                  break;
                 }
               }
             } else {
-              // Content has headline/title and items
-              // Use headline or title, whichever is available
-              $transformed_section['title'] = $section['content']['headline'] ?? $section['content']['title'] ?? '';
-              $transformed_section['summary'] = $section['content']['description'] ?? '';
-
-              // Handle different item structures
-              if (isset($section['content']['items']) && is_array($section['content']['items'])) {
-                $transformed_section['cards'] = [];
-                foreach ($section['content']['items'] as $item) {
-                  $card = [
-                    'title' => $item['title'] ?? '',
-                    'body' => $item['description'] ?? '',
-                    'icons' => ['star'],
-                    'icon' => 'star'
-                  ];
-                  $transformed_section['cards'][] = $card;
-                }
-              } elseif (isset($section['content']['points']) && is_array($section['content']['points'])) {
-                // Handle points array (for benefits section)
-                $transformed_section['cards'] = [];
-                foreach ($section['content']['points'] as $index => $point) {
-                  $card = [
-                    'title' => 'Benefit ' . ($index + 1),
-                    'body' => $point,
-                    'icons' => ['star'],
-                    'icon' => 'star'
-                  ];
-                  $transformed_section['cards'][] = $card;
-                }
-              }
-            }
-
-            // Ensure we have at least 3 cards
-            if (!isset($transformed_section['cards']) || !is_array($transformed_section['cards'])) {
-              $transformed_section['cards'] = [];
-            }
-
-            while (count($transformed_section['cards']) < 3) {
-              $transformed_section['cards'][] = [
-                'title' => 'Feature ' . (count($transformed_section['cards']) + 1),
-                'body' => 'Additional feature description.',
-                'icons' => ['star'],
-                'icon' => 'star'
-              ];
+              // Original icon was valid, use it
+              $validated_icons[] = $icon;
             }
           }
-          break;
 
-        case 'call-to-action':
-        case 'call_to_action':
-          $transformed_section['_type'] = 'text';
-          if (isset($section['content'])) {
-            $transformed_section['title'] = $section['content']['headline'] ?? '';
-            $transformed_section['body'] = $section['content']['description'] ?? $section['content']['subheadline'] ?? '';
-
-            // Handle different button field names
-            if (isset($section['content']['cta'])) {
-              $transformed_section['link_title'] = $section['content']['cta']['text'] ?? '';
-              $transformed_section['link_url'] = $section['content']['cta']['url'] ?? '';
-            }
-            elseif (isset($section['content']['button'])) {
-              $transformed_section['link_title'] = $section['content']['button']['text'] ?? '';
-              $transformed_section['link_url'] = $section['content']['button']['url'] ?? '';
-            }
+          // If no valid icons were found, default to star
+          if (empty($validated_icons)) {
+            $validated_icons = ['star'];
           }
-          break;
 
-        default:
-          // For unknown types, just copy the content
-          if (isset($section['content'])) {
-            foreach ($section['content'] as $key => $value) {
-              $transformed_section[$key] = $value;
-            }
+          // Use the first validated icon as primary
+          $card['icon'] = $validated_icons[0];
+
+          // If more than one icon was found, store alternatives
+          if (count($validated_icons) > 1) {
+            $card['icon_alternatives'] = array_slice($validated_icons, 1);
           }
-          break;
+        }
       }
 
-      $transformed_sections[] = $transformed_section;
+      // Ensure gallery sections always have exactly 4 items
+      if ($section['_type'] === 'gallery') {
+        if (!isset($section['media_items']) || !is_array($section['media_items'])) {
+          $section['media_items'] = [];
+        }
+
+        // If fewer than 4 items, add more
+        while (count($section['media_items']) < 4) {
+          $section['media_items'][] = [
+            'title' => 'Gallery Item ' . (count($section['media_items']) + 1),
+            'summary' => 'Additional gallery item',
+            'media' => $default_image_url
+          ];
+          WP_CLI::log("Added missing gallery item to reach 4 items.");
+        }
+
+        // If more than 4 items, trim the excess
+        if (count($section['media_items']) > 4) {
+          WP_CLI::log("Trimming gallery from " . count($section['media_items']) . " to 4 items.");
+          $section['media_items'] = array_slice($section['media_items'], 0, 4);
+        }
+
+        // Add media URLs to all gallery items if not already set
+        foreach ($section['media_items'] as &$item) {
+          if (!isset($item['media'])) {
+            $item['media'] = $default_image_url;
+          }
+        }
+      }
+
+      // Add logo IDs to logo collection.
+      if ($section['_type'] === 'logo_collection') {
+        $section['logos'] = [
+          $default_image_id,
+          $default_image_id,
+          $default_image_id,
+          $default_image_id,
+          $default_image_id,
+          $default_image_id,
+        ];
+      }
+
+      // Add media URLs to carousel items if they exist.
+      if ($section['_type'] === 'carousel' && isset($section['items'])) {
+        foreach ($section['items'] as &$item) {
+          $item['media'] = $default_image_url;
+        }
+      }
+
+      // Add media URLs to card items if they're custom type.
+      if ($section['_type'] === 'card_group' && isset($section['cards'])) {
+        foreach ($section['cards'] as &$card) {
+          if (isset($card['type']) && $card['type'] === 'custom') {
+            $card['media'] = $default_image_url;
+          }
+        }
+      }
+
+      // Add the processed section.
+      $processed_sections[] = $section;
     }
 
-    // Replace the original sections with the transformed ones
-    $landing_data['sections'] = $transformed_sections;
+    // Process images for sections that need them if Pexels is enabled.
+    if ($_pressx_use_pexels_images) {
+      foreach ($processed_sections as &$section) {
+        // Handle image search for hero, side_by_side, and quote sections.
+        if (in_array($section['_type'], ['hero', 'side_by_side', 'quote']) && isset($section['image_search'])) {
+          WP_CLI::log("Searching for image: " . $section['image_search']);
+          $image_url = pressx_get_pexels_image($section['image_search']);
 
-    WP_CLI::log("Transformed sections: " . print_r($landing_data['sections'], TRUE));
+          if ($image_url) {
+            WP_CLI::log("Found image: " . $image_url);
+            // Import the image to WordPress media library.
+            $image_id = pressx_import_pexels_image($image_url, $section['image_search']);
+
+            if (!is_wp_error($image_id)) {
+              $section['media'] = wp_get_attachment_url($image_id);
+              WP_CLI::log("Imported image as attachment ID: " . $image_id);
+            }
+            else {
+              // Fallback to default image.
+              $section['media'] = $default_image_url;
+              WP_CLI::log("Failed to import image, using default placeholder.");
+            }
+          }
+          else {
+            // Fallback to default image.
+            $section['media'] = $default_image_url;
+            WP_CLI::log("No image found, using default placeholder.");
+          }
+        } else if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
+          // No image search provided, use default.
+          $section['media'] = $default_image_url;
+        }
+
+        // Handle gallery items.
+        if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
+          foreach ($section['media_items'] as &$item) {
+            if (isset($item['image_search'])) {
+              WP_CLI::log("Searching for gallery image: " . $item['image_search']);
+              $image_url = pressx_get_pexels_image($item['image_search']);
+
+              if ($image_url) {
+                WP_CLI::log("Found gallery image: " . $image_url);
+                $image_id = pressx_import_pexels_image($image_url, $item['image_search']);
+
+                if (!is_wp_error($image_id)) {
+                  $item['media'] = wp_get_attachment_url($image_id);
+                  WP_CLI::log("Imported gallery image as attachment ID: " . $image_id);
+                }
+                else {
+                  // Fallback to default image.
+                  $item['media'] = $default_image_url;
+                  WP_CLI::log("Failed to import gallery image, using default placeholder.");
+                }
+              }
+              else {
+                // Fallback to default image.
+                $item['media'] = $default_image_url;
+                WP_CLI::log("No gallery image found, using default placeholder.");
+              }
+            } else {
+              // No image search provided, use default.
+              $item['media'] = $default_image_url;
+            }
+          }
+        }
+      }
+    } else {
+      // Use default image if Pexels search is disabled.
+      foreach ($processed_sections as &$section) {
+        if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
+          $section['media'] = $default_image_url;
+        }
+
+        // Also set default images for gallery items if Pexels is disabled
+        if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
+          foreach ($section['media_items'] as &$item) {
+            $item['media'] = $default_image_url;
+          }
+        }
+      }
+    }
 
     // Create a slug from the title and append a timestamp to ensure uniqueness.
-    $base_slug = sanitize_title($landing_data['title']);
+    $base_slug = sanitize_title($landing_title);
     $timestamp = date('YmdHis');
     $slug = $base_slug . '-' . $timestamp;
 
     // Prepare the landing page data.
     $landing_args = [
-      'post_title' => $landing_data['title'],
+      'post_title' => $landing_title,
       'post_name' => $slug,
       'post_status' => 'publish',
       'post_type' => 'landing',
@@ -350,15 +377,15 @@ Your response MUST be only valid JSON with the following structure:
 
     // Create a new landing page.
     $landing_id = wp_insert_post($landing_args);
-    WP_CLI::log("Created landing page: {$landing_data['title']}");
+    WP_CLI::log("Created landing page: {$landing_title}");
 
     // Set the featured image.
     if ($landing_id && $default_image_id) {
       set_post_thumbnail($landing_id, $default_image_id);
     }
 
-    // Process the sections and add them to the landing page.
-    if ($landing_id && !empty($landing_data['sections'])) {
+    // Save the processed sections to Carbon Fields meta.
+    if ($landing_id && !empty($processed_sections)) {
       // Make sure Carbon Fields is loaded.
       if (!function_exists('carbon_set_post_meta')) {
         // Try to boot Carbon Fields if it's available but not initialized.
@@ -382,145 +409,12 @@ Your response MUST be only valid JSON with the following structure:
 
       // Check if Carbon Fields is available.
       if (function_exists('carbon_set_post_meta')) {
-        // Process sections to ensure they have the correct structure.
-        $processed_sections = [];
-
-        foreach ($landing_data['sections'] as $section) {
-          // Ensure each section has a _type.
-          if (!isset($section['_type'])) {
-            continue;
-          }
-
-          // Process card groups to ensure they have exactly 3 cards with valid icons.
-          if ($section['_type'] === 'card_group' && isset($section['cards'])) {
-            // Limit to first 3 cards.
-            $section['cards'] = array_slice($section['cards'], 0, 3);
-
-            // If fewer than 3 cards, add placeholder cards.
-            while (count($section['cards']) < 3) {
-              $section['cards'][] = [
-                'title' => 'Additional Card ' . (count($section['cards']) + 1),
-                'body' => 'Placeholder description for additional card.',
-                'icons' => ['star'],
-                'icon' => 'star'
-              ];
-              WP_CLI::log("Added placeholder card to reach 3 items.");
-            }
-
-            // Process icons for each card.
-            foreach ($section['cards'] as &$card) {
-              if (isset($card['icons']) && is_array($card['icons']) && !empty($card['icons'])) {
-                // Use the first icon as the primary icon.
-                $card['icon'] = $card['icons'][0];
-              }
-              else {
-                $card['icon'] = 'star';
-                $card['icons'] = ['star'];
-              }
-            }
-          }
-
-          // Ensure gallery sections have exactly 4 items.
-          if ($section['_type'] === 'gallery') {
-            if (!isset($section['media_items']) || !is_array($section['media_items'])) {
-              $section['media_items'] = [];
-            }
-
-            // Get the default image URL.
-            $default_image_url = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
-
-            // If fewer than 4 items, add more.
-            while (count($section['media_items']) < 4) {
-              $section['media_items'][] = [
-                'title' => 'Gallery Item ' . (count($section['media_items']) + 1),
-                'summary' => 'Additional gallery item.',
-                'media' => $default_image_url
-              ];
-              WP_CLI::log("Added missing gallery item to reach 4 items.");
-            }
-
-            // If more than 4 items, trim the excess.
-            if (count($section['media_items']) > 4) {
-              WP_CLI::log("Trimming gallery from " . count($section['media_items']) . " to 4 items.");
-              $section['media_items'] = array_slice($section['media_items'], 0, 4);
-            }
-
-            // Add media URLs to all gallery items if not already set.
-            foreach ($section['media_items'] as &$item) {
-              if (!isset($item['media'])) {
-                $item['media'] = $default_image_url;
-              }
-            }
-          }
-
-          // Add the processed section.
-          $processed_sections[] = $section;
-        }
-
-        // Process images for sections that need them if Pexels is enabled.
-        if ($_pressx_use_pexels_images) {
-          foreach ($processed_sections as &$section) {
-            // Handle image search for hero, side_by_side, and quote sections.
-            if (in_array($section['_type'], ['hero', 'side_by_side', 'quote']) && isset($section['image_search'])) {
-              WP_CLI::log("Searching for image: " . $section['image_search']);
-              $image_url = pressx_get_pexels_image($section['image_search']);
-
-              if ($image_url) {
-                WP_CLI::log("Found image: " . $image_url);
-                // Import the image to WordPress media library.
-                $image_id = pressx_import_pexels_image($image_url, $section['image_search']);
-
-                if ($image_id) {
-                  $section['media'] = wp_get_attachment_url($image_id);
-                  WP_CLI::log("Imported image as attachment ID: " . $image_id);
-                }
-                else {
-                  // Fallback to default image.
-                  $section['media'] = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
-                  WP_CLI::log("Failed to import image, using default placeholder.");
-                }
-              }
-              else {
-                // Fallback to default image.
-                $section['media'] = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
-                WP_CLI::log("No image found, using default placeholder.");
-              }
-            }
-
-            // Handle gallery items.
-            if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
-              foreach ($section['media_items'] as &$item) {
-                if (isset($item['image_search'])) {
-                  WP_CLI::log("Searching for gallery image: " . $item['image_search']);
-                  $image_url = pressx_get_pexels_image($item['image_search']);
-
-                  if ($image_url) {
-                    WP_CLI::log("Found gallery image: " . $image_url);
-                    // Import the image to WordPress media library.
-                    $image_id = pressx_import_pexels_image($image_url, $item['image_search']);
-
-                    if ($image_id) {
-                      $item['media'] = wp_get_attachment_url($image_id);
-                      WP_CLI::log("Imported gallery image as attachment ID: " . $image_id);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
         // Save the processed sections to Carbon Fields meta.
-        WP_CLI::log("About to save " . count($processed_sections) . " sections to Carbon Fields meta.");
-
-        // Simply save the data using carbon_set_post_meta.
         carbon_set_post_meta($landing_id, 'sections', $processed_sections);
 
         // Verify the sections were saved.
         $saved_sections = carbon_get_post_meta($landing_id, 'sections');
-        WP_CLI::log("Retrieved sections count: " . (is_array($saved_sections) ? count($saved_sections) : "Not an array"));
-
-        WP_CLI::log("Added and processed sections to landing page.");
+        WP_CLI::log("Saved " . (is_array($saved_sections) ? count($saved_sections) : "0") . " sections to landing page.");
       }
       else {
         WP_CLI::warning("Carbon Fields not available. Sections not added.");
@@ -716,4 +610,62 @@ function suggest_prompt_improvements($prompt) {
       break;
     }
   }
+}
+
+/**
+ * Validate a Lucide icon name against the icon names file.
+ *
+ * @param string $icon
+ *   The icon name to validate.
+ *
+ * @return array
+ *   An array of validated icon names.
+ */
+function validate_lucide_icon($icon) {
+  // Path to the Lucide icon names file.
+  $icon_file = plugin_dir_path(dirname(dirname(dirname(__FILE__)))) . 'lucide-icon-names.txt';
+
+  // If file doesn't exist, default to star.
+  if (!file_exists($icon_file)) {
+    WP_CLI::log("Warning: Lucide icon names file not found at: " . $icon_file . " Using default 'star' icon.");
+    return ['star'];
+  }
+
+  // Read icon names from file.
+  $icon_names = array_filter(array_map('trim', file($icon_file, FILE_IGNORE_NEW_LINES)));
+
+  // If no icons found, default to star.
+  if (empty($icon_names)) {
+    WP_CLI::log("Warning: No icon names found in the file. Using default 'star' icon.");
+    return ['star'];
+  }
+
+  // Normalize the input icon name
+  $normalized_icon = strtolower(str_replace([' ', '_'], '-', $icon));
+
+  // Exact matches first (case-insensitive, with normalization)
+  $exact_matches = array_filter($icon_names, function($name) use ($normalized_icon) {
+    return strtolower(str_replace([' ', '_'], '-', $name)) === $normalized_icon;
+  });
+
+  // If exact match found, return up to 5 matches.
+  if (!empty($exact_matches)) {
+    return array_slice($exact_matches, 0, 5);
+  }
+
+  // Partial matches (contains the icon name)
+  $partial_matches = array_filter($icon_names, function($name) use ($normalized_icon) {
+    $normalized_name = strtolower(str_replace([' ', '_'], '-', $name));
+    return
+      strpos($normalized_name, $normalized_icon) !== false ||
+      strpos($normalized_icon, $normalized_name) !== false;
+  });
+
+  // If partial matches found, return up to 5 matches.
+  if (!empty($partial_matches)) {
+    return array_slice($partial_matches, 0, 5);
+  }
+
+  // If no match found, default to star.
+  return ['star'];
 }
