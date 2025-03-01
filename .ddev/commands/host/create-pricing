@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test pricing page with sample sections
-## Usage: create-pricing
-## Example: "ddev create-pricing"
-
-ddev wp-script /var/www/html/scripts/create-pricing.php

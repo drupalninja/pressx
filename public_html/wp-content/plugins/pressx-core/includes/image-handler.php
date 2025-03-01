@@ -5,6 +5,10 @@
  * Helper functions for handling images in PressX scripts.
  */
 
+if (!defined('ABSPATH')) {
+  exit;
+}
+
 /**
  * Ensures an image exists in the WordPress media library.
  *
@@ -61,3 +65,4 @@ function pressx_ensure_image($image_path) {
 
   return $image_id;
 }
+

@@ -33,6 +33,11 @@ use Carbon_Fields\Carbon_Fields;
 // Include GraphQL configuration.
 require_once plugin_dir_path(__FILE__) . 'includes/graphql.php';
 
+// Include WP-CLI commands if WP-CLI is available.
+if (defined('WP_CLI') && WP_CLI) {
+  require_once plugin_dir_path(__FILE__) . 'includes/cli/wp-cli.php';
+}
+
 // Initialize Carbon Fields.
 add_action('after_setup_theme', function () {
   require_once dirname(dirname(dirname(dirname(__DIR__)))) . '/vendor/autoload.php';

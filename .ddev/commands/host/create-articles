@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create sample articles in WordPress
-## Usage: create-articles
-## Example: "ddev create-articles"
-
-ddev wp-script /var/www/html/scripts/create-articles.php

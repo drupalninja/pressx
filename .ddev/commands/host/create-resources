@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test resources page with sample sections
-## Usage: create-resources
-## Example: "ddev create-resources"
-
-ddev wp-script /var/www/html/scripts/create-resources.php

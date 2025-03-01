@@ -1,7 +1,0 @@
-#!/bin/bash
-
-## Description: Create a test get-started page with sample sections
-## Usage: create-get-started
-## Example: "ddev create-get-started"
-
-ddev wp-script /var/www/html/scripts/create-get-started.php
