@@ -33,7 +33,7 @@ interface PostPageData {
 
 const getPostQuery = `
   query GetPost($slug: ID!) {
-    post(id: $slug, idType: SLUG) {
+    post(id: $slug, idType: URI) {
       title
       content
       excerpt
