@@ -43,6 +43,21 @@ PressX is a modern headless WordPress setup that combines the power of WordPress
    - Set up the necessary environment variables
    - Enable real-time content previewing from WordPress to Next.js
 
+   You can also create content manually using the WP CLI commands:
+   ```bash
+   # Create all standard content
+   ddev wp pressx create-pages && \
+   ddev wp pressx create-home && \
+   ddev wp pressx create-pricing && \
+   ddev wp pressx create-features && \
+   ddev wp pressx create-resources && \
+   ddev wp pressx create-get-started && \
+   ddev wp pressx create-articles && \
+   ddev wp pressx create-contact && \
+   ddev wp pressx create-menu && \
+   ddev wp pressx create-footer-menu
+   ```
+
 3. **Running the Application**
    ```bash
    # Start WordPress backend
@@ -241,12 +256,127 @@ The Embed section allows you to include external content like videos, maps, or o
 
 ### Creating Content
 1. Use the WordPress admin interface to create content
-2. Alternatively, use the helper scripts in the `scripts/` directory:
+2. Alternatively, use the WP CLI commands to create content:
    ```bash
-   ddev exec php scripts/create-landing.php
-   ddev exec php scripts/create-contact.php
-   ddev exec php scripts/create-get-started.php
+   # Create a landing page
+   ddev wp pressx create-landing
+
+   # Create a contact page
+   ddev wp pressx create-contact
+
+   # Create a get started page
+   ddev wp pressx create-get-started
+
+   # Create an AI-generated landing page
+   ddev wp pressx create-ai-landing "coffee shop"
    ```
+
+   See the [PressX WP CLI Commands](#-pressx-wp-cli-commands) section for more details.
+
+## 🛠️ PressX WP CLI Commands
+
+PressX includes a set of WP CLI commands to help you manage and create content. These commands are available under the `wp pressx` namespace and can be run using DDEV:
+
+### Available Commands
+
+```bash
+# Create standard pages (Privacy Policy and Terms of Use)
+ddev wp pressx create-pages
+
+# Create specific landing pages
+ddev wp pressx create-home
+ddev wp pressx create-pricing
+ddev wp pressx create-features
+ddev wp pressx create-resources
+ddev wp pressx create-landing
+ddev wp pressx create-get-started
+ddev wp pressx create-articles
+ddev wp pressx create-contact
+
+# Create navigation menus
+ddev wp pressx create-menu
+ddev wp pressx create-footer-menu
+
+# Create AI-generated landing page
+ddev wp pressx create-ai-landing "coffee shop"
+
+# Test Pexels API integration
+ddev wp pressx test-pexels
+ddev wp pressx test-pexels "mountain landscape" --count=6
+```
+
+### Command Options
+
+Most commands support the following options:
+
+- `--force` - Force recreation of content even if it already exists
+
+### AI Landing Page Generation
+
+The `create-ai-landing` command creates an AI-generated landing page using OpenRouter or Groq with optional Pexels image search:
+
+1. **Configuration**:
+   - Add API keys to your `wp-config.php`:
+     ```php
+     define('OPENROUTER_API_KEY', 'your-api-key-here');
+     // or
+     define('GROQ_API_KEY', 'your-api-key-here');
+
+     // Optional: Enable Pexels image search
+     define('PRESSX_USE_PEXELS_IMAGES', TRUE);
+     define('PEXELS_API_KEY', 'your-pexels-api-key');
+
+     // Optional: Set preferred AI API
+     define('PRESSX_AI_API', 'openrouter'); // or 'groq'
+     ```
+
+2. **Usage**:
+   ```bash
+   # Generate with interactive prompt
+   ddev wp pressx create-ai-landing
+
+   # Generate with specific prompt
+   ddev wp pressx create-ai-landing "coffee shop"
+   ```
+
+3. **Features**:
+   - Generates 6 different section types
+   - Creates appropriate content based on the prompt
+   - Automatically searches for relevant images if Pexels is enabled
+   - Creates a published landing page with a unique slug
+
+### Pexels API Testing
+
+The `test-pexels` command helps test the Pexels API integration:
+
+```bash
+# Test with default queries
+ddev wp pressx test-pexels
+
+# Test with a specific query
+ddev wp pressx test-pexels "coffee shop"
+
+# Test with a specific query and image count
+ddev wp pressx test-pexels "mountain landscape" --count=6
+```
+
+### Creating All Content
+
+To create all standard content at once:
+
+```bash
+ddev wp pressx create-pages && \
+ddev wp pressx create-home && \
+ddev wp pressx create-pricing && \
+ddev wp pressx create-features && \
+ddev wp pressx create-resources && \
+ddev wp pressx create-landing && \
+ddev wp pressx create-get-started && \
+ddev wp pressx create-articles && \
+ddev wp pressx create-contact && \
+ddev wp pressx create-menu && \
+ddev wp pressx create-footer-menu
+```
 
 ## 🚨 Troubleshooting
 
