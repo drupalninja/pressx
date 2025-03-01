@@ -37,6 +37,18 @@ export default function AdminBarWrapper({ isPreviewMode }: AdminBarWrapperProps)
       }
     }
 
+    // Check for basic page with data attribute
+    // Basic pages use the article element with data-page-id attribute
+    const pageElement = document.querySelector('article[data-page-id]');
+    if (pageElement) {
+      const id = pageElement.getAttribute('data-page-id');
+      if (id) {
+        setPostId(id);
+        setPostType('page');
+        return;
+      }
+    }
+
     // Check for landing page (including homepage)
     // Landing pages use the root slug pattern /[slug] or / for homepage
     if (!pathname.startsWith('/post/') && !pathname.startsWith('/preview/')) {

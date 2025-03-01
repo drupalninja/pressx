@@ -45,6 +45,8 @@ export interface Page {
   date: string;
   databaseId: number;
   featuredImage?: FeaturedImage;
+  status?: string;
+  id?: string;
 }
 
 export interface Section {

@@ -28,6 +28,9 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
   // Determine if we're on a landing page
   const isLandingPage = postType === 'landing';
 
+  // Determine if we're on a page
+  const isPage = postType === 'page';
+
   // Determine if we're on the homepage
   const isHomepage = pathname === '/';
 
@@ -36,6 +39,8 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
 
   if (postId) {
     if (postType === 'landing') {
+      editUrl = `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit`;
+    } else if (postType === 'page') {
       editUrl = `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit`;
     } else {
       editUrl = `${wpAdminUrl}/wp-admin/post.php?post=${postId}&action=edit`;
@@ -97,7 +102,7 @@ export default function AdminBar({ postId, postType, isPreviewMode }: AdminBarPr
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
         </svg>
         <span className="font-medium text-sm md:text-base truncate">
-          {isPreviewPage ? 'Preview' : isHomepage ? 'Home' : isLandingPage ? 'Landing' : isPostPage ? 'Post' : 'Admin'}
+          {isPreviewPage ? 'Preview' : isHomepage ? 'Home' : isLandingPage ? 'Landing' : isPage ? 'Page' : isPostPage ? 'Post' : 'Admin'}
           {postId && <span className="ml-1">(Post ID: {postId})</span>}
         </span>
       </div>

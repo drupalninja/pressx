@@ -14,7 +14,7 @@ export default function Page({ page }: { page: PageType }) {
     : null;
 
   return (
-    <article className="mb-8" data-page-id={page.databaseId}>
+    <article className="mb-8" data-page-id={page.databaseId} data-post-type="page">
       <div className="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
         {featuredImage && (
           <div className="relative aspect-[16/9] mb-6">

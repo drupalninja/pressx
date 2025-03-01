@@ -1,7 +1,8 @@
 import { previewClient } from '@/lib/graphql';
-import type { Post } from '@/types/wordpress';
+import type { Post, Page as PageType } from '@/types/wordpress';
 import { cookies } from 'next/headers';
 import { Section, SectionResolver, sectionsFragment } from '@/components/sections/SectionResolver';
+import Page from '@/components/Page';
 
 // Define the Landing type
 interface Landing {
@@ -21,6 +22,26 @@ const postQuery = `
       date
       content
       status
+      featuredImage {
+        node {
+          sourceUrl
+          altText
+        }
+      }
+    }
+  }
+`;
+
+// Query for pages
+const pageQuery = `
+  query Page($id: ID!) {
+    page(id: $id, idType: DATABASE_ID) {
+      id
+      title
+      date
+      content
+      status
+      databaseId
       featuredImage {
         node {
           sourceUrl
@@ -59,8 +80,9 @@ export default async function PreviewPage({
 
     // First try to fetch as a post
     let postData: { post: Post } | null = null;
+    let pageData: { page: PageType } | null = null;
     let landingData: { landing: Landing } | null = null;
-    let contentType: 'post' | 'landing' | null = null;
+    let contentType: 'post' | 'page' | 'landing' | null = null;
 
     try {
       // Try to fetch as a regular post first
@@ -69,30 +91,42 @@ export default async function PreviewPage({
         contentType = 'post';
       }
     } catch (postError) {
-      // If post fetch fails, we'll try landing page next
+      // If post fetch fails, we'll try page next
     }
 
-    // If not a post, try as a landing page
+    // If not a post, try as a page
     if (!postData?.post) {
+      try {
+        pageData = await previewClient.request<{ page: PageType }>(pageQuery, { id });
+        if (pageData?.page) {
+          contentType = 'page';
+        }
+      } catch (pageError) {
+        // If page fetch fails, we'll try landing page next
+      }
+    }
+
+    // If not a post or page, try as a landing page
+    if (!postData?.post && !pageData?.page) {
       try {
         landingData = await previewClient.request<{ landing: Landing }>(landingQuery, { id });
         if (landingData?.landing) {
           contentType = 'landing';
         }
       } catch (landingError) {
-        // Content not found as either post or landing page
+        // Content not found as either post, page, or landing page
       }
     }
 
-    // If neither post nor landing page was found
-    if (!postData?.post && !landingData?.landing) {
+    // If neither post, page, nor landing page was found
+    if (!postData?.post && !pageData?.page && !landingData?.landing) {
       return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
           <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-8" role="alert">
               <p className="font-bold">Error</p>
-              <p>Post with ID {id} not found. Make sure you're using the correct ID and that preview mode is enabled.</p>
-              <p className="mt-2">Check that the WordPress GraphQL API is properly configured to allow access to private posts.</p>
+              <p>Content with ID {id} not found. Make sure you're using the correct ID and that preview mode is enabled.</p>
+              <p className="mt-2">Check that the WordPress GraphQL API is properly configured to allow access to private content.</p>
               <p className="mt-2">JWT Authentication Status: {jwtToken ? 'Token Present' : 'No Token Found'}</p>
             </div>
           </div>
@@ -134,6 +168,25 @@ export default async function PreviewPage({
             </article>
           </div>
         </main>
+      );
+    }
+
+    // Render page preview
+    if (contentType === 'page' && pageData?.page) {
+      const page = pageData.page;
+
+      return (
+        <div>
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8" role="alert">
+            <p className="font-bold">Preview Mode</p>
+            <p>This is a preview of your page. It may not reflect the final published version.</p>
+            <p className="mt-2">Page Status: <span className="font-semibold">{page.status}</span></p>
+            <p className="mt-2">Page ID: <span className="font-semibold">{id}</span></p>
+            <p className="mt-2">Authentication: <span className="font-semibold">{jwtToken ? 'JWT Authenticated' : 'Not Authenticated'}</span></p>
+          </div>
+
+          <Page page={page} />
+        </div>
       );
     }
 
