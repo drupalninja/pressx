@@ -114,10 +114,6 @@ ddev wp pressx create_resources --force
 echo "Creating landing page..."
 ddev wp pressx create_landing --force
 
-# Create AI landing page
-echo "Creating AI landing page..."
-ddev wp pressx create_ai_landing --force
-
 # Create get-started page
 echo "Creating get-started page..."
 ddev wp pressx create_get_started --force
