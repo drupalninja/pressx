@@ -27,7 +27,7 @@ function pressx_get_pexels_image($query) {
   }
 
   // Prepare the API request.
-  $url = 'https://api.pexels.com/v1/search?query=' . urlencode($query) . '&per_page=1';
+  $url = 'https://api.pexels.com/v1/search?query=' . urlencode($query) . '&per_page=5&orientation=landscape';
   $args = [
     'headers' => [
       'Authorization' => $api_key,
@@ -53,8 +53,17 @@ function pressx_get_pexels_image($query) {
     return NULL;
   }
 
-  // Return the URL of the first photo.
-  return $data['photos'][0]['src']['large'];
+  // Sort photos by size to get the highest quality ones.
+  usort($data['photos'], function($a, $b) {
+    return ($b['width'] * $b['height']) - ($a['width'] * $a['height']);
+  });
+
+  // Get a random image from the top results for variety.
+  $top_photos = array_slice($data['photos'], 0, min(5, count($data['photos'])));
+  $selected_photo = $top_photos[array_rand($top_photos)];
+
+  // Return the original high-resolution image.
+  return $selected_photo['src']['original'];
 }
 
 /**
@@ -131,6 +140,15 @@ function pressx_import_pexels_image($image_url, $title = '') {
 
   // Generate a unique filename.
   $filename = basename($image_url);
+
+  // Clean up the filename by removing URL parameters.
+  $filename = preg_replace('/\?.*$/', '', $filename);
+
+  // If the URL doesn't have a file extension, try to determine it.
+  if (!pathinfo($filename, PATHINFO_EXTENSION)) {
+    $filename .= '.jpg';  // Default to jpg for Pexels images.
+  }
+
   if (empty($title)) {
     $title = 'Pexels Image - ' . sanitize_title($filename);
   }
