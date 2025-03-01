@@ -122,6 +122,40 @@ function pressx_create_pages($force = FALSE) {
     ],
   ];
 
+  // Remove default WordPress pages if force is true.
+  if ($force) {
+    WP_CLI::log("Removing default WordPress pages...");
+    $default_pages = get_pages([
+      'post_status' => ['publish', 'draft'],
+    ]);
+
+    $removed_count = 0;
+    foreach ($default_pages as $default_page) {
+      // Skip pages we're about to create (in case script is run multiple times).
+      $skip = FALSE;
+      foreach ($pages as $page_data) {
+        if (isset($page_data['slug']) && $default_page->post_name === $page_data['slug']) {
+          $skip = TRUE;
+          break;
+        }
+      }
+
+      if (!$skip) {
+        // Force delete, bypass trash.
+        wp_delete_post($default_page->ID, TRUE);
+        WP_CLI::log("Deleted page: {$default_page->post_title} (ID: {$default_page->ID})");
+        $removed_count++;
+      }
+    }
+
+    if ($removed_count > 0) {
+      WP_CLI::success("{$removed_count} default pages removed successfully.");
+    }
+    else {
+      WP_CLI::log("No default pages found to remove.");
+    }
+  }
+
   // Create or update each page.
   foreach ($pages as $page_data) {
     // Check if the page already exists.

@@ -75,7 +75,109 @@ function pressx_create_articles($force = FALSE) {
       'excerpt' => 'Learn how to use GraphQL with WordPress to build more efficient and flexible APIs.',
       'tags' => ['GraphQL', 'WordPress', 'API'],
     ],
+    [
+      'title' => 'PressX Performance Optimization Guide',
+      'slug' => 'pressx-performance-optimization-guide',
+      'content' => '<p>Learn how to optimize your PressX site for maximum performance and user experience.</p>
+        <h2>Optimization Techniques</h2>
+        <ul>
+          <li>Image optimization and lazy loading</li>
+          <li>Code splitting and bundle optimization</li>
+          <li>Caching strategies</li>
+          <li>Performance monitoring</li>
+        </ul>
+        <h2>Best Practices</h2>
+        <p>Follow these best practices to ensure your PressX site performs at its best:</p>
+        <ul>
+          <li>Implement proper image sizing and formats</li>
+          <li>Utilize the built-in caching mechanisms</li>
+          <li>Monitor and optimize database queries</li>
+        </ul>',
+      'excerpt' => 'Discover techniques and best practices for optimizing your PressX site performance.',
+      'tags' => ['Performance', 'Optimization', 'Best Practices'],
+    ],
+    [
+      'title' => 'Headless WordPress with PressX',
+      'slug' => 'headless-wordpress-with-pressx',
+      'content' => '<p>Explore the benefits and implementation of headless WordPress using PressX as your frontend framework.</p>
+        <h2>Benefits of Headless</h2>
+        <ul>
+          <li>Improved performance and scalability</li>
+          <li>Better developer experience</li>
+          <li>Flexible content delivery</li>
+          <li>Enhanced security</li>
+        </ul>
+        <h2>Implementation Guide</h2>
+        <p>Learn how to set up and configure your headless WordPress site with PressX:</p>
+        <ul>
+          <li>WordPress configuration</li>
+          <li>GraphQL schema setup</li>
+          <li>Frontend integration</li>
+          <li>Deployment strategies</li>
+        </ul>',
+      'excerpt' => 'Learn how to implement headless WordPress architecture with PressX for better performance and flexibility.',
+      'tags' => ['Headless', 'WordPress', 'Architecture'],
+    ],
+    [
+      'title' => 'Creating Dynamic Layouts with PressX',
+      'slug' => 'creating-dynamic-layouts-with-pressx',
+      'content' => '<p>Master the art of creating flexible and dynamic layouts using PressX\'s powerful component system.</p>
+        <h2>Layout Components</h2>
+        <ul>
+          <li>Grid systems</li>
+          <li>Flex containers</li>
+          <li>Responsive design patterns</li>
+        </ul>
+        <h2>Advanced Techniques</h2>
+        <p>Discover advanced layout techniques:</p>
+        <ul>
+          <li>Dynamic component rendering</li>
+          <li>Conditional layouts</li>
+          <li>Custom grid systems</li>
+          <li>Responsive breakpoints</li>
+        </ul>
+        <p>Learn how to combine these techniques to create powerful, flexible layouts that adapt to any content structure.</p>',
+      'excerpt' => 'Explore techniques for creating flexible and dynamic layouts with PressX components.',
+      'tags' => ['Layout', 'Design', 'Components'],
+    ],
   ];
+
+  // Remove existing articles if force is true.
+  if ($force) {
+    WP_CLI::log("Removing existing articles...");
+    // Get all posts.
+    $existing_posts = get_posts([
+      'post_type' => 'post',
+      'post_status' => ['publish', 'draft'],
+      'numberposts' => -1,
+    ]);
+
+    $removed_count = 0;
+    foreach ($existing_posts as $existing_post) {
+      // Skip articles we're about to create (in case script is run multiple times).
+      $skip = FALSE;
+      foreach ($articles as $article_data) {
+        if (isset($article_data['slug']) && $existing_post->post_name === $article_data['slug']) {
+          $skip = TRUE;
+          break;
+        }
+      }
+
+      if (!$skip) {
+        // Force delete, bypass trash.
+        wp_delete_post($existing_post->ID, TRUE);
+        WP_CLI::log("Deleted article: {$existing_post->post_title} (ID: {$existing_post->ID})");
+        $removed_count++;
+      }
+    }
+
+    if ($removed_count > 0) {
+      WP_CLI::success("{$removed_count} existing articles removed successfully.");
+    }
+    else {
+      WP_CLI::log("No existing articles found to remove.");
+    }
+  }
 
   // Create or update each article.
   foreach ($articles as $article_data) {
