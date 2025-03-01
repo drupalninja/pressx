@@ -44,6 +44,7 @@ async function getFooterMenu() {
 export default async function Footer() {
   const menuItems = await getFooterMenu();
 
+  // Convert WordPress menu items to footer links format
   const links: SiteFooterProps['links'] = menuItems?.nodes?.map((item: MenuItem) => ({
     title: item.label,
     url: item.url,

@@ -20,12 +20,12 @@ else {
 $menu_items = [
   [
     'title' => 'Privacy Policy',
-    'url' => home_url('/privacy-policy'),
+    'url' => home_url('/privacy'),
     'order' => 1,
   ],
   [
     'title' => 'Terms of Use',
-    'url' => home_url('/terms-of-service'),
+    'url' => home_url('/terms'),
     'order' => 2,
   ],
   [
