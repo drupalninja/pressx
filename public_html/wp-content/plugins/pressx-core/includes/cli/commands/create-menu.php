@@ -66,8 +66,8 @@ function pressx_create_menu($force = FALSE) {
       'status' => 'publish',
     ],
     [
-      'title' => 'Blog',
-      'url' => home_url('/blog/'),
+      'title' => 'Get Started',
+      'url' => home_url('/get-started/'),
       'status' => 'publish',
     ],
     [

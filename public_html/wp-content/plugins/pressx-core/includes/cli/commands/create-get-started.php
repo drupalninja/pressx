@@ -23,7 +23,7 @@ function pressx_create_get_started($force = FALSE) {
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
   // Get the image ID using the helper function.
-  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/card.png';
+  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $image_id = pressx_ensure_image($image_path);
 
   // Check if the page already exists.
@@ -36,7 +36,7 @@ function pressx_create_get_started($force = FALSE) {
 
   // Prepare the page data.
   $page_args = [
-    'post_title' => 'Get Started with PressX',
+    'post_title' => 'Get Started',
     'post_name' => 'get-started',
     'post_status' => 'publish',
     'post_type' => 'landing',
@@ -66,63 +66,29 @@ function pressx_create_get_started($force = FALSE) {
     [
       '_type' => 'hero',
       'hero_layout' => 'image_bottom',
-      'heading' => 'Get Started with PressX',
-      'summary' => 'Follow these simple steps to begin your journey with PressX and unlock the full potential of your web development projects.',
+      'heading' => 'Get Started',
+      'summary' => 'Whether you\'re a designer or a developer, DrupalX provides the perfect foundation to start customizing to your specific needs.',
       'media' => $image_url,
-      'link_title' => 'Start Now',
-      'link_url' => '#step1',
-      'link2_title' => 'Learn More',
-      'link2_url' => '/features',
     ],
     [
       '_type' => 'side_by_side',
-      'eyebrow' => 'Step 1',
+      'eyebrow' => 'Bootstrap UI kits',
       'layout' => 'image_right',
-      'title' => 'Installation',
-      'summary' => 'Install PressX using the provided installation script. Our streamlined setup process ensures you can get up and running quickly.',
+      'title' => 'DrupalX for Designers',
+      'summary' => 'Leverage a variety of Figma community templates built on Bootstrap 5 to jumpstart your design process.',
       'media' => $image_url,
-      'link_title' => 'Installation Guide',
-      'link_url' => '#installation',
+      'link_title' => 'Browse Figma UI kits',
+      'link_url' => '#figma-kits',
     ],
     [
       '_type' => 'side_by_side',
-      'eyebrow' => 'Step 2',
+      'eyebrow' => 'Project template',
       'layout' => 'image_left',
-      'title' => 'Configuration',
-      'summary' => 'Configure your PressX installation to match your specific requirements. Our flexible settings allow for complete customization.',
+      'title' => 'DrupalX for Developers',
+      'summary' => 'Visit our GitHub repository to download the DrupalX project template and start building your site today.',
       'media' => $image_url,
-      'link_title' => 'Configuration Guide',
-      'link_url' => '#configuration',
-    ],
-    [
-      '_type' => 'side_by_side',
-      'eyebrow' => 'Step 3',
-      'layout' => 'image_right',
-      'title' => 'Content Creation',
-      'summary' => 'Start creating content using the WordPress admin interface. PressX extends WordPress with powerful content management capabilities.',
-      'media' => $image_url,
-      'link_title' => 'Content Guide',
-      'link_url' => '#content',
-    ],
-    [
-      '_type' => 'side_by_side',
-      'eyebrow' => 'Step 4',
-      'layout' => 'image_left',
-      'title' => 'Frontend Development',
-      'summary' => 'Customize the Next.js frontend to match your brand. PressX provides a modern development experience with all the tools you need.',
-      'media' => $image_url,
-      'link_title' => 'Frontend Guide',
-      'link_url' => '#frontend',
-    ],
-    [
-      '_type' => 'text',
-      'title' => 'Ready to Begin?',
-      'body' => '<p>Now that you understand the process, it\'s time to start your PressX journey. Our comprehensive documentation and support team are here to help you every step of the way.</p>',
-      'text_layout' => 'default',
-      'link_title' => 'Start Installation',
-      'link_url' => '#installation',
-      'link2_title' => 'Contact Support',
-      'link2_url' => '/contact',
+      'link_title' => 'Find out more',
+      'link_url' => '#github-repo',
     ],
   ];
 

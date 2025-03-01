@@ -23,18 +23,18 @@ function pressx_create_home($force = FALSE) {
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
   // Get the image ID using the helper function.
-  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/card.png';
+  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $image_id = pressx_ensure_image($image_path);
 
   // First, import all the technology logos.
   $logo_paths = [
-    'wordpress' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/wordpress.png',
-    'nextjs' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/nextjs.png',
-    'storybook' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/storybook.png',
-    'tailwind' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/tailwind.png',
-    'shadcn' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/shadcn.png',
-    'graphql' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/graphql.png',
-    'react' => plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/react.png',
+    'wordpress' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/wordpress.png',
+    'nextjs' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/nextjs.png',
+    'storybook' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/storybook.png',
+    'tailwind' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/tailwind.png',
+    'shadcn' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/shadcn.png',
+    'graphql' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/graphql.png',
+    'react' => plugin_dir_path(dirname(dirname(__FILE__))) . 'images/react.png',
   ];
 
   $logo_ids = [];

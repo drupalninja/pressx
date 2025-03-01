@@ -47,12 +47,12 @@ function pressx_create_footer_menu($force = FALSE) {
   $menu_items = [
     [
       'title' => 'Privacy Policy',
-      'url' => home_url('/privacy-policy/'),
+      'url' => home_url('/privacy/'),
       'status' => 'publish',
     ],
     [
       'title' => 'Terms of Service',
-      'url' => home_url('/terms-of-service/'),
+      'url' => home_url('/terms/'),
       'status' => 'publish',
     ],
     [

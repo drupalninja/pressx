@@ -23,7 +23,7 @@ function pressx_create_resources($force = FALSE) {
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
   // Get the image ID using the helper function.
-  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/card.png';
+  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $image_id = pressx_ensure_image($image_path);
 
   // Check if the page already exists.
@@ -65,62 +65,14 @@ function pressx_create_resources($force = FALSE) {
   $sections = [
     [
       '_type' => 'hero',
-      'hero_layout' => 'image_bottom',
+      'hero_layout' => 'image_top',
       'heading' => 'PressX Resources',
-      'summary' => 'Explore our collection of resources to help you get the most out of PressX.',
+      'summary' => '',
       'media' => $image_url,
-      'link_title' => 'Get Started',
-      'link_url' => '#primary-cta',
-      'link2_title' => 'Learn More',
-      'link2_url' => '#secondary-cta',
     ],
     [
       '_type' => 'recent_posts',
-      'title' => 'Latest Articles',
-      'post_type' => 'post',
-      'count' => 3,
-    ],
-    [
-      '_type' => 'side_by_side',
-      'eyebrow' => 'Documentation',
-      'layout' => 'image_right',
-      'title' => 'Comprehensive Documentation',
-      'summary' => 'Access our detailed documentation to learn how to use PressX effectively.',
-      'media' => $image_url,
-      'link_title' => 'View Docs',
-      'link_url' => '#docs',
-    ],
-    [
-      '_type' => 'card_group',
-      'title' => 'Helpful Resources',
-      'cards' => [
-        [
-          'type' => 'stat',
-          'heading' => 'Tutorials',
-          'body' => 'Step-by-step guides to help you get started with PressX.',
-          'icon' => 'book',
-        ],
-        [
-          'type' => 'stat',
-          'heading' => 'API Reference',
-          'body' => 'Detailed API documentation for developers.',
-          'icon' => 'code',
-        ],
-        [
-          'type' => 'stat',
-          'heading' => 'Community',
-          'body' => 'Join our community of developers and get help from peers.',
-          'icon' => 'users',
-        ],
-      ],
-    ],
-    [
-      '_type' => 'text',
-      'title' => 'Start Using PressX Today',
-      'body' => '<p>Ready to take your web development to the next level? Get started with PressX now.</p>',
-      'text_layout' => 'default',
-      'link_title' => 'Get Started',
-      'link_url' => '#get-started',
+      'title' => '',
     ],
   ];
 

@@ -23,7 +23,7 @@ function pressx_create_features($force = FALSE) {
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
   // Get the image ID using the helper function.
-  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/card.png';
+  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $image_id = pressx_ensure_image($image_path);
 
   // Check if the page already exists.

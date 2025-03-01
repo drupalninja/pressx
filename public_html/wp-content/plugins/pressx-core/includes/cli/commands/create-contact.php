@@ -23,7 +23,7 @@ function pressx_create_contact($force = FALSE) {
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
   // Get the image ID using the helper function.
-  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'includes/images/card.png';
+  $image_path = plugin_dir_path(dirname(dirname(__FILE__))) . 'images/card.png';
   $image_id = pressx_ensure_image($image_path);
 
   // Check if the page already exists.
@@ -65,74 +65,15 @@ function pressx_create_contact($force = FALSE) {
   $sections = [
     [
       '_type' => 'hero',
-      'hero_layout' => 'image_bottom',
-      'heading' => 'Get in Touch with PressX',
-      'summary' => 'We\'d love to hear from you. Reach out to our team with any questions, feedback, or inquiries about our services.',
+      'hero_layout' => 'image_top',
+      'heading' => 'Contact Us',
       'media' => $image_url,
-      'link_title' => 'Contact Now',
-      'link_url' => '#contact-form',
-      'link2_title' => 'Learn More',
-      'link2_url' => '/features',
+      'summary' => 'Have a question about PressX? We\'re here to help! Drop us a message and we\'ll get back to you soon.',
     ],
     [
-      '_type' => 'side_by_side',
-      'eyebrow' => 'Contact Information',
-      'layout' => 'image_right',
-      'title' => 'How to Reach Us',
-      'summary' => 'Our team is available to assist you with any questions or concerns you may have about PressX.',
-      'media' => $image_url,
-      'features' => [
-        [
-          '_type' => 'bullet',
-          'text' => 'Email: info@pressx.com',
-          'icon' => 'mail',
-        ],
-        [
-          '_type' => 'bullet',
-          'text' => 'Phone: (123) 456-7890',
-          'icon' => 'phone',
-        ],
-        [
-          '_type' => 'bullet',
-          'text' => 'Address: 123 Main St, Anytown, USA',
-          'icon' => 'map-pin',
-        ],
-      ],
-    ],
-    [
-      '_type' => 'text',
-      'title' => 'Send Us a Message',
-      'body' => '<p>Fill out the form below and we\'ll get back to you as soon as possible.</p>',
-      'text_layout' => 'default',
-    ],
-    [
-      '_type' => 'form',
-      'title' => 'Contact Form',
-      'form_id' => 'contact-form',
-    ],
-    [
-      '_type' => 'card_group',
-      'title' => 'Our Team',
-      'cards' => [
-        [
-          'type' => 'stat',
-          'heading' => 'Sales Team',
-          'body' => 'For inquiries about our products and services',
-          'icon' => 'shopping-cart',
-        ],
-        [
-          'type' => 'stat',
-          'heading' => 'Support Team',
-          'body' => 'For technical assistance and troubleshooting',
-          'icon' => 'life-buoy',
-        ],
-        [
-          'type' => 'stat',
-          'heading' => 'Development Team',
-          'body' => 'For custom development and integration questions',
-          'icon' => 'code',
-        ],
-      ],
+      '_type' => 'embed',
+      'script' => '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50704.05332036616!2d-122.12246645666515!3d37.413396126075966!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808fb7495bec0189%3A0x42d5d96b3d3ba747!2sMountain%20View%2C%20CA!5e0!3m2!1sen!2sus!4v1677532753348!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
+      'max_width' => '800px',
     ],
   ];
 
