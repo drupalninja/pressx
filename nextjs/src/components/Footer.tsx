@@ -7,7 +7,7 @@ const { publicRuntimeConfig } = getConfig();
 type MenuItem = {
   id: string;
   label: string;
-  url: string;
+  path: string;
 };
 
 type FooterMenuResponse = {
@@ -22,7 +22,7 @@ const FooterMenuQuery = `
       nodes {
         id
         label
-        url
+        path
       }
     }
   }
@@ -44,10 +44,10 @@ async function getFooterMenu() {
 export default async function Footer() {
   const menuItems = await getFooterMenu();
 
-  // Convert WordPress menu items to footer links format
+  // Convert WordPress menu items to footer links format, similar to Header.tsx
   const links: SiteFooterProps['links'] = menuItems?.nodes?.map((item: MenuItem) => ({
     title: item.label,
-    url: item.url,
+    url: item.path,
   })) || [];
 
   return (
