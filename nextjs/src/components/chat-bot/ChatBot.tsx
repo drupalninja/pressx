@@ -93,7 +93,7 @@ export default function ChatBot() {
     if (isOpen && messages.length === 0) {
       setMessages([
         {
-          content: "👋 Hi! I'm the PressX Assistant. I am here to help you create content for your PressX website. You can ask me questions or try commands like 'create an AI landing page for [topic]'.",
+          content: "👋 Hi! I'm the PressX Assistant. I am here to help you create content for your PressX website. You can ask me questions or try commands like 'create a landing page for [topic]'.",
           role: 'assistant',
           timestamp: Date.now()
         }
@@ -922,7 +922,7 @@ export default function ChatBot() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message or try 'create an AI landing page for...'"
+                placeholder="Type your message or try 'create a landing page for...'"
                 className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-800 bg-white placeholder-gray-400"
                 disabled={isLoading || authError}
                 ref={inputRef}

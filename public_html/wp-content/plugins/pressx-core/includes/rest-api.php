@@ -93,7 +93,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
   if ($needs_more_info && $command_type === 'landing_page' && !empty($message)) {
     // Use the message as the prompt and ask for confirmation.
     return new WP_REST_Response([
-      'response' => "Would you like me to create an AI landing page about \"$message\"? Reply with 'yes' to proceed or 'no' to cancel.",
+      'response' => "Would you like me to create a landing pageut \"$message\"? Reply with 'yes' to proceed or 'no' to cancel.",
       'command_detected' => TRUE,
       'command_type' => 'landing_page',
       'command_prompt' => $message,
@@ -144,7 +144,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
       }
       else {
         return new WP_REST_Response([
-          'response' => "I tried to create an AI landing page about \"$command_prompt\", but encountered an error. Please try again with a more specific topic.",
+          'response' => "I tried to create a landing pageut \"$command_prompt\", but encountered an error. Please try again with a more specific topic.",
           'command_executed' => 'create_ai_landing',
           'command_failed' => TRUE,
         ], 200);
@@ -152,7 +152,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
     }
     catch (Exception $e) {
       return new WP_REST_Response([
-        'response' => "I couldn't create an AI landing page due to an error: " . $e->getMessage(),
+        'response' => "I couldn't create a landing page to an error: " . $e->getMessage(),
         'command_executed' => 'create_ai_landing',
         'command_failed' => TRUE,
       ], 200);
@@ -189,7 +189,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
     }
   }
 
-  // Check if the message is a command to create an AI landing page.
+  // Check if the message is a command to create a landing page
   $command_pattern = '/create\s+(?:an?\s+)?(?:ai\s+)?landing(?:\s+page)?(?:\s+(?:for|about)\s+(?:an?\s+)?)?/i';
   if (preg_match($command_pattern, $message)) {
     // Extract the prompt from the message.
@@ -201,7 +201,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
 
       // Instead of executing the command immediately, ask for confirmation.
       return new WP_REST_Response([
-        'response' => "Would you like me to create an AI landing page about \"$prompt\"? Reply with 'yes' to proceed or 'no' to cancel.",
+        'response' => "Would you like me to create a landing pageut \"$prompt\"? Reply with 'yes' to proceed or 'no' to cancel.",
         'command_detected' => TRUE,
         'command_type' => 'landing_page',
         'command_prompt' => $prompt,
@@ -211,7 +211,7 @@ function pressx_chat_callback(WP_REST_Request $request) {
     else {
       // No prompt provided, ask for one.
       return new WP_REST_Response([
-        'response' => "I'd be happy to create an AI landing page for you. What topic or business would you like it to be about?",
+        'response' => "I'd be happy to create a landing page you. What topic or business would you like it to be about?",
         'command_detected' => TRUE,
         'command_type' => 'landing_page',
         'needs_more_info' => TRUE,
