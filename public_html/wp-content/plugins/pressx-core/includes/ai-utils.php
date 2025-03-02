@@ -223,8 +223,8 @@ function pressx_find_relevant_links($content) {
       ];
     }
 
-    // Limit to 5 links maximum.
-    if (count($links) >= 5) {
+    // Limit to 3 links maximum.
+    if (count($links) >= 3) {
       break;
     }
   }
@@ -240,7 +240,7 @@ function pressx_find_relevant_links($content) {
     }
   }
 
-  return array_slice($unique_links, 0, 5);
+  return array_slice($unique_links, 0, 3);
 }
 
 /**
