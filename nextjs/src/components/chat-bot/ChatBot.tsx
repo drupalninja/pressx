@@ -40,6 +40,7 @@ export default function ChatBot() {
   const [loginUrl, setLoginUrl] = useState('');
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Function to test the connection to the API
   const testConnection = async () => {
@@ -138,6 +139,13 @@ export default function ChatBot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Add effect to focus input when messages change
+  useEffect(() => {
+    if (!isLoading && inputRef.current && !authError) {
+      inputRef.current.focus();
+    }
+  }, [isLoading, authError]);
 
   // Reset copied state after 2 seconds
   useEffect(() => {
@@ -287,6 +295,14 @@ export default function ChatBot() {
     setInput('');
     setIsLoading(true);
     setAuthError(false);
+
+    // Focus the input field after submission - using a longer timeout to ensure DOM updates complete
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        console.log("Focus set on input field");
+      }
+    }, 100);
 
     try {
       // Check if this is a confirmation response (yes/no) to a command
@@ -909,6 +925,7 @@ export default function ChatBot() {
                 placeholder="Type your message or try 'create an AI landing page for...'"
                 className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-800 bg-white placeholder-gray-400"
                 disabled={isLoading || authError}
+                ref={inputRef}
               />
               <button
                 type="submit"
