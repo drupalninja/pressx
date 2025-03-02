@@ -18,6 +18,8 @@ if (!defined('ABSPATH')) {
  *   The system prompt.
  * @param bool $is_cli
  *   Whether this is being called from CLI.
+ * @param bool $is_command
+ *   Whether this is a command request that needs more tokens.
  *
  * @return string|array
  *   The AI response as string or full response array if $return_full_response is TRUE.
@@ -25,7 +27,7 @@ if (!defined('ABSPATH')) {
  * @throws Exception
  *   If the request fails.
  */
-function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE) {
+function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE, $is_command = FALSE) {
   // Get the API keys from wp-config.php.
   $openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
   $groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
@@ -115,6 +117,20 @@ function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE) {
     WP_CLI::log("Model: " . $model);
   }
 
+  // Determine max tokens based on context.
+  // Default for CLI.
+  $max_tokens = 4000;
+  if (!$is_cli) {
+    if ($is_command) {
+      // Commands need more tokens.
+      $max_tokens = 1000;
+    }
+    else {
+      // Regular chat responses are limited.
+      $max_tokens = 300;
+    }
+  }
+
   $data = [
     'model' => $model,
     'messages' => array_filter([
@@ -122,7 +138,7 @@ function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE) {
       ['role' => 'user', 'content' => $prompt],
     ]),
     'temperature' => 0.7,
-    'max_tokens' => $is_cli ? 4000 : 1000,
+    'max_tokens' => $max_tokens,
   ];
 
   $ch = curl_init($url);

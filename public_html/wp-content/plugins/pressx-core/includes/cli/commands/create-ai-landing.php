@@ -134,7 +134,7 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 
     // Make the AI request.
     pressx_landing_log("Making AI request...");
-    $content = pressx_ai_request($prompt, $system_prompt, $is_cli);
+    $content = pressx_ai_request($prompt, $system_prompt, $is_cli, TRUE);
 
     // Debug the raw AI response.
     pressx_landing_log("Raw AI response: " . $content);
