@@ -162,15 +162,15 @@ function pressx_chat_callback(WP_REST_Request $request) {
   // If user explicitly declined the command.
   if ($confirmed === 'no' && !empty($command_type)) {
     // Process the original message as a regular chat message.
-    $system_prompt = "You are a helpful assistant for the PressX website. Your role is to provide concise, accurate information about PressX features, WordPress, Next.js, and web development topics. Keep your responses friendly, informative, and to the point. When appropriate, suggest relevant content or features from the PressX platform that might help the user. IMPORTANT: Your response must be 255 characters or less.";
+    $system_prompt = "You are a helpful assistant for the PressX website. Your role is to provide concise, accurate information about PressX features, WordPress, Next.js, and web development topics. Keep your responses friendly, informative, and to the point. When appropriate, suggest relevant content or features from the PressX platform that might help the user. IMPORTANT: Your response must be 500 characters or less, but should be at least 2-3 sentences to provide adequate information.";
 
     try {
       // Make the AI request using the shared utility function.
       $response = pressx_ai_request($message, $system_prompt, FALSE, FALSE);
 
-      // Limit the response to 255 characters for regular chat (non-command) responses.
-      if (strlen($response) > 255) {
-        $response = substr($response, 0, 252) . '...';
+      // Limit the response to 500 characters for regular chat (non-command) responses.
+      if (strlen($response) > 500) {
+        $response = substr($response, 0, 497) . '...';
       }
 
       // Find relevant links based on the content.
@@ -221,15 +221,15 @@ function pressx_chat_callback(WP_REST_Request $request) {
 
   // If not a command, proceed with regular AI response.
   // Create the system prompt.
-  $system_prompt = "You are a helpful assistant for the PressX website. Your role is to provide concise, accurate information about PressX features, WordPress, Next.js, and web development topics. Keep your responses friendly, informative, and to the point. When appropriate, suggest relevant content or features from the PressX platform that might help the user. IMPORTANT: Your response must be 255 characters or less.";
+  $system_prompt = "You are a helpful assistant for the PressX website. Your role is to provide concise, accurate information about PressX features, WordPress, Next.js, and web development topics. Keep your responses friendly, informative, and to the point. When appropriate, suggest relevant content or features from the PressX platform that might help the user. IMPORTANT: Your response must be 500 characters or less, but should be at least 2-3 sentences to provide adequate information.";
 
   try {
     // Make the AI request using the shared utility function.
     $response = pressx_ai_request($message, $system_prompt, FALSE, FALSE);
 
-    // Limit the response to 255 characters for regular chat (non-command) responses.
-    if (strlen($response) > 255) {
-      $response = substr($response, 0, 252) . '...';
+    // Limit the response to 500 characters for regular chat (non-command) responses.
+    if (strlen($response) > 500) {
+      $response = substr($response, 0, 497) . '...';
     }
 
     // Find relevant links based on the content.

@@ -127,7 +127,7 @@ function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE, $is_
     }
     else {
       // Regular chat responses are limited.
-      $max_tokens = 300;
+      $max_tokens = 600;
     }
   }
 
