@@ -345,6 +345,48 @@ The `create-ai-landing` command creates an AI-generated landing page using OpenR
    - Automatically searches for relevant images if Pexels is enabled
    - Creates a published landing page with a unique slug
 
+### Chatbot Integration
+
+PressX includes an AI-powered chatbot that can be integrated into your website to provide interactive assistance to your visitors:
+
+1. **Configuration**:
+   - Add API keys to your `wp-config.php`:
+     ```php
+     // Required for chatbot functionality
+     define('OPENAI_API_KEY', 'your-openai-api-key-here');
+
+     // Optional: Configure chatbot behavior
+     define('PRESSX_CHATBOT_MODEL', 'gpt-4o'); // Default model to use
+     define('PRESSX_CHATBOT_SYSTEM_PROMPT', 'You are a helpful assistant for our website.'); // Default system prompt
+     define('PRESSX_CHATBOT_MAX_TOKENS', 1000); // Maximum response length
+     ```
+
+2. **Adding to Pages**:
+   - The chatbot can be added to any page using the Chatbot section type
+   - Configure appearance, initial messages, and behavior in the section settings
+   - Customize the chatbot's knowledge base by providing specific instructions
+
+3. **Features**:
+   - Real-time AI-powered conversations with site visitors
+   - Customizable appearance to match your site's design
+   - Context-aware responses based on the page content
+   - Optional knowledge base integration for product-specific information
+   - Conversation history for returning visitors (requires user consent)
+   - Mobile-responsive design
+
+4. **Usage Example**:
+   ```php
+   [
+     '_type' => 'chatbot',
+     'title' => 'Customer Support',
+     'initial_message' => 'Hello! How can I help you today?',
+     'placeholder_text' => 'Type your question here...',
+     'position' => 'bottom-right', // Options: bottom-right, bottom-left, centered
+     'theme' => 'light', // Options: light, dark, custom
+     'custom_instructions' => 'You are a helpful assistant for our coffee shop website. You can help with menu questions, store hours, and placing orders.',
+   ]
+   ```
+
 ### Pexels API Testing
 
 The `test-pexels` command helps test the Pexels API integration:
