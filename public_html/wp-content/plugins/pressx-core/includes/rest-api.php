@@ -190,10 +190,10 @@ function pressx_chat_callback(WP_REST_Request $request) {
   }
 
   // Check if the message is a command to create an AI landing page.
-  $command_pattern = '/create\s+(?:an?\s+)?(?:ai\s+)?landing\s+page(?:\s+(?:for|about)\s+(?:an?\s+)?)?/i';
+  $command_pattern = '/create\s+(?:an?\s+)?(?:ai\s+)?landing(?:\s+page)?(?:\s+(?:for|about)\s+(?:an?\s+)?)?/i';
   if (preg_match($command_pattern, $message)) {
     // Extract the prompt from the message.
-    $prompt_pattern = '/create\s+(?:an?\s+)?(?:ai\s+)?landing\s+page(?:\s+(?:for|about)\s+(?:an?\s+)?)?(.*)/i';
+    $prompt_pattern = '/create\s+(?:an?\s+)?(?:ai\s+)?landing(?:\s+page)?(?:\s+(?:for|about)\s+(?:an?\s+)?)?(.*)/i';
     preg_match($prompt_pattern, $message, $matches);
 
     if (!empty($matches[1])) {

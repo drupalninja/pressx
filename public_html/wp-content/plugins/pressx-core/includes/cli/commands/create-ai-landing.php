@@ -87,7 +87,7 @@ function pressx_create_ai_landing($prompt = '', $is_cli = TRUE) {
 
 Your task is to generate content for a landing page that SPECIFICALLY addresses the user's prompt. The content should be tailored to the topic, business, or purpose described in the prompt.
 
-Generate exactly 6 different section types from this list: hero, text, side_by_side, card_group, gallery, quote, logo_collection, accordion.
+Generate exactly 6 different section types from this list: hero, side_by_side, card_group, gallery, accordion, quote, text, logo_collection.
 
 IMPORTANT: If you include a gallery section, it MUST have EXACTLY 4 media_items. No more, no less.
 
@@ -99,6 +99,7 @@ IMPORTANT FOR CARD GROUPS: When creating a card_group section, you MUST create E
 - The second and third icons are alternative suggestions.
 - Icons MUST be valid Lucide icon names.
 - Icons should relate to the card's theme or content.
+- IMPORTANT: Each card in the group MUST have a DIFFERENT primary icon. Do not use the same icon for multiple cards in the same group.
 
 IMPORTANT FOR IMAGES: For each section that can include images (hero, side_by_side, gallery items, etc.), include an \"image_search\" field with a specific search phrase that would find a relevant image. For example, for a coffee shop, you might use \"barista pouring latte art\" or \"cozy coffee shop interior\".
 
@@ -189,42 +190,62 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
           pressx_landing_log("Added placeholder card to reach 3 items.");
         }
 
+        // Track used icons to prevent duplicates.
+        $used_icons = [];
+
         // Process icons for each card.
         foreach ($section['cards'] as &$card) {
-          // If icons are not set, default to star
+          // If icons are not set, default to star.
           $icon_options = $card['icons'] ?? ['star'];
 
-          // Validate each icon, keeping the first valid icon as primary
+          // Validate each icon, keeping the first valid icon as primary.
           $validated_icons = [];
           foreach ($icon_options as $icon) {
-            // Validate the icon
+            // Validate the icon.
             $validated_icon_options = validate_lucide_icon($icon);
 
-            // If the first option is not the original icon, try the next options
+            // If the first option is not the original icon, try the next options.
             if ($validated_icon_options[0] !== $icon) {
-              // Try the other options in the order they were returned
+              // Try the other options in the order they were returned.
               for ($i = 0; $i < count($validated_icon_options); $i++) {
-                // If this icon is valid, use it
-                if ($validated_icon_options[$i] !== 'star') {
+                // If this icon is valid and not already used, use it.
+                if ($validated_icon_options[$i] !== 'star' && !in_array($validated_icon_options[$i], $used_icons)) {
                   $validated_icons[] = $validated_icon_options[$i];
                   break;
                 }
               }
             } else {
-              // Original icon was valid, use it
-              $validated_icons[] = $icon;
+              // Original icon was valid, check if it's already used.
+              if (!in_array($icon, $used_icons)) {
+                $validated_icons[] = $icon;
+              }
             }
           }
 
-          // If no valid icons were found, default to star
+          // If no valid icons were found, default to star.
           if (empty($validated_icons)) {
-            $validated_icons = ['star'];
+            // Try to find an unused icon from a predefined list.
+            $fallback_icons = ['star', 'zap', 'award', 'check', 'heart', 'thumbs-up', 'coffee', 'gift'];
+            foreach ($fallback_icons as $fallback) {
+              if (!in_array($fallback, $used_icons)) {
+                $validated_icons = [$fallback];
+                break;
+              }
+            }
+
+            // If all fallbacks are used, use a numbered variant.
+            if (empty($validated_icons)) {
+              $validated_icons = ['star-' . count($used_icons)];
+            }
           }
 
-          // Use the first validated icon as primary
+          // Use the first validated icon as primary.
           $card['icon'] = $validated_icons[0];
 
-          // If more than one icon was found, store alternatives
+          // Add this icon to the used icons list.
+          $used_icons[] = $card['icon'];
+
+          // If more than one icon was found, store alternatives.
           if (count($validated_icons) > 1) {
             $card['icon_alternatives'] = array_slice($validated_icons, 1);
           }

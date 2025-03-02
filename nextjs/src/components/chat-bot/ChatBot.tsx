@@ -545,8 +545,145 @@ export default function ChatBot() {
                           <div className="flex flex-wrap gap-2">
                             <button
                               onClick={() => {
-                                setInput('yes');
-                                handleSubmit({ preventDefault: () => { } } as React.FormEvent);
+                                const userMessage: Message = {
+                                  content: 'yes',
+                                  role: 'user',
+                                  timestamp: Date.now(),
+                                };
+                                setMessages((prev) => [...prev, userMessage]);
+                                setIsLoading(true);
+                                setAuthError(false);
+
+                                // Prepare the request body with confirmation parameters
+                                const requestBody = {
+                                  messages: [{ role: 'user', content: 'yes' }],
+                                  confirmed: 'yes',
+                                  command_type: message.commandType,
+                                  command_prompt: message.commandPrompt,
+                                };
+
+                                // Send the request directly
+                                fetch('/api/chat', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  cache: 'no-store',
+                                  body: JSON.stringify(requestBody),
+                                })
+                                  .then(async (response) => {
+                                    if (!response.ok) {
+                                      const errorData = await response.json();
+                                      console.error('API Error:', errorData);
+
+                                      // Handle authentication errors
+                                      if (response.status === 401) {
+                                        setAuthError(true);
+                                        if (errorData.wp_url) {
+                                          setLoginUrl(`${errorData.wp_url}/wp-login.php`);
+                                        }
+
+                                        // Try to refresh token if expired
+                                        const isExpiredToken =
+                                          errorData.raw_error?.message?.includes('Expired token') ||
+                                          errorData.message?.includes('Expired token') ||
+                                          errorData.expired_token === true;
+
+                                        if (isExpiredToken) {
+                                          const tokenRefreshed = await refreshToken();
+                                          if (tokenRefreshed) {
+                                            // Retry the request if token refreshed
+                                            return fetch('/api/chat', {
+                                              method: 'POST',
+                                              headers: {
+                                                'Content-Type': 'application/json',
+                                              },
+                                              cache: 'no-store',
+                                              body: JSON.stringify(requestBody),
+                                            });
+                                          }
+                                        } else {
+                                          // Try to refresh token for other auth errors
+                                          const tokenRefreshed = await refreshToken();
+                                          if (tokenRefreshed) {
+                                            // Retry the request if token refreshed
+                                            return fetch('/api/chat', {
+                                              method: 'POST',
+                                              headers: {
+                                                'Content-Type': 'application/json',
+                                              },
+                                              cache: 'no-store',
+                                              body: JSON.stringify(requestBody),
+                                            });
+                                          }
+                                        }
+
+                                        throw new Error(errorData.message || errorData.error || 'Authentication required. Please refresh your token.');
+                                      } else if (response.status === 403) {
+                                        throw new Error('Chat is only available in preview mode.');
+                                      } else {
+                                        throw new Error(errorData.message || errorData.error || 'Failed to get response');
+                                      }
+                                    }
+                                    return response.json();
+                                  })
+                                  .then((data) => {
+                                    console.log('API Response:', data);
+
+                                    // Check if this was a command response
+                                    const isCommand = data.command_detected || data.command_executed;
+                                    const needsConfirmation = data.needs_confirmation === true;
+
+                                    const assistantMessage: Message = {
+                                      content: data.content || data.response || 'Sorry, I could not generate a response.',
+                                      role: 'assistant',
+                                      timestamp: Date.now(),
+                                      links: data.links,
+                                      isCommand: !!isCommand,
+                                      commandExecuted: data.command_executed,
+                                      commandFailed: data.command_failed,
+                                      needsConfirmation: needsConfirmation,
+                                      commandType: data.command_type,
+                                      commandPrompt: data.command_prompt,
+                                      needs_more_info: data.needs_more_info,
+                                    };
+
+                                    setMessages((prev) => [...prev, assistantMessage]);
+                                  })
+                                  .catch((error) => {
+                                    console.error('Chat error:', error);
+
+                                    // Check for specific error messages
+                                    let errorMessage: Message;
+                                    const errorString = error instanceof Error ? error.message : String(error);
+
+                                    if (errorString.includes('WordPress URL is not configured')) {
+                                      errorMessage = {
+                                        content: 'The chat feature is not properly configured. The WordPress URL is missing. Please contact the site administrator.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    } else if (errorString.includes('Expired token')) {
+                                      // Set auth error to true to display the refresh token button
+                                      setAuthError(true);
+                                      errorMessage = {
+                                        content: 'Your authentication token has expired. Please look for the "Refresh Token" button in the chat window and click it to get a new token.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    } else {
+                                      errorMessage = {
+                                        content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    }
+
+                                    setMessages((prev) => [...prev, errorMessage]);
+                                  })
+                                  .finally(() => {
+                                    setIsLoading(false);
+                                  });
                               }}
                               className="text-sm font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200"
                             >
@@ -554,8 +691,145 @@ export default function ChatBot() {
                             </button>
                             <button
                               onClick={() => {
-                                setInput('no');
-                                handleSubmit({ preventDefault: () => { } } as React.FormEvent);
+                                const userMessage: Message = {
+                                  content: 'no',
+                                  role: 'user',
+                                  timestamp: Date.now(),
+                                };
+                                setMessages((prev) => [...prev, userMessage]);
+                                setIsLoading(true);
+                                setAuthError(false);
+
+                                // Prepare the request body with confirmation parameters
+                                const requestBody = {
+                                  messages: [{ role: 'user', content: 'no' }],
+                                  confirmed: 'no',
+                                  command_type: message.commandType,
+                                  command_prompt: message.commandPrompt,
+                                };
+
+                                // Send the request directly
+                                fetch('/api/chat', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  cache: 'no-store',
+                                  body: JSON.stringify(requestBody),
+                                })
+                                  .then(async (response) => {
+                                    if (!response.ok) {
+                                      const errorData = await response.json();
+                                      console.error('API Error:', errorData);
+
+                                      // Handle authentication errors
+                                      if (response.status === 401) {
+                                        setAuthError(true);
+                                        if (errorData.wp_url) {
+                                          setLoginUrl(`${errorData.wp_url}/wp-login.php`);
+                                        }
+
+                                        // Try to refresh token if expired
+                                        const isExpiredToken =
+                                          errorData.raw_error?.message?.includes('Expired token') ||
+                                          errorData.message?.includes('Expired token') ||
+                                          errorData.expired_token === true;
+
+                                        if (isExpiredToken) {
+                                          const tokenRefreshed = await refreshToken();
+                                          if (tokenRefreshed) {
+                                            // Retry the request if token refreshed
+                                            return fetch('/api/chat', {
+                                              method: 'POST',
+                                              headers: {
+                                                'Content-Type': 'application/json',
+                                              },
+                                              cache: 'no-store',
+                                              body: JSON.stringify(requestBody),
+                                            });
+                                          }
+                                        } else {
+                                          // Try to refresh token for other auth errors
+                                          const tokenRefreshed = await refreshToken();
+                                          if (tokenRefreshed) {
+                                            // Retry the request if token refreshed
+                                            return fetch('/api/chat', {
+                                              method: 'POST',
+                                              headers: {
+                                                'Content-Type': 'application/json',
+                                              },
+                                              cache: 'no-store',
+                                              body: JSON.stringify(requestBody),
+                                            });
+                                          }
+                                        }
+
+                                        throw new Error(errorData.message || errorData.error || 'Authentication required. Please refresh your token.');
+                                      } else if (response.status === 403) {
+                                        throw new Error('Chat is only available in preview mode.');
+                                      } else {
+                                        throw new Error(errorData.message || errorData.error || 'Failed to get response');
+                                      }
+                                    }
+                                    return response.json();
+                                  })
+                                  .then((data) => {
+                                    console.log('API Response:', data);
+
+                                    // Check if this was a command response
+                                    const isCommand = data.command_detected || data.command_executed;
+                                    const needsConfirmation = data.needs_confirmation === true;
+
+                                    const assistantMessage: Message = {
+                                      content: data.content || data.response || 'Sorry, I could not generate a response.',
+                                      role: 'assistant',
+                                      timestamp: Date.now(),
+                                      links: data.links,
+                                      isCommand: !!isCommand,
+                                      commandExecuted: data.command_executed,
+                                      commandFailed: data.command_failed,
+                                      needsConfirmation: needsConfirmation,
+                                      commandType: data.command_type,
+                                      commandPrompt: data.command_prompt,
+                                      needs_more_info: data.needs_more_info,
+                                    };
+
+                                    setMessages((prev) => [...prev, assistantMessage]);
+                                  })
+                                  .catch((error) => {
+                                    console.error('Chat error:', error);
+
+                                    // Check for specific error messages
+                                    let errorMessage: Message;
+                                    const errorString = error instanceof Error ? error.message : String(error);
+
+                                    if (errorString.includes('WordPress URL is not configured')) {
+                                      errorMessage = {
+                                        content: 'The chat feature is not properly configured. The WordPress URL is missing. Please contact the site administrator.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    } else if (errorString.includes('Expired token')) {
+                                      // Set auth error to true to display the refresh token button
+                                      setAuthError(true);
+                                      errorMessage = {
+                                        content: 'Your authentication token has expired. Please look for the "Refresh Token" button in the chat window and click it to get a new token.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    } else {
+                                      errorMessage = {
+                                        content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.',
+                                        role: 'assistant',
+                                        timestamp: Date.now(),
+                                      };
+                                    }
+
+                                    setMessages((prev) => [...prev, errorMessage]);
+                                  })
+                                  .finally(() => {
+                                    setIsLoading(false);
+                                  });
                               }}
                               className="text-sm font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-red-700 hover:text-red-800 bg-red-100 hover:bg-red-200"
                             >
