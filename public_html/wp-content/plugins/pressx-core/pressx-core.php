@@ -33,6 +33,12 @@ use Carbon_Fields\Carbon_Fields;
 // Include GraphQL configuration.
 require_once plugin_dir_path(__FILE__) . 'includes/graphql.php';
 
+// Include the REST API implementation.
+require_once plugin_dir_path(__FILE__) . 'includes/rest-api.php';
+
+// Include AI utilities.
+require_once plugin_dir_path(__FILE__) . 'includes/ai-utils.php';
+
 // Include WP-CLI commands if WP-CLI is available.
 if (defined('WP_CLI') && WP_CLI) {
   require_once plugin_dir_path(__FILE__) . 'includes/cli/wp-cli.php';

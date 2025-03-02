@@ -4,12 +4,16 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { User, Bot, Copy, Check } from 'lucide-react';
+import { refreshJwtToken, ensureValidToken } from '@/lib/auth';
 
 type Message = {
   content: string;
   role: 'user' | 'assistant';
   timestamp: number;
   links?: Array<{ text: string; url: string }>;
+  isCommand?: boolean;
+  commandExecuted?: string;
+  commandFailed?: boolean;
 };
 
 export default function ChatBot() {
@@ -27,20 +31,101 @@ export default function ChatBot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [authError, setAuthError] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loginUrl, setLoginUrl] = useState('');
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Function to test the connection to the API
+  const testConnection = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: 'Test connection'
+            }
+          ]
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setAuthError(true);
+        if (errorData.wp_url) {
+          setLoginUrl(`${errorData.wp_url}/wp-login.php`);
+        }
+        console.error('Connection test failed:', errorData.error);
+      } else {
+        // Connection successful, add a system message
+        setAuthError(false); // Clear the auth error
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "Connection restored! You can now continue chatting.",
+            role: 'assistant',
+            timestamp: Date.now()
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error('Connection test error:', error);
+      setAuthError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Add welcome message when chat is opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([
         {
-          content: "👋 Hi! I'm the PressX Assistant.  I am here to help you create content for your PressX website.",
+          content: "👋 Hi! I'm the PressX Assistant. I am here to help you create content for your PressX website. You can ask me questions or try commands like 'create an AI landing page for [topic]'.",
           role: 'assistant',
           timestamp: Date.now()
         }
       ]);
     }
   }, [isOpen, messages.length]);
+
+  // Check for JWT token when component mounts
+  useEffect(() => {
+    // Only run this once
+    if (!hasCheckedAuth && typeof window !== 'undefined') {
+      // Check if we have a from_login parameter in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromLogin = urlParams.get('from_login');
+
+      if (fromLogin === 'true') {
+        // Remove the query parameter
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+
+        // Test the connection
+        testConnection();
+      } else {
+        // Automatically try to refresh the token on component mount
+        // This helps with expired tokens without requiring user interaction
+        ensureValidToken().then(success => {
+          if (success) {
+            console.log('Token automatically refreshed and validated on component mount');
+          } else {
+            console.log('Automatic token refresh failed, will prompt user if needed');
+          }
+        });
+      }
+
+      setHasCheckedAuth(true);
+    }
+  }, [hasCheckedAuth]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,6 +145,130 @@ export default function ChatBot() {
     }
   }, [copiedCode]);
 
+  // Function to directly refresh the JWT token
+  const refreshToken = async () => {
+    setIsRefreshing(true);
+    try {
+      console.log('Attempting to refresh JWT token...');
+      const success = await refreshJwtToken();
+
+      if (success) {
+        // Token refreshed successfully
+        console.log('Token refresh successful');
+        setAuthError(false);
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "Authentication token refreshed successfully. You can continue chatting now.",
+            role: 'assistant',
+            timestamp: Date.now(),
+          }
+        ]);
+        return true;
+      } else {
+        // Token refresh failed, fallback to manual login
+        console.error('Token refresh failed');
+
+        // Add more detailed error message
+        setMessages(prev => [
+          ...prev,
+          {
+            content: "Failed to refresh authentication token. Please try logging in again.",
+            role: 'assistant',
+            timestamp: Date.now(),
+          }
+        ]);
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+
+      // Add error message for the user
+      setMessages(prev => [
+        ...prev,
+        {
+          content: `Error refreshing token: ${error instanceof Error ? error.message : 'Unknown error'}. Please try logging in again.`,
+          role: 'assistant',
+          timestamp: Date.now(),
+        }
+      ]);
+      return false;
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Function to refresh the session
+  const refreshSession = async () => {
+    setIsRefreshing(true);
+    try {
+      // First try to refresh the token directly
+      const tokenRefreshed = await refreshToken();
+
+      if (tokenRefreshed) {
+        return; // Token refreshed successfully, no need to open login page
+      }
+
+      // If token refresh failed, open WordPress login in a new tab
+      if (loginUrl) {
+        window.open(loginUrl, '_blank');
+      } else {
+        // If we don't have a login URL, use the wp_url from the API response
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'test' }]
+          }),
+        });
+
+        if (response.status === 401) {
+          const data = await response.json();
+          if (data.wp_url) {
+            window.open(`${data.wp_url}/wp-login.php`, '_blank');
+          }
+        }
+      }
+
+      // Show instructions to the user
+      setMessages(prev => [
+        ...prev,
+        {
+          content: "I've opened WordPress login in a new tab. After logging in, please come back to this page and click the 'Refresh Connection' button below.\n\n**Important:** After logging in to WordPress, you need to refresh this page to get a new authentication token.",
+          role: 'assistant',
+          timestamp: Date.now()
+        }
+      ]);
+
+    } catch (error) {
+      console.error('Failed to refresh session:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Function to manually check connection after login
+  const checkConnection = async () => {
+    setIsLoading(true);
+    try {
+      // First try to refresh the token directly
+      const tokenRefreshed = await refreshToken();
+
+      if (tokenRefreshed) {
+        setIsLoading(false);
+        return; // Token refreshed successfully
+      }
+
+      // If token refresh failed, reload the page
+      window.location.reload();
+    } catch (error) {
+      console.error('Connection refresh error:', error);
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -73,6 +282,7 @@ export default function ChatBot() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setAuthError(false);
 
     try {
       const response = await fetch('/api/chat', {
@@ -80,6 +290,7 @@ export default function ChatBot() {
         headers: {
           'Content-Type': 'application/json',
         },
+        cache: 'no-store',  // Prevent caching
         body: JSON.stringify({
           messages: [
             {
@@ -91,25 +302,96 @@ export default function ChatBot() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+
+        // Handle authentication errors
+        if (response.status === 401) {
+          setAuthError(true);
+          // Store the WordPress URL if provided
+          if (errorData.wp_url) {
+            setLoginUrl(`${errorData.wp_url}/wp-login.php`);
+          }
+
+          // Check if this is a token expiration issue
+          const isExpiredToken =
+            errorData.raw_error?.message?.includes('Expired token') ||
+            errorData.message?.includes('Expired token') ||
+            errorData.expired_token === true;
+
+          if (isExpiredToken) {
+            console.log('Detected expired token, attempting automatic refresh');
+            // Try to refresh the token automatically
+            const tokenRefreshed = await refreshToken();
+            if (tokenRefreshed) {
+              // If token refreshed successfully, retry the request
+              setIsLoading(false);
+              return handleSubmit(e);
+            }
+          } else {
+            // Try to refresh the token automatically for other auth errors
+            const tokenRefreshed = await refreshToken();
+            if (tokenRefreshed) {
+              // If token refreshed successfully, retry the request
+              setIsLoading(false);
+              return handleSubmit(e);
+            }
+          }
+
+          throw new Error(errorData.message || errorData.error || 'Authentication required. Please refresh your token.');
+        } else if (response.status === 403) {
+          throw new Error('Chat is only available in preview mode.');
+        } else {
+          throw new Error(errorData.message || errorData.error || 'Failed to get response');
+        }
       }
 
       const data = await response.json();
+      console.log('API Response:', data);
+
+      // Check if this was a command response
+      const isCommand = data.command_detected || data.command_executed;
+
       const assistantMessage: Message = {
-        content: data.response.content,
+        content: data.content || data.response || 'Sorry, I could not generate a response.',
         role: 'assistant',
         timestamp: Date.now(),
         links: data.links,
+        isCommand: !!isCommand,
+        commandExecuted: data.command_executed,
+        commandFailed: data.command_failed,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Chat error:', error);
-      const errorMessage: Message = {
-        content: 'Sorry, I encountered an error. Please try again.',
-        role: 'assistant',
-        timestamp: Date.now(),
-      };
+
+      // Check for specific error messages
+      let errorMessage: Message;
+      const errorString = error instanceof Error ? error.message : String(error);
+
+      if (errorString.includes('WordPress URL is not configured')) {
+        errorMessage = {
+          content: 'The chat feature is not properly configured. The WordPress URL is missing. Please contact the site administrator.',
+          role: 'assistant',
+          timestamp: Date.now(),
+        };
+      } else if (errorString.includes('Expired token')) {
+        // Set auth error to true to display the refresh token button
+        setAuthError(true);
+        errorMessage = {
+          content: 'Your authentication token has expired. Please look for the "Refresh Token" button in the chat window and click it to get a new token.',
+          role: 'assistant',
+          timestamp: Date.now(),
+        };
+      } else {
+        errorMessage = {
+          content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.',
+          role: 'assistant',
+          timestamp: Date.now(),
+        };
+      }
+
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -154,7 +436,12 @@ export default function ChatBot() {
                 <div
                   className={`max-w-[85%] rounded-lg p-3 ${message.role === 'user'
                     ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-800'}`}
+                    : message.isCommand && !message.commandFailed
+                      ? 'bg-green-50 text-gray-800 border border-green-200'
+                      : message.isCommand && message.commandFailed
+                        ? 'bg-amber-50 text-gray-800 border border-amber-200'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
                 >
                   {message.role === 'user' ? (
                     message.content
@@ -221,12 +508,22 @@ export default function ChatBot() {
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-primary hover:text-primary/80 font-semibold flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md transition-colors"
+                                className={`text-sm font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${message.commandExecuted === 'create_ai_landing'
+                                  ? 'text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200'
+                                  : 'text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20'
+                                  }`}
                               >
                                 {link.text}
                               </a>
                             ))}
                           </div>
+                        </div>
+                      )}
+                      {message.commandExecuted && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          {message.commandFailed
+                            ? '❌ Command failed'
+                            : '✅ Command executed successfully'}
                         </div>
                       )}
                     </div>
@@ -245,6 +542,22 @@ export default function ChatBot() {
                 </div>
               </div>
             )}
+            {authError && (
+              <div className="flex justify-center my-4">
+                <div className="bg-amber-50 text-amber-800 border border-amber-200 rounded-lg p-3 text-sm w-full">
+                  <p className="mb-2">Your session has expired. Please refresh your authentication token to continue.</p>
+                  <div className="flex flex-col space-y-2">
+                    <button
+                      onClick={refreshToken}
+                      disabled={isRefreshing}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {isRefreshing ? 'Refreshing token...' : 'Refresh Token'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
           <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
@@ -253,18 +566,23 @@ export default function ChatBot() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Type your message or try 'create an AI landing page for...'"
                 className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-800 bg-white placeholder-gray-400"
-                disabled={isLoading}
+                disabled={isLoading || authError}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !input.trim() || authError}
                 className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send
               </button>
             </div>
+            {authError && (
+              <div className="mt-2 text-xs text-amber-600 text-center">
+                Click the "Refresh Token" button above to automatically reconnect.
+              </div>
+            )}
           </form>
         </div>
       )}

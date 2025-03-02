@@ -27,6 +27,9 @@ function pressx_create_ai_landing(array $options = []) {
     require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'pexels-image-handler.php';
   }
 
+  // Include the AI utilities.
+  require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'ai-utils.php';
+
   // Get the API keys from wp-config.php.
   $_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
   $_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
@@ -118,10 +121,7 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 
     // Make the AI request.
     WP_CLI::log("Making AI request...");
-    $result = make_ai_request($prompt, $system_prompt);
-
-    // Extract the content from the response.
-    $content = $result['choices'][0]['message']['content'];
+    $content = pressx_ai_request($prompt, $system_prompt, TRUE);
 
     // Debug the raw AI response.
     WP_CLI::log("Raw AI response: " . $content);
@@ -436,136 +436,6 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 }
 
 /**
- * Makes an AI request to the configured API.
- *
- * @param string $prompt
- *   The prompt to send to the API.
- * @param string|null $system_prompt
- *   Optional system prompt to include.
- *
- * @return array
- *   The API response data.
- */
-function make_ai_request($prompt, $system_prompt = NULL) {
-  global $_pressx_openrouter_api_key, $_pressx_groq_api_key, $preferred_api;
-
-  // If globals aren't working, get the values directly.
-  if (empty($_pressx_openrouter_api_key)) {
-    $_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
-  }
-
-  if (empty($_pressx_groq_api_key)) {
-    $_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
-  }
-
-  if (empty($preferred_api)) {
-    $preferred_api = defined('PRESSX_AI_API') ? PRESSX_AI_API : 'openrouter';
-  }
-
-  $url = '';
-  $headers = [];
-  $model = '';
-
-  // Helper function to configure Groq.
-  $configure_groq = function () use ($_pressx_groq_api_key) {
-    return [
-      'url' => 'https://api.groq.com/openai/v1/chat/completions',
-      'headers' => [
-        'Authorization: Bearer ' . $_pressx_groq_api_key,
-        'Content-Type: application/json',
-      ],
-      'model' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile'
-    ];
-  };
-
-  // Helper function to configure OpenRouter.
-  $configure_openrouter = function () use ($_pressx_openrouter_api_key) {
-    return [
-      'url' => 'https://openrouter.ai/api/v1/chat/completions',
-      'headers' => [
-        'Authorization: Bearer ' . $_pressx_openrouter_api_key,
-        'Content-Type: application/json',
-        'HTTP-Referer: http://localhost',
-        'X-Title: PressX',
-      ],
-      'model' => defined('OPENROUTER_MODEL') ? OPENROUTER_MODEL : 'mistralai/mixtral-8x7b-instruct'
-    ];
-  };
-
-  // Initialize config array.
-  $config = NULL;
-
-  // Try preferred API first.
-  if ($preferred_api === 'groq' && $_pressx_groq_api_key) {
-    $config = $configure_groq();
-  }
-  elseif ($preferred_api === 'openrouter' && $_pressx_openrouter_api_key) {
-    $config = $configure_openrouter();
-  }
-  // Handle fallback if preferred API isn't available.
-  elseif ($preferred_api === 'groq' && !$_pressx_groq_api_key && $_pressx_openrouter_api_key) {
-    WP_CLI::warning("Groq API is configured but GROQ_API_KEY is not set. Falling back to OpenRouter.");
-    $config = $configure_openrouter();
-  }
-  elseif ($preferred_api === 'openrouter' && !$_pressx_openrouter_api_key && $_pressx_groq_api_key) {
-    WP_CLI::warning("OpenRouter API is configured but OPENROUTER_API_KEY is not set. Falling back to Groq.");
-    $config = $configure_groq();
-  }
-
-  // Check if we have a valid configuration.
-  if (!$config) {
-    // Just use any available API.
-    if ($_pressx_groq_api_key) {
-      WP_CLI::log("Using available Groq API.");
-      $config = $configure_groq();
-    }
-    elseif ($_pressx_openrouter_api_key) {
-      WP_CLI::log("Using available OpenRouter API.");
-      $config = $configure_openrouter();
-    }
-    else {
-      WP_CLI::error("No valid API configuration available.");
-      exit(1);
-    }
-  }
-
-  // Set the configuration
-  $url = $config['url'];
-  $headers = $config['headers'];
-  $model = $config['model'];
-
-  WP_CLI::log("Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter'));
-  WP_CLI::log("Model: " . $model);
-
-  $data = [
-    'model' => $model,
-    'messages' => array_filter([
-      $system_prompt ? ['role' => 'system', 'content' => $system_prompt] : NULL,
-      ['role' => 'user', 'content' => $prompt]
-    ]),
-    'temperature' => 0.7,
-    'max_tokens' => 4000,
-  ];
-
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-  curl_setopt($ch, CURLOPT_POST, TRUE);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-  $response = curl_exec($ch);
-  $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-
-  if ($status !== 200) {
-    throw new Exception("API request failed with status $status: $response");
-  }
-
-  $result = json_decode($response, TRUE);
-  return $result;
-}
-
-/**
  * Sanitizes a prompt.
  *
  * @param string $prompt
@@ -575,19 +445,7 @@ function make_ai_request($prompt, $system_prompt = NULL) {
  *   The sanitized prompt.
  */
 function sanitize_prompt($prompt) {
-  // Remove any potentially harmful characters
-  $sanitized = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $prompt);
-
-  // Trim and convert to lowercase
-  $sanitized = strtolower(trim($sanitized));
-
-  // Ensure the prompt is not empty
-  if (empty($sanitized)) {
-    WP_CLI::error("Prompt cannot be empty.");
-    exit(1);
-  }
-
-  return $sanitized;
+  return pressx_sanitize_prompt($prompt);
 }
 
 /**
