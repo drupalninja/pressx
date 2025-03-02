@@ -57,46 +57,47 @@ function pressx_chat_callback(WP_REST_Request $request) {
   // Get the message from the request.
   $message = $request->get_param('message');
 
-  // Get the API keys from wp-config.php.
-  $openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
-  $groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
-
-  if (!$openrouter_api_key && !$groq_api_key) {
-    return new WP_REST_Response([
-      'error' => 'AI API keys are not configured.',
-      'response' => 'Sorry, the AI assistant is not properly configured. Please contact the site administrator.',
-    ], 500);
+  // Check if API keys are configured.
+  if (!defined('OPENROUTER_API_KEY') && !defined('GROQ_API_KEY')) {
+    return new WP_Error(
+      'ai_api_not_configured',
+      'AI API keys are not configured. Please set up OPENROUTER_API_KEY or GROQ_API_KEY in wp-config.php.',
+      ['status' => 500]
+    );
   }
 
-  // Check if this is a command to create an AI landing page.
-  $create_landing_pattern = '/create\s+(an?\s+)?ai\s+landing\s+(page|site)/i';
-  if (preg_match($create_landing_pattern, $message, $matches)) {
-    // Extract the topic/prompt from the message.
-    $prompt_pattern = '/for\s+(?:a|an)?\s*(.+?)(?:\s*\?|\s*$)/i';
-    $prompt = '';
+  // Check if the message is a command to create an AI landing page.
+  $command_pattern = '/create\s+(?:an\s+)?(?:ai\s+)?landing\s+page\s+(?:for\s+)?(?:a\s+)?/i';
+  if (preg_match($command_pattern, $message)) {
+    // Extract the prompt from the message.
+    $prompt_pattern = '/create\s+(?:an\s+)?(?:ai\s+)?landing\s+page\s+(?:for\s+)?(?:a\s+)?(.*)/i';
+    preg_match($prompt_pattern, $message, $matches);
 
-    if (preg_match($prompt_pattern, $message, $prompt_matches)) {
-      $prompt = trim($prompt_matches[1]);
-    }
-    else {
-      // If no specific topic found, use everything after "create ai landing page".
-      $parts = preg_split($create_landing_pattern, $message, 2);
-      if (isset($parts[1])) {
-        $prompt = trim($parts[1]);
-      }
-    }
-
-    // If we have a prompt, try to create a landing page.
-    if (!empty($prompt)) {
+    if (!empty($matches[1])) {
+      $prompt = trim($matches[1]);
       try {
-        // Include the CLI command file if it's not already included.
-        require_once ABSPATH . 'wp-content/plugins/pressx-core/includes/cli/commands/create-ai-landing.php';
+        // Include the CLI command file.
+        $file_path = plugin_dir_path(dirname(__FILE__)) . 'includes/cli/commands/create-ai-landing.php';
+        if (!file_exists($file_path)) {
+          return new WP_Error(
+            'file_not_found',
+            'Required file not found: ' . $file_path,
+            ['status' => 500]
+          );
+        }
 
-        // Call the function to create an AI landing page.
-        $result = pressx_create_ai_landing([
-          'prompt' => $prompt,
-          'from_api' => TRUE,
-        ]);
+        require_once $file_path;
+
+        if (!function_exists('pressx_create_ai_landing')) {
+          return new WP_Error(
+            'function_not_found',
+            'Required function not found: pressx_create_ai_landing',
+            ['status' => 500]
+          );
+        }
+
+        // Call the function with is_cli set to FALSE.
+        $result = pressx_create_ai_landing($prompt, FALSE);
 
         if ($result && isset($result['post_id'])) {
           $post = get_post($result['post_id']);

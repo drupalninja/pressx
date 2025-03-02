@@ -110,7 +110,7 @@ function pressx_ai_request($prompt, $system_prompt = NULL, $is_cli = FALSE) {
   $headers = $config['headers'];
   $model = $config['model'];
 
-  if ($is_cli) {
+  if ($is_cli && class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
     WP_CLI::log("Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter'));
     WP_CLI::log("Model: " . $model);
   }
