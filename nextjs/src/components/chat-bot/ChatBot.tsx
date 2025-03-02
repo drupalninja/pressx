@@ -14,6 +14,10 @@ type Message = {
   isCommand?: boolean;
   commandExecuted?: string;
   commandFailed?: boolean;
+  needsConfirmation?: boolean;
+  commandType?: string;
+  commandPrompt?: string;
+  needs_more_info?: boolean;
 };
 
 export default function ChatBot() {
@@ -285,20 +289,52 @@ export default function ChatBot() {
     setAuthError(false);
 
     try {
+      // Check if this is a confirmation response (yes/no) to a command
+      const lastMessage = messages[messages.length - 1];
+      const isConfirmation = lastMessage?.needsConfirmation &&
+        (input.toLowerCase() === 'yes' || input.toLowerCase() === 'no');
+
+      // Check if this is a response to a request for more information
+      const isMoreInfoResponse = lastMessage?.isCommand && lastMessage?.needs_more_info === true;
+
+      interface ChatRequestBody {
+        messages: { role: string; content: string }[];
+        confirmed?: string;
+        command_type?: string;
+        command_prompt?: string;
+        needs_more_info?: boolean;
+      }
+
+      let requestBody: ChatRequestBody = {
+        messages: [
+          {
+            role: 'user',
+            content: userMessage.content
+          }
+        ]
+      };
+
+      // If this is a confirmation response, add the necessary parameters
+      if (isConfirmation) {
+        requestBody.confirmed = input.toLowerCase();
+        requestBody.command_type = lastMessage.commandType;
+        requestBody.command_prompt = lastMessage.commandPrompt;
+      }
+
+      // If this is a response to a request for more information
+      if (isMoreInfoResponse) {
+        requestBody.command_type = lastMessage.commandType || 'landing_page';
+        requestBody.command_prompt = userMessage.content; // Use the user's response as the prompt
+        requestBody.needs_more_info = true;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         cache: 'no-store',  // Prevent caching
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'user',
-              content: userMessage.content
-            }
-          ]
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -351,6 +387,7 @@ export default function ChatBot() {
 
       // Check if this was a command response
       const isCommand = data.command_detected || data.command_executed;
+      const needsConfirmation = data.needs_confirmation === true;
 
       const assistantMessage: Message = {
         content: data.content || data.response || 'Sorry, I could not generate a response.',
@@ -360,6 +397,10 @@ export default function ChatBot() {
         isCommand: !!isCommand,
         commandExecuted: data.command_executed,
         commandFailed: data.command_failed,
+        needsConfirmation: needsConfirmation,
+        commandType: data.command_type,
+        commandPrompt: data.command_prompt,
+        needs_more_info: data.needs_more_info,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -498,6 +539,31 @@ export default function ChatBot() {
                           {message.content}
                         </ReactMarkdown>
                       </div>
+                      {message.needsConfirmation && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <div className="text-xs font-medium text-gray-500 mb-1.5">Please confirm:</div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => {
+                                setInput('yes');
+                                handleSubmit({ preventDefault: () => { } } as React.FormEvent);
+                              }}
+                              className="text-sm font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-green-700 hover:text-green-800 bg-green-100 hover:bg-green-200"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => {
+                                setInput('no');
+                                handleSubmit({ preventDefault: () => { } } as React.FormEvent);
+                              }}
+                              className="text-sm font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors text-red-700 hover:text-red-800 bg-red-100 hover:bg-red-200"
+                            >
+                              No
+                            </button>
+                          </div>
+                        </div>
+                      )}
                       {message.links && message.links.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-gray-200">
                           <div className="text-xs font-medium text-gray-500 mb-1.5">Related Links:</div>

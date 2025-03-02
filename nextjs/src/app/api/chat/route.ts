@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const req = await request.json();
-    const { messages } = req;
+    const { messages, confirmed, command_type, command_prompt, needs_more_info } = req;
 
     // Check if preview mode is enabled
     const previewMode = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
@@ -88,6 +88,29 @@ export async function POST(request: NextRequest) {
     try {
       // Send request to WordPress API
       console.log('Sending request to WordPress API:', `${wpUrl}/wp-json/pressx/v1/chat`);
+
+      // Prepare the request body
+      const requestBody: any = {
+        message: latestUserMessage.content,
+      };
+
+      // Add confirmation parameters if they exist
+      if (confirmed) {
+        requestBody.confirmed = confirmed;
+      }
+
+      if (command_type) {
+        requestBody.command_type = command_type;
+      }
+
+      if (command_prompt) {
+        requestBody.command_prompt = command_prompt;
+      }
+
+      if (needs_more_info) {
+        requestBody.needs_more_info = needs_more_info;
+      }
+
       const response = await fetch(`${wpUrl}/wp-json/pressx/v1/chat`, {
         method: 'POST',
         headers: {
@@ -96,9 +119,7 @@ export async function POST(request: NextRequest) {
           ...(jwtToken && { 'Authorization': `Bearer ${jwtToken}` }),
         },
         cache: 'no-store',  // Prevent caching
-        body: JSON.stringify({
-          message: latestUserMessage.content,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       // Handle response
@@ -161,6 +182,9 @@ export async function POST(request: NextRequest) {
         command_executed: data.command_executed || false,
         command_failed: data.command_failed || false,
         needs_more_info: data.needs_more_info || false,
+        needs_confirmation: data.needs_confirmation || false,
+        command_type: data.command_type || null,
+        command_prompt: data.command_prompt || null,
         links: data.links || [],
       });
     } catch (error) {
