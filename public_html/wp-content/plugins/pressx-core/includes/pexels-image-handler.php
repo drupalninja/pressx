@@ -123,17 +123,25 @@ function pressx_get_pexels_gallery_images($query, $count = 4) {
 }
 
 /**
- * Imports a Pexels image into the WordPress media library.
+ * Import an image from Pexels into the media library.
  *
  * @param string $image_url
  *   The URL of the image to import.
- * @param string $title
- *   The title to use for the image.
+ * @param string $alt_text
+ *   The alt text for the image.
+ * @param string $caption
+ *   The caption for the image.
  *
- * @return int|null
- *   The attachment ID if successful, NULL otherwise.
+ * @return int|WP_Error
+ *   The attachment ID or WP_Error on failure.
  */
-function pressx_import_pexels_image($image_url, $title = '') {
+function pressx_import_pexels_image($image_url = '', $alt_text = '', $caption = '') {
+  // Include the file that contains the download_url function.
+  require_once ABSPATH . 'wp-admin/includes/file.php';
+  require_once ABSPATH . 'wp-admin/includes/media.php';
+  require_once ABSPATH . 'wp-admin/includes/image.php';
+
+  // If no image URL is provided, search for one.
   if (empty($image_url)) {
     return NULL;
   }
@@ -149,8 +157,12 @@ function pressx_import_pexels_image($image_url, $title = '') {
     $filename .= '.jpg';  // Default to jpg for Pexels images.
   }
 
-  if (empty($title)) {
-    $title = 'Pexels Image - ' . sanitize_title($filename);
+  if (empty($alt_text)) {
+    $alt_text = 'Pexels Image - ' . sanitize_title($filename);
+  }
+
+  if (empty($caption)) {
+    $caption = 'Pexels Image - ' . sanitize_title($filename);
   }
 
   // Download the image.
@@ -175,7 +187,7 @@ function pressx_import_pexels_image($image_url, $title = '') {
   }
 
   // Import the image into the media library.
-  $attachment_id = media_handle_sideload($file_array, 0, $title);
+  $attachment_id = media_handle_sideload($file_array, 0, $caption);
 
   // Clean up the temporary file.
   @unlink($tmp_file);

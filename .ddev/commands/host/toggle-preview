@@ -25,6 +25,7 @@ case "$1" in
         # Create or update .env.local file with preview settings
         cat > nextjs/.env.local <<EOF
 NEXT_PUBLIC_WORDPRESS_API_URL=http://pressx.ddev.site/graphql
+NEXT_PUBLIC_WORDPRESS_URL=http://pressx.ddev.site
 NEXT_PUBLIC_PREVIEW_MODE=true
 WORDPRESS_PREVIEW_SECRET=pressx_preview_secret
 WORDPRESS_PREVIEW_USERNAME=admin
@@ -52,6 +53,7 @@ EOF
         # Create or update .env.local file without preview settings
         cat > nextjs/.env.local <<EOF
 NEXT_PUBLIC_WORDPRESS_API_URL=http://pressx.ddev.site/graphql
+NEXT_PUBLIC_WORDPRESS_URL=http://pressx.ddev.site
 NEXT_PUBLIC_PREVIEW_MODE=false
 NODE_TLS_REJECT_UNAUTHORIZED=0
 EOF

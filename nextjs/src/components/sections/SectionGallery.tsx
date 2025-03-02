@@ -26,11 +26,11 @@ export default function SectionGallery({ section }: { section: GallerySection })
   });
 
   return (
-    <div className='container my-6 my-lg-15'>
+    <div className='container my-6 lg:my-25'>
       <Gallery
-      title={section.title}
-      summary={section.summary}
-      mediaItems={mediaElements}
+        title={section.title}
+        summary={section.summary}
+        mediaItems={mediaElements}
       />
     </div>
   );

@@ -12,13 +12,27 @@ if (!defined('ABSPATH')) {
 /**
  * Creates an AI-generated landing page.
  *
- * @param array $options
- *   Additional options for the command.
+ * @param string $prompt
+ *   The prompt for the AI to generate content.
+ * @param bool $is_cli
+ *   Whether this is being called from CLI.
  *
- * @return bool
- *   TRUE if successful, FALSE otherwise.
+ * @return array|bool
+ *   Array with post_id and permalink if successful, FALSE otherwise.
  */
-function pressx_create_ai_landing(array $options = []) {
+function pressx_create_ai_landing($prompt = '', $is_cli = TRUE) {
+  if (empty($prompt)) {
+    if (!$is_cli) {
+      return FALSE;
+    }
+    else {
+      if (class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
+        WP_CLI::error('Please provide a prompt.');
+      }
+      return FALSE;
+    }
+  }
+
   // Include the image handler.
   require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'image-handler.php';
 
@@ -26,6 +40,9 @@ function pressx_create_ai_landing(array $options = []) {
   if (defined('PRESSX_USE_PEXELS_IMAGES') && PRESSX_USE_PEXELS_IMAGES) {
     require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'pexels-image-handler.php';
   }
+
+  // Include the AI utilities.
+  require_once plugin_dir_path(dirname(dirname(__FILE__))) . 'ai-utils.php';
 
   // Get the API keys from wp-config.php.
   $_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
@@ -35,10 +52,14 @@ function pressx_create_ai_landing(array $options = []) {
   $_pressx_use_pexels_images = defined('PRESSX_USE_PEXELS_IMAGES') ? PRESSX_USE_PEXELS_IMAGES : FALSE;
 
   if (!$_pressx_openrouter_api_key && !$_pressx_groq_api_key) {
-    WP_CLI::error("Neither OPENROUTER_API_KEY nor GROQ_API_KEY is defined in wp-config.php.\n" .
+    $error_message = "Neither OPENROUTER_API_KEY nor GROQ_API_KEY is defined in wp-config.php.\n" .
       "Please add at least one of the following to your wp-config.php file:\n" .
       "define('OPENROUTER_API_KEY', 'your-api-key-here');\n" .
-      "define('GROQ_API_KEY', 'your-api-key-here');");
+      "define('GROQ_API_KEY', 'your-api-key-here');";
+
+    if ($is_cli && class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
+      WP_CLI::error($error_message);
+    }
     return FALSE;
   }
 
@@ -50,19 +71,14 @@ function pressx_create_ai_landing(array $options = []) {
   $default_image_id = pressx_ensure_image($default_image_path);
   $default_image_url = $default_image_id ? wp_get_attachment_url($default_image_id) : '';
 
-  // Get the prompt from options or ask the user.
-  $prompt = $options['prompt'] ?? NULL;
-  if (!$prompt) {
-    $prompt = readline("Enter a prompt for your AI landing page (e.g., 'coffee shop'): ");
-  }
-
   // Sanitize the prompt.
   $prompt = sanitize_prompt($prompt);
 
-  // Suggest improvements if the prompt is too generic.
-  suggest_prompt_improvements($prompt);
-
-  WP_CLI::log("Generating AI landing page for: " . $prompt);
+  // Suggest improvements if the prompt is too generic and we're in CLI mode.
+  if ($is_cli && class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
+    suggest_prompt_improvements($prompt);
+    WP_CLI::log("Generating AI landing page for: " . $prompt);
+  }
 
   // Generate the landing page content using AI.
   try {
@@ -71,7 +87,7 @@ function pressx_create_ai_landing(array $options = []) {
 
 Your task is to generate content for a landing page that SPECIFICALLY addresses the user's prompt. The content should be tailored to the topic, business, or purpose described in the prompt.
 
-Generate exactly 6 different section types from this list: hero, text, side_by_side, card_group, gallery, quote, logo_collection, accordion.
+Generate exactly 6 different section types from this list: hero, side_by_side, card_group, gallery, accordion, quote, text, logo_collection.
 
 IMPORTANT: If you include a gallery section, it MUST have EXACTLY 4 media_items. No more, no less.
 
@@ -83,6 +99,7 @@ IMPORTANT FOR CARD GROUPS: When creating a card_group section, you MUST create E
 - The second and third icons are alternative suggestions.
 - Icons MUST be valid Lucide icon names.
 - Icons should relate to the card's theme or content.
+- IMPORTANT: Each card in the group MUST have a DIFFERENT primary icon. Do not use the same icon for multiple cards in the same group.
 
 IMPORTANT FOR IMAGES: For each section that can include images (hero, side_by_side, gallery items, etc.), include an \"image_search\" field with a specific search phrase that would find a relevant image. For example, for a coffee shop, you might use \"barista pouring latte art\" or \"cozy coffee shop interior\".
 
@@ -117,14 +134,11 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 }";
 
     // Make the AI request.
-    WP_CLI::log("Making AI request...");
-    $result = make_ai_request($prompt, $system_prompt);
-
-    // Extract the content from the response.
-    $content = $result['choices'][0]['message']['content'];
+    pressx_landing_log("Making AI request...");
+    $content = pressx_ai_request($prompt, $system_prompt, $is_cli, TRUE);
 
     // Debug the raw AI response.
-    WP_CLI::log("Raw AI response: " . $content);
+    pressx_landing_log("Raw AI response: " . $content);
 
     // Extract the JSON part from the response by finding the first { and last }.
     $json_start = strpos($content, '{');
@@ -141,10 +155,10 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
     }
 
     // Debug the parsed data.
-    WP_CLI::log("Parsed landing data: " . print_r($landing_data, TRUE));
+    pressx_landing_log("Parsed landing data: " . print_r($landing_data, TRUE));
 
     if (!$landing_data || !isset($landing_data['sections'])) {
-      WP_CLI::error("Failed to parse AI response. Invalid JSON format.");
+      pressx_landing_error("Failed to parse AI response. Invalid JSON format.");
       return FALSE;
     }
 
@@ -173,45 +187,65 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
             'icons' => ['star'],
             'icon' => 'star'
           ];
-          WP_CLI::log("Added placeholder card to reach 3 items.");
+          pressx_landing_log("Added placeholder card to reach 3 items.");
         }
+
+        // Track used icons to prevent duplicates.
+        $used_icons = [];
 
         // Process icons for each card.
         foreach ($section['cards'] as &$card) {
-          // If icons are not set, default to star
+          // If icons are not set, default to star.
           $icon_options = $card['icons'] ?? ['star'];
 
-          // Validate each icon, keeping the first valid icon as primary
+          // Validate each icon, keeping the first valid icon as primary.
           $validated_icons = [];
           foreach ($icon_options as $icon) {
-            // Validate the icon
+            // Validate the icon.
             $validated_icon_options = validate_lucide_icon($icon);
 
-            // If the first option is not the original icon, try the next options
+            // If the first option is not the original icon, try the next options.
             if ($validated_icon_options[0] !== $icon) {
-              // Try the other options in the order they were returned
+              // Try the other options in the order they were returned.
               for ($i = 0; $i < count($validated_icon_options); $i++) {
-                // If this icon is valid, use it
-                if ($validated_icon_options[$i] !== 'star') {
+                // If this icon is valid and not already used, use it.
+                if ($validated_icon_options[$i] !== 'star' && !in_array($validated_icon_options[$i], $used_icons)) {
                   $validated_icons[] = $validated_icon_options[$i];
                   break;
                 }
               }
             } else {
-              // Original icon was valid, use it
-              $validated_icons[] = $icon;
+              // Original icon was valid, check if it's already used.
+              if (!in_array($icon, $used_icons)) {
+                $validated_icons[] = $icon;
+              }
             }
           }
 
-          // If no valid icons were found, default to star
+          // If no valid icons were found, default to star.
           if (empty($validated_icons)) {
-            $validated_icons = ['star'];
+            // Try to find an unused icon from a predefined list.
+            $fallback_icons = ['star', 'zap', 'award', 'check', 'heart', 'thumbs-up', 'coffee', 'gift'];
+            foreach ($fallback_icons as $fallback) {
+              if (!in_array($fallback, $used_icons)) {
+                $validated_icons = [$fallback];
+                break;
+              }
+            }
+
+            // If all fallbacks are used, use a numbered variant.
+            if (empty($validated_icons)) {
+              $validated_icons = ['star-' . count($used_icons)];
+            }
           }
 
-          // Use the first validated icon as primary
+          // Use the first validated icon as primary.
           $card['icon'] = $validated_icons[0];
 
-          // If more than one icon was found, store alternatives
+          // Add this icon to the used icons list.
+          $used_icons[] = $card['icon'];
+
+          // If more than one icon was found, store alternatives.
           if (count($validated_icons) > 1) {
             $card['icon_alternatives'] = array_slice($validated_icons, 1);
           }
@@ -231,12 +265,12 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
             'summary' => 'Additional gallery item',
             'media' => $default_image_url
           ];
-          WP_CLI::log("Added missing gallery item to reach 4 items.");
+          pressx_landing_log("Added missing gallery item to reach 4 items.");
         }
 
         // If more than 4 items, trim the excess
         if (count($section['media_items']) > 4) {
-          WP_CLI::log("Trimming gallery from " . count($section['media_items']) . " to 4 items.");
+          pressx_landing_log("Trimming gallery from " . count($section['media_items']) . " to 4 items.");
           $section['media_items'] = array_slice($section['media_items'], 0, 4);
         }
 
@@ -285,28 +319,28 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
       foreach ($processed_sections as &$section) {
         // Handle image search for hero, side_by_side, and quote sections.
         if (in_array($section['_type'], ['hero', 'side_by_side', 'quote']) && isset($section['image_search'])) {
-          WP_CLI::log("Searching for image: " . $section['image_search']);
+          pressx_landing_log("Searching for image: " . $section['image_search']);
           $image_url = pressx_get_pexels_image($section['image_search']);
 
           if ($image_url) {
-            WP_CLI::log("Found image: " . $image_url);
+            pressx_landing_log("Found image: " . $image_url);
             // Import the image to WordPress media library.
             $image_id = pressx_import_pexels_image($image_url, $section['image_search']);
 
             if (!is_wp_error($image_id)) {
               $section['media'] = wp_get_attachment_url($image_id);
-              WP_CLI::log("Imported image as attachment ID: " . $image_id);
+              pressx_landing_log("Imported image as attachment ID: " . $image_id);
             }
             else {
               // Fallback to default image.
               $section['media'] = $default_image_url;
-              WP_CLI::log("Failed to import image, using default placeholder.");
+              pressx_landing_log("Failed to import image, using default placeholder.");
             }
           }
           else {
             // Fallback to default image.
             $section['media'] = $default_image_url;
-            WP_CLI::log("No image found, using default placeholder.");
+            pressx_landing_log("No image found, using default placeholder.");
           }
         } else if (in_array($section['_type'], ['hero', 'side_by_side', 'quote'])) {
           // No image search provided, use default.
@@ -317,27 +351,27 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
         if ($section['_type'] === 'gallery' && isset($section['media_items']) && is_array($section['media_items'])) {
           foreach ($section['media_items'] as &$item) {
             if (isset($item['image_search'])) {
-              WP_CLI::log("Searching for gallery image: " . $item['image_search']);
+              pressx_landing_log("Searching for gallery image: " . $item['image_search']);
               $image_url = pressx_get_pexels_image($item['image_search']);
 
               if ($image_url) {
-                WP_CLI::log("Found gallery image: " . $image_url);
+                pressx_landing_log("Found gallery image: " . $image_url);
                 $image_id = pressx_import_pexels_image($image_url, $item['image_search']);
 
                 if (!is_wp_error($image_id)) {
                   $item['media'] = wp_get_attachment_url($image_id);
-                  WP_CLI::log("Imported gallery image as attachment ID: " . $image_id);
+                  pressx_landing_log("Imported gallery image as attachment ID: " . $image_id);
                 }
                 else {
                   // Fallback to default image.
                   $item['media'] = $default_image_url;
-                  WP_CLI::log("Failed to import gallery image, using default placeholder.");
+                  pressx_landing_log("Failed to import gallery image, using default placeholder.");
                 }
               }
               else {
                 // Fallback to default image.
                 $item['media'] = $default_image_url;
-                WP_CLI::log("No gallery image found, using default placeholder.");
+                pressx_landing_log("No gallery image found, using default placeholder.");
               }
             } else {
               // No image search provided, use default.
@@ -377,7 +411,7 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 
     // Create a new landing page.
     $landing_id = wp_insert_post($landing_args);
-    WP_CLI::log("Created landing page: {$landing_title}");
+    pressx_landing_log("Created landing page: {$landing_title}");
 
     // Set the featured image.
     if ($landing_id && $default_image_id) {
@@ -414,155 +448,28 @@ Your response format should be valid JSON that looks EXACTLY like this (with you
 
         // Verify the sections were saved.
         $saved_sections = carbon_get_post_meta($landing_id, 'sections');
-        WP_CLI::log("Saved " . (is_array($saved_sections) ? count($saved_sections) : "0") . " sections to landing page.");
+        pressx_landing_log("Saved " . (is_array($saved_sections) ? count($saved_sections) : "0") . " sections to landing page.");
       }
       else {
-        WP_CLI::warning("Carbon Fields not available. Sections not added.");
+        pressx_landing_warning("Carbon Fields not available. Sections not added.");
       }
     }
 
     // Log success with URL.
     $permalink = get_permalink($landing_id);
-    WP_CLI::success("AI landing page created with ID: $landing_id, slug: $slug");
-    WP_CLI::log("View page: $permalink");
-    WP_CLI::log("Edit page: " . admin_url("post.php?post=$landing_id&action=edit"));
+    pressx_landing_success("AI landing page created with ID: $landing_id, slug: $slug");
+    pressx_landing_log("View page: $permalink");
+    pressx_landing_log("Edit page: " . admin_url("post.php?post=$landing_id&action=edit"));
 
-    return TRUE;
+    return [
+      'post_id' => $landing_id,
+      'permalink' => $permalink,
+    ];
   }
   catch (Exception $e) {
-    WP_CLI::error("Error generating AI landing page: " . $e->getMessage());
+    pressx_landing_error("Error generating AI landing page: " . $e->getMessage());
     return FALSE;
   }
-}
-
-/**
- * Makes an AI request to the configured API.
- *
- * @param string $prompt
- *   The prompt to send to the API.
- * @param string|null $system_prompt
- *   Optional system prompt to include.
- *
- * @return array
- *   The API response data.
- */
-function make_ai_request($prompt, $system_prompt = NULL) {
-  global $_pressx_openrouter_api_key, $_pressx_groq_api_key, $preferred_api;
-
-  // If globals aren't working, get the values directly.
-  if (empty($_pressx_openrouter_api_key)) {
-    $_pressx_openrouter_api_key = defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '';
-  }
-
-  if (empty($_pressx_groq_api_key)) {
-    $_pressx_groq_api_key = defined('GROQ_API_KEY') ? GROQ_API_KEY : '';
-  }
-
-  if (empty($preferred_api)) {
-    $preferred_api = defined('PRESSX_AI_API') ? PRESSX_AI_API : 'openrouter';
-  }
-
-  $url = '';
-  $headers = [];
-  $model = '';
-
-  // Helper function to configure Groq.
-  $configure_groq = function () use ($_pressx_groq_api_key) {
-    return [
-      'url' => 'https://api.groq.com/openai/v1/chat/completions',
-      'headers' => [
-        'Authorization: Bearer ' . $_pressx_groq_api_key,
-        'Content-Type: application/json',
-      ],
-      'model' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile'
-    ];
-  };
-
-  // Helper function to configure OpenRouter.
-  $configure_openrouter = function () use ($_pressx_openrouter_api_key) {
-    return [
-      'url' => 'https://openrouter.ai/api/v1/chat/completions',
-      'headers' => [
-        'Authorization: Bearer ' . $_pressx_openrouter_api_key,
-        'Content-Type: application/json',
-        'HTTP-Referer: http://localhost',
-        'X-Title: PressX',
-      ],
-      'model' => defined('OPENROUTER_MODEL') ? OPENROUTER_MODEL : 'mistralai/mixtral-8x7b-instruct'
-    ];
-  };
-
-  // Initialize config array.
-  $config = NULL;
-
-  // Try preferred API first.
-  if ($preferred_api === 'groq' && $_pressx_groq_api_key) {
-    $config = $configure_groq();
-  }
-  elseif ($preferred_api === 'openrouter' && $_pressx_openrouter_api_key) {
-    $config = $configure_openrouter();
-  }
-  // Handle fallback if preferred API isn't available.
-  elseif ($preferred_api === 'groq' && !$_pressx_groq_api_key && $_pressx_openrouter_api_key) {
-    WP_CLI::warning("Groq API is configured but GROQ_API_KEY is not set. Falling back to OpenRouter.");
-    $config = $configure_openrouter();
-  }
-  elseif ($preferred_api === 'openrouter' && !$_pressx_openrouter_api_key && $_pressx_groq_api_key) {
-    WP_CLI::warning("OpenRouter API is configured but OPENROUTER_API_KEY is not set. Falling back to Groq.");
-    $config = $configure_groq();
-  }
-
-  // Check if we have a valid configuration.
-  if (!$config) {
-    // Just use any available API.
-    if ($_pressx_groq_api_key) {
-      WP_CLI::log("Using available Groq API.");
-      $config = $configure_groq();
-    }
-    elseif ($_pressx_openrouter_api_key) {
-      WP_CLI::log("Using available OpenRouter API.");
-      $config = $configure_openrouter();
-    }
-    else {
-      WP_CLI::error("No valid API configuration available.");
-      exit(1);
-    }
-  }
-
-  // Set the configuration
-  $url = $config['url'];
-  $headers = $config['headers'];
-  $model = $config['model'];
-
-  WP_CLI::log("Using API: " . ($url === 'https://api.groq.com/openai/v1/chat/completions' ? 'Groq' : 'OpenRouter'));
-  WP_CLI::log("Model: " . $model);
-
-  $data = [
-    'model' => $model,
-    'messages' => array_filter([
-      $system_prompt ? ['role' => 'system', 'content' => $system_prompt] : NULL,
-      ['role' => 'user', 'content' => $prompt]
-    ]),
-    'temperature' => 0.7,
-    'max_tokens' => 4000,
-  ];
-
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-  curl_setopt($ch, CURLOPT_POST, TRUE);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-  $response = curl_exec($ch);
-  $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-
-  if ($status !== 200) {
-    throw new Exception("API request failed with status $status: $response");
-  }
-
-  $result = json_decode($response, TRUE);
-  return $result;
 }
 
 /**
@@ -575,19 +482,7 @@ function make_ai_request($prompt, $system_prompt = NULL) {
  *   The sanitized prompt.
  */
 function sanitize_prompt($prompt) {
-  // Remove any potentially harmful characters
-  $sanitized = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $prompt);
-
-  // Trim and convert to lowercase
-  $sanitized = strtolower(trim($sanitized));
-
-  // Ensure the prompt is not empty
-  if (empty($sanitized)) {
-    WP_CLI::error("Prompt cannot be empty.");
-    exit(1);
-  }
-
-  return $sanitized;
+  return pressx_sanitize_prompt($prompt);
 }
 
 /**
@@ -597,16 +492,20 @@ function sanitize_prompt($prompt) {
  *   The prompt to check.
  */
 function suggest_prompt_improvements($prompt) {
+  // Check for generic prompts and suggest improvements.
   $generic_prompts = [
-    'coffee' => "Try something more specific like 'artisan coffee shop in urban setting'",
-    'shop' => "Be more descriptive, e.g., 'boutique clothing store for sustainable fashion'",
-    'business' => "Add more context, like 'tech startup focusing on AI innovation'",
-    'website' => "Provide more details, such as 'photography portfolio for wedding photographers'",
+    'landing page' => "Be more specific about the purpose, e.g., 'landing page for a fitness app'.",
+    'website' => "Provide more details, such as 'photography portfolio for wedding photographers'.",
+    'shop' => "Be more descriptive, e.g., 'boutique clothing store for sustainable fashion'.",
+    'business' => "Add more context, like 'tech startup focusing on AI innovation'.",
   ];
 
   foreach ($generic_prompts as $keyword => $suggestion) {
-    if (strpos($prompt, $keyword) !== false) {
-      WP_CLI::log("Tip: " . $suggestion);
+    if (strpos($prompt, $keyword) !== FALSE) {
+      // Only use WP_CLI if it exists (command line context).
+      if (class_exists('WP_CLI')) {
+        WP_CLI::log("Tip: " . $suggestion);
+      }
       break;
     }
   }
@@ -627,7 +526,7 @@ function validate_lucide_icon($icon) {
 
   // If file doesn't exist, default to star.
   if (!file_exists($icon_file)) {
-    WP_CLI::log("Warning: Lucide icon names file not found at: " . $icon_file . " Using default 'star' icon.");
+    pressx_landing_warning("Warning: Lucide icon names file not found at: " . $icon_file . " Using default 'star' icon.");
     return ['star'];
   }
 
@@ -636,7 +535,7 @@ function validate_lucide_icon($icon) {
 
   // If no icons found, default to star.
   if (empty($icon_names)) {
-    WP_CLI::log("Warning: No icon names found in the file. Using default 'star' icon.");
+    pressx_landing_warning("Warning: No icon names found in the file. Using default 'star' icon.");
     return ['star'];
   }
 
@@ -668,4 +567,71 @@ function validate_lucide_icon($icon) {
 
   // If no match found, default to star.
   return ['star'];
+}
+
+/**
+ * Wrapper for logging that works in both CLI and API contexts.
+ *
+ * @param string $message
+ *   The message to log.
+ */
+function pressx_landing_log($message) {
+  if (class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
+    WP_CLI::log($message);
+  }
+  // In API context, we could log to a file or just return silently
+  // error_log('PressX Landing: ' . $message);
+}
+
+/**
+ * Wrapper for error logging that works in both CLI and API contexts.
+ *
+ * @param string $message
+ *   The error message.
+ * @param bool $exit
+ *   Whether to exit after logging the error.
+ *
+ * @return bool
+ *   Always returns FALSE.
+ */
+function pressx_landing_error($message, $exit = FALSE) {
+  if (class_exists('WP_CLI') && defined('WP_CLI') && WP_CLI) {
+    if ($exit) {
+      WP_CLI::error($message);
+    }
+    else {
+      WP_CLI::warning($message);
+    }
+  }
+  // In API context, we could log to a file
+  // error_log('PressX Landing Error: ' . $message);
+  return FALSE;
+}
+
+/**
+ * Wrapper for success logging that works in both CLI and API contexts.
+ *
+ * @param string $message
+ *   The success message.
+ */
+function pressx_landing_success($message) {
+  if (class_exists('WP_CLI')) {
+    WP_CLI::success($message);
+  }
+  // In API context, we could log to a file
+  // error_log('PressX Landing Success: ' . $message);
+}
+
+/**
+ * Wrapper for warning logging that works in both CLI and API contexts.
+ *
+ * @param string $message
+ *   The warning message.
+ */
+function pressx_landing_warning($message) {
+  if (class_exists('WP_CLI')) {
+    WP_CLI::warning($message);
+  }
+  // In API context, we could log to a file
+  // error_log('PressX Landing Warning: ' . $message);
 }
