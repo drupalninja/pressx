@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import { graphQLClient } from "@/lib/graphql";
 import './globals.css'
 import AdminBarWrapper from "@/components/admin/AdminBarWrapper";
+import ChatBot from "@/components/chat-bot/ChatBot";
 
 const font = Open_Sans({ subsets: ["latin"] });
 
@@ -97,6 +98,7 @@ export default async function RootLayout({
           {children}
           <Footer />
         </Container>
+        <ChatBot />
       </body>
     </html>
   );
